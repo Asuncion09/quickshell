@@ -12,6 +12,7 @@ QtObject {
     readonly property color hoverBg: "#1f78a9ff"          // rgba(120, 169, 255, 0.12)
     
     readonly property color text: "#dde1e7"               // Texto principal
+    readonly property color textSecondary: "#a0a8b7"      // Texto secundario (artista, subtítulo, 65% contraste)
     readonly property color textMuted: "#59dde1e7"        // 35% opacidad
     readonly property color textDisabled: "#66dde1e7"     // 40% opacidad
     

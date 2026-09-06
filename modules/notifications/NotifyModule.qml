@@ -6,7 +6,7 @@ import "../../components"
 BarButton {
     id: root
 
-    text: ""
+    text: "󰂚"
     pixelSize: Theme.fontSize
     defaultTextColor: Theme.text
     hoverTextColor: Theme.highlight

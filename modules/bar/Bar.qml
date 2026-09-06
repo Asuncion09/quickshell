@@ -6,8 +6,7 @@ import "../../theme"
 import "../../components"
 import "../launcher"
 import "../workspaces"
-import "../clock"
-import "../notifications"
+import "../center"
 import "../tray"
 import "../hardware"
 
@@ -62,7 +61,7 @@ PanelWindow {
             }
         }
 
-        // SECCIÓN CENTRAL: .modules-center (Clock)
+        // SECCIÓN CENTRAL: .modules-center (Isla Dinámica: Reloj / Reproductor Multimedia)
         RowLayout {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
@@ -71,8 +70,8 @@ PanelWindow {
                 id: centerPill
                 paddingHorizontal: Theme.centerPillPaddingHorizontal
 
-                ClockModule {
-                    id: clock
+                CenterIslandModule {
+                    id: centerIsland
                 }
             }
         }
@@ -87,7 +86,7 @@ PanelWindow {
             // Se auto-oculta limpiamente si no hay aplicaciones activas en la bandeja
             Pill {
                 id: trayPill
-                visible: tray.visible
+                visible: tray.hasItems
                 spacing: 8
 
                 TrayModule {
@@ -95,14 +94,10 @@ PanelWindow {
                 }
             }
 
-            // Cápsula #system (Notificaciones + Hardware)
+            // Cápsula #hardware (Bluetooth + Red + Batería)
             Pill {
-                id: systemPill
+                id: hardwarePill
                 spacing: 4
-
-                NotifyModule {
-                    id: notify
-                }
 
                 BluetoothModule {
                     id: bluetooth

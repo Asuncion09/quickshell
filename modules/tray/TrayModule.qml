@@ -6,29 +6,61 @@ import Quickshell.Widgets
 import "../../theme"
 import "../../components"
 
-RowLayout {
+Row {
     id: root
 
-    spacing: 10
-    visible: SystemTray.items && SystemTray.items.values && SystemTray.items.values.length > 0
+    spacing: 8
+
+    property int activeCount: (SystemTray.items && SystemTray.items.values) ? SystemTray.items.values.length : 0
+    readonly property bool hasItems: activeCount > 0
 
     Repeater {
-        model: SystemTray.items ? SystemTray.items.values : []
+        id: trayRepeater
+        model: SystemTray.items
+
+        onItemAdded: (index, item) => root.activeCount++
+        onItemRemoved: (index, item) => root.activeCount--
 
         Item {
             id: trayButton
 
             required property var modelData
 
-            implicitWidth: 18
-            implicitHeight: 20
+            width: 22
+            height: 26
+            implicitWidth: 22
+            implicitHeight: 26
+
+            // Resuelve el icono original a color de la aplicación si el cliente expone un icono simbólico genérico
+            readonly property string resolvedSource: {
+                let raw = trayButton.modelData.icon || "";
+
+                // 1. Si el icono se llama algo como com.spotify.Client-symbolic, buscar la versión oficial a color
+                let cleanName = raw.replace(/^image:\/\/icon\//, "").replace(/-symbolic$/, "").replace(/_mono$/, "").split("?")[0];
+                if (cleanName !== "" && Quickshell.hasThemeIcon(cleanName)) {
+                    return Quickshell.iconPath(cleanName);
+                }
+
+                // 2. Si existe un icono de aplicación correspondiente al ID (ej: steam, discord, etc.)
+                let idClean = (trayButton.modelData.id || "").replace(/-client$/, "").replace(/_client$/, "");
+                if (idClean !== "" && Quickshell.hasThemeIcon(idClean)) {
+                    return Quickshell.iconPath(idClean);
+                }
+
+                return raw;
+            }
 
             IconImage {
                 id: iconImg
                 anchors.centerIn: parent
                 width: 16
                 height: 16
-                source: trayButton.modelData.icon || ""
+                source: trayButton.resolvedSource
+                opacity: mouseArea.containsMouse ? 1.0 : 0.9
+
+                Behavior on opacity {
+                    NumberAnimation { duration: Theme.animFast }
+                }
             }
 
             // Menú contextual 100% en QML integrado con el diseño de la barra

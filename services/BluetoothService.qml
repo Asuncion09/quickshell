@@ -72,7 +72,7 @@ Item {
     // Encendido: "󰂯"
     // Apagado / Deshabilitado: "󰂲"
     readonly property string icon: {
-        if (isConnected) return "";
+        if (isConnected) return "󰂱";
         if (isEnabled) return "󰂯";
         return "󰂲";
     }
