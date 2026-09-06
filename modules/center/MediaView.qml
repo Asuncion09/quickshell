@@ -114,14 +114,12 @@ Item {
                 id: controlsRow
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 8
                 spacing: 9
 
                 // Separador sutil
                 Text {
                     text: "|"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 10
                     font.pixelSize: 11
                     color: Theme.dark6
                     anchors.verticalCenter: parent.verticalCenter
@@ -131,7 +129,6 @@ Item {
                 Text {
                     text: "󰒮"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 12
                     font.pixelSize: 15
                     color: prevMouse.containsMouse ? Theme.highlight : Theme.text
                     anchors.verticalCenter: parent.verticalCenter
@@ -154,7 +151,6 @@ Item {
                 Text {
                     text: MediaService.isPlaying ? "󰏤" : "󰐊"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 13
                     font.pixelSize: 16
                     color: playMouse.containsMouse ? Theme.highlight : (MediaService.isPlaying ? Theme.success : Theme.text)
                     anchors.verticalCenter: parent.verticalCenter
@@ -177,7 +173,6 @@ Item {
                 Text {
                     text: "󰒭"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 12
                     font.pixelSize: 15
                     color: nextMouse.containsMouse ? Theme.highlight : Theme.text
                     anchors.verticalCenter: parent.verticalCenter
