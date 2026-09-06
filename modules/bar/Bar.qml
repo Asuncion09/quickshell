@@ -106,10 +106,14 @@ PanelWindow {
                 }
             }
 
-            // Cápsula #hardware (Bluetooth + Red + Batería)
+            // Cápsula #hardware (Volumen + Bluetooth + Red + Batería)
             Pill {
                 id: hardwarePill
-                spacing: 4
+                spacing: 2
+
+                VolumeModule {
+                    id: volume
+                }
 
                 BluetoothModule {
                     id: bluetooth

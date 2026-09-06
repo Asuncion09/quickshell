@@ -13,7 +13,7 @@ BarButton {
     hoverTextColor: Theme.highlight
     hoverBgColor: "transparent"
     tooltipText: BluetoothService.tooltipText
-    implicitWidth: 22
+    implicitWidth: 18
 
     Process {
         id: btProc
