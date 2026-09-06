@@ -1,0 +1,299 @@
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import Quickshell.Widgets
+import Quickshell.Hyprland
+import Quickshell.Io
+import "../../theme"
+import "../../components"
+
+Item {
+    id: root
+
+    // Versión de evento para reactividad inmediata ante cambios en Hyprland
+    property int _eventVersion: 0
+
+    Connections {
+        target: Hyprland
+        function onRawEvent(event) {
+            if (!event) return;
+            let n = event.name;
+            if (n === "openwindow" || n === "closewindow" || n === "movewindow" 
+             || n === "activewindow" || n === "activewindowv2" || n === "workspace") {
+                root._eventVersion++;
+            }
+        }
+    }
+
+    // Procesos auxiliares compatibles con la sintaxis de Hyprland-Lua (hl.dsp)
+    Process {
+        id: focusProc
+        command: ["hyprctl", "dispatch", "hl.dsp.focus({ window = 'address:0x0' })"]
+    }
+
+    Process {
+        id: closeProc
+        command: ["hyprctl", "dispatch", "hl.dsp.window.close({ window = 'address:0x0' })"]
+    }
+
+    function focusWindow(address, toplevel) {
+        // 1. Intentar el método nativo Wayland si está presente
+        if (toplevel && toplevel.wayland && typeof toplevel.wayland.activate === "function") {
+            toplevel.wayland.activate();
+        }
+
+        // 2. Intentar dispatch vía socket IPC nativo
+        if (typeof Hyprland.dispatch === "function") {
+            Hyprland.dispatch("dispatch hl.dsp.focus({ window = 'address:" + address + "' })");
+            Hyprland.dispatch("focuswindow address:" + address);
+        }
+
+        // 3. Ejecutar hyprctl dispatch compatible con Hyprland-Lua
+        if (focusProc.running) {
+            focusProc.running = false;
+        }
+        focusProc.command = ["hyprctl", "dispatch", "hl.dsp.focus({ window = 'address:" + address + "' })"];
+        focusProc.running = true;
+    }
+
+    function closeWindow(address, toplevel) {
+        // 1. Intentar método Wayland nativo
+        if (toplevel && toplevel.wayland && typeof toplevel.wayland.close === "function") {
+            toplevel.wayland.close();
+        }
+
+        // 2. Intentar dispatch vía socket
+        if (typeof Hyprland.dispatch === "function") {
+            Hyprland.dispatch("dispatch hl.dsp.window.close({ window = 'address:" + address + "' })");
+            Hyprland.dispatch("closewindow address:" + address);
+        }
+
+        // 3. Ejecutar hyprctl dispatch con sintaxis Lua
+        if (closeProc.running) {
+            closeProc.running = false;
+        }
+        closeProc.command = ["hyprctl", "dispatch", "hl.dsp.window.close({ window = 'address:" + address + "' })"];
+        closeProc.running = true;
+    }
+
+    // ID del espacio de trabajo activo
+    readonly property int currentWorkspaceId: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1
+
+    // Dirección de la ventana enfocada actualmente
+    readonly property string activeAddress: {
+        let _dep = root._eventVersion;
+        if (Hyprland.activeToplevel && Hyprland.activeToplevel.address) {
+            return Hyprland.activeToplevel.address;
+        }
+        return "";
+    }
+
+    // Resuelve el icono a color oficial del tema para la aplicación
+    function resolveAppIcon(appClass, title) {
+        if (!appClass) return "";
+
+        let candidates = [];
+        let raw = appClass.trim();
+        let lower = raw.toLowerCase();
+
+        // 1. Mapeos de nombres conocidos para apps comunes
+        if (lower.includes("code") || lower.includes("vscode")) {
+            candidates.push("code", "vscode", "visual-studio-code", "com.visualstudio.code");
+        } else if (lower.includes("ghostty")) {
+            candidates.push("com.mitchellh.ghostty", "ghostty");
+        } else if (lower.includes("spotify")) {
+            candidates.push("com.spotify.Client", "spotify");
+        } else if (lower.includes("steam")) {
+            candidates.push("steam");
+        } else if (lower.includes("zen")) {
+            candidates.push("zen-browser", "zen");
+        } else if (lower.includes("firefox")) {
+            candidates.push("firefox");
+        } else if (lower.includes("nautilus") || lower.includes("files")) {
+            candidates.push("org.gnome.Nautilus", "system-file-manager");
+        } else if (lower.includes("chrome")) {
+            candidates.push("google-chrome", "chromium");
+        } else if (lower.includes("discord")) {
+            candidates.push("discord", "com.discordapp.Discord");
+        } else if (lower.includes("telegram")) {
+            candidates.push("telegram", "telegram-desktop", "org.telegram.desktop");
+        } else if (lower.includes("gimp")) {
+            candidates.push("gimp");
+        } else if (lower.includes("obsidian")) {
+            candidates.push("obsidian");
+        }
+
+        // 2. Probar la clase tal cual y en minúsculas
+        candidates.push(raw);
+        candidates.push(lower);
+
+        // 3. Probar el último segmento de nombres en formato reverse-DNS (ej. com.example.App -> App)
+        let dotParts = raw.split(".");
+        if (dotParts.length > 1) {
+            let last = dotParts[dotParts.length - 1];
+            candidates.push(last);
+            candidates.push(last.toLowerCase());
+        }
+
+        // Buscar en la base de datos de iconos del sistema
+        for (let i = 0; i < candidates.length; i++) {
+            let name = candidates[i];
+            if (name && Quickshell.hasThemeIcon(name)) {
+                return Quickshell.iconPath(name);
+            }
+        }
+
+        return "";
+    }
+
+    // Lista reactiva de todas las ventanas abiertas en el sistema
+    readonly property var activeWindows: {
+        let _dep = root._eventVersion;
+        let list = [];
+
+        if (!Hyprland.toplevels || !Hyprland.toplevels.values) return list;
+
+        for (let i = 0; i < Hyprland.toplevels.values.length; i++) {
+            let top = Hyprland.toplevels.values[i];
+            if (!top) continue;
+
+            let ipc = top.lastIpcObject || {};
+            if (ipc.mapped === false || ipc.hidden === true) continue;
+
+            let windowWs = top.workspace ? top.workspace.id : (ipc.workspace ? ipc.workspace.id : -1);
+            if (windowWs <= 0) continue;
+
+            let appClass = ipc.class || (top.wayland ? top.wayland.appId : "") || "";
+            let title = top.title || ipc.title || appClass || "Ventana";
+            let addr = top.address || "";
+            let isFocused = top.activated || (root.activeAddress !== "" && root.activeAddress === addr);
+            let isCurrentWs = windowWs === root.currentWorkspaceId;
+
+            list.push({
+                address: addr,
+                title: title,
+                appClass: appClass,
+                workspaceId: windowWs,
+                isCurrentWs: isCurrentWs,
+                isFocused: isFocused,
+                iconSource: root.resolveAppIcon(appClass, title),
+                toplevel: top
+            });
+        }
+
+        // Ordenar por workspace y luego alfabéticamente
+        list.sort((a, b) => {
+            if (a.workspaceId !== b.workspaceId) return a.workspaceId - b.workspaceId;
+            return a.title.localeCompare(b.title);
+        });
+
+        return list;
+    }
+
+    readonly property bool hasWindows: activeWindows.length > 0
+
+    implicitWidth: contentRow.implicitWidth
+    implicitHeight: 26
+    width: implicitWidth
+    height: implicitHeight
+
+    Row {
+        id: contentRow
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 4
+
+        Repeater {
+            model: root.activeWindows
+
+            Item {
+                id: taskItem
+                required property var modelData
+
+                width: 26
+                height: 26
+                implicitWidth: 26
+                implicitHeight: 26
+
+                // Fondo reactivo ÚNICAMENTE al hover (sin marco de color cuando está activo)
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    color: taskMouse.containsMouse ? Theme.hoverBg : "transparent"
+
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.animFast }
+                    }
+                }
+
+                // Icono a color de la aplicación
+                IconImage {
+                    id: appIcon
+                    anchors.centerIn: parent
+                    width: 17
+                    height: 17
+                    source: taskItem.modelData.iconSource
+                    visible: taskItem.modelData.iconSource !== ""
+                    opacity: taskItem.modelData.isFocused ? 1.0 : (taskMouse.containsMouse ? 1.0 : 0.80)
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: Theme.animFast }
+                    }
+                }
+
+                // Fallback si no tiene icono temático SVG/PNG
+                Text {
+                    anchors.centerIn: parent
+                    visible: taskItem.modelData.iconSource === ""
+                    text: ""
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 13
+                    color: taskItem.modelData.isFocused ? Theme.highlight : Theme.textSecondary
+                }
+
+                // Línea indicadora iluminada en la base:
+                // SOLO aparece debajo de la ventana enfocada (sin marcos ni puntos adicionales)
+                Rectangle {
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 1.5
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: taskItem.modelData.isFocused ? 12 : 0
+                    height: 2
+                    radius: 1
+                    color: Theme.highlight
+                    visible: width > 0
+
+                    Behavior on width {
+                        NumberAnimation {
+                            duration: Theme.animFast
+                            easing.type: Easing.OutQuad
+                        }
+                    }
+                }
+
+                MouseArea {
+                    id: taskMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+
+                    onClicked: mouse => {
+                        if (mouse.button === Qt.LeftButton) {
+                            // Clic izquierdo: Enfocar ventana mediante sintaxis de Hyprland-Lua garantizada
+                            root.focusWindow(taskItem.modelData.address, taskItem.modelData.toplevel);
+                        } else if (mouse.button === Qt.MiddleButton) {
+                            // Clic central: Cerrar ventana
+                            root.closeWindow(taskItem.modelData.address, taskItem.modelData.toplevel);
+                        }
+                    }
+                }
+
+                BarToolTip {
+                    targetItem: taskItem
+                    text: taskItem.modelData.title + (taskItem.modelData.workspaceId > 0 ? "  •  Workspace " + taskItem.modelData.workspaceId : "")
+                    hovered: taskMouse.containsMouse
+                }
+            }
+        }
+    }
+}

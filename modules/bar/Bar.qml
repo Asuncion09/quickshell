@@ -9,6 +9,7 @@ import "../workspaces"
 import "../center"
 import "../tray"
 import "../hardware"
+import "../taskbar"
 
 PanelWindow {
     id: root
@@ -57,6 +58,17 @@ PanelWindow {
 
                 WorkspacesModule {
                     id: workspaces
+                }
+            }
+
+            // Cápsula #taskbar (Dock de Apps Abiertas en el Workspace Activo)
+            Pill {
+                id: taskbarPill
+                visible: taskbar.hasWindows
+                paddingHorizontal: 6
+
+                TaskbarModule {
+                    id: taskbar
                 }
             }
         }
