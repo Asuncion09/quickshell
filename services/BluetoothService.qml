@@ -83,8 +83,26 @@ Item {
         return Theme.textDisabled;                    // 40% opacidad
     }
 
+    readonly property string deviceName: {
+        if (!isEnabled) return "Apagado";
+        if (!isConnected) return "Sin conexión";
+        if (Bluetooth.devices && Bluetooth.devices.values) {
+            let devs = Bluetooth.devices.values;
+            for (let i = 0; i < devs.length; i++) {
+                if (devs[i] && devs[i].connected) return devs[i].name || devs[i].deviceName || "Conectado";
+            }
+        }
+        if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.devices && Bluetooth.defaultAdapter.devices.values) {
+            let devs = Bluetooth.defaultAdapter.devices.values;
+            for (let i = 0; i < devs.length; i++) {
+                if (devs[i] && devs[i].connected) return devs[i].name || devs[i].deviceName || "Conectado";
+            }
+        }
+        return root._sysDeviceName || "Conectado";
+    }
+
     readonly property string tooltipText: {
-        if (isConnected) return `Bluetooth: Conectado (${root._sysDeviceName || "Dispositivo"})`;
+        if (isConnected) return `Bluetooth: Conectado (${root.deviceName})`;
         if (isEnabled) return "Bluetooth: Encendido (sin conexión)";
         return "Bluetooth: Apagado";
     }

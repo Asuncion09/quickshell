@@ -7,7 +7,7 @@ import "../../theme"
 RowLayout {
     id: root
 
-    spacing: 4
+    spacing: 2
 
     // Proceso auxiliar para garantizar el cambio de workspace mediante hyprctl en cualquier circunstancia
     Process {
@@ -133,8 +133,8 @@ RowLayout {
                 return false;
             }
 
-            implicitWidth: wsPill.implicitWidth + 4
-            implicitHeight: 28
+            implicitWidth: wsPill.implicitWidth + 6
+            implicitHeight: 26
 
             // Píldora visual centrada
             Rectangle {

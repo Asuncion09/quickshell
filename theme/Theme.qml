@@ -33,11 +33,11 @@ QtObject {
     readonly property int pillPaddingHorizontal: 8
     readonly property int centerPillPaddingHorizontal: 14
 
-    // --- Workspaces Tokens ---
-    readonly property int wsInactiveWidth: 18
-    readonly property int wsActiveWidth: 28
-    readonly property int wsHeight: 10
-    readonly property int wsRadius: 5
+    // --- Workspaces Tokens (Estilo GNOME: puntos inactivos compactos y cápsula activa alargada) ---
+    readonly property int wsInactiveWidth: 8
+    readonly property int wsActiveWidth: 22
+    readonly property int wsHeight: 8
+    readonly property int wsRadius: 4
 
     readonly property color wsActiveColor: highlight           // #78a9ff (Azul activo)
     readonly property color wsOccupiedColor: success           // #42be65 (Verde esmeralda vistoso de tu Waybar)

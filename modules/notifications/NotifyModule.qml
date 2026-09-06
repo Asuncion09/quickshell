@@ -12,7 +12,7 @@ BarButton {
     hoverTextColor: Theme.highlight
     hoverBgColor: "transparent"
     tooltipText: "Notificaciones"
-    implicitWidth: 24
+    implicitWidth: 22
 
     Process {
         id: swayncProc

@@ -15,7 +15,7 @@ Item {
 
     Process {
         id: netReader
-        command: ["sh", "-c", "if ! nmcli -t -f TYPE,STATE,CONNECTION dev 2>/dev/null; then for iface in /sys/class/net/*; do b=$(basename \"$iface\"); [ \"$b\" = \"lo\" ] && continue; if [ \"$(cat \"$iface/operstate\" 2>/dev/null)\" = \"up\" ]; then if [ -d \"$iface/wireless\" ] || [ -e \"/sys/class/net/$b/phy80211\" ]; then echo \"wifi:connected:$b\"; else echo \"ethernet:connected:$b\"; fi; fi; done; fi"]
+        command: ["sh", "-c", "LC_ALL=C nmcli -t -f NAME,TYPE connection show --active 2>/dev/null || (for iface in /sys/class/net/*; do b=$(basename \"$iface\"); [ \"$b\" = \"lo\" ] && continue; if [ \"$(cat \"$iface/operstate\" 2>/dev/null)\" = \"up\" ]; then if [ -d \"$iface/wireless\" ] || [ -e \"/sys/class/net/$b/phy80211\" ]; then echo \"$b:802-11-wireless\"; else echo \"$b:802-3-ethernet\"; fi; fi; done)"]
         stdout: SplitParser {
             onRead: data => {
                 let lines = data.trim().split("\n");
@@ -25,16 +25,21 @@ Item {
                 let connName = "";
 
                 for (let i = 0; i < lines.length; i++) {
-                    let parts = lines[i].split(":");
-                    if (parts.length >= 3 && parts[1] === "connected") {
-                        connected = true;
-                        if (parts[0] === "wifi") {
+                    let line = lines[i].trim();
+                    if (!line) continue;
+                    let parts = line.split(":");
+                    if (parts.length >= 2) {
+                        let name = parts[0];
+                        let type = parts[1].toLowerCase();
+                        if (type.includes("wireless") || type.includes("wifi")) {
+                            connected = true;
                             isWifi = true;
-                            connName = parts[2];
-                            break; // Priorizar wifi o ethernet
-                        } else if (parts[0] === "ethernet") {
+                            connName = name;
+                            break;
+                        } else if (type.includes("ethernet") || type.includes("wired")) {
+                            connected = true;
                             isEth = true;
-                            connName = parts[2];
+                            if (!connName) connName = name;
                         }
                     }
                 }
@@ -104,9 +109,42 @@ Item {
         return Theme.text;                       // #dde1e7
     }
 
+    readonly property string connectionName: {
+        // 1. Intentar obtener el SSID a través de Quickshell.Networking nativo
+        if (Networking.devices && Networking.devices.values) {
+            let devs = Networking.devices.values;
+            for (let i = 0; i < devs.length; i++) {
+                let dev = devs[i];
+                if (dev && dev.connected) {
+                    if (dev.networks && dev.networks.values) {
+                        for (let j = 0; j < dev.networks.values.length; j++) {
+                            let net = dev.networks.values[j];
+                            if (net && net.connected && net.name) {
+                                return net.name;
+                            }
+                        }
+                    }
+                    if (dev.network && dev.network.name) {
+                        return dev.network.name;
+                    }
+                }
+            }
+        }
+
+        // 2. Respaldo de nmcli / sysfs
+        if (root._sysConnectionName && root._sysConnectionName !== "") {
+            return root._sysConnectionName;
+        }
+
+        if (!isConnected) return "Desconectado";
+        if (isWifi) return "WiFi";
+        if (isEthernet) return "Ethernet";
+        return "Conectado";
+    }
+
     readonly property string tooltipText: {
-        if (isWifi) return `WiFi: ${root._sysConnectionName || "Conectado"}`;
-        if (isEthernet) return `Ethernet: ${root._sysConnectionName || "Conectado"}`;
+        if (isWifi) return `WiFi: ${root.connectionName}`;
+        if (isEthernet) return `Ethernet: ${root.connectionName}`;
         if (isConnected) return "Red: Conectado";
         return "Red: Desconectado";
     }
