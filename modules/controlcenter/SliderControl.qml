@@ -13,6 +13,18 @@ Item {
     signal valueChangedByUser(int newValue)
     signal iconClicked()
 
+    property bool focused: false
+
+    function stepUp() {
+        let next = Math.min(100, root.value + 5);
+        root.valueChangedByUser(next);
+    }
+
+    function stepDown() {
+        let next = Math.max(0, root.value - 5);
+        root.valueChangedByUser(next);
+    }
+
     implicitWidth: 280
     implicitHeight: 40
     Layout.fillWidth: true
@@ -22,9 +34,12 @@ Item {
         id: trackBg
         anchors.fill: parent
         radius: 12
-        color: mouseArea.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
-        border.width: 0
+        color: (mouseArea.containsMouse || root.focused) ? Theme.surfaceHover : Theme.surfaceBase
+        border.width: root.focused ? 2 : 0
+        border.color: Theme.wsActiveColor
         clip: true
+
+        Behavior on border.width { NumberAnimation { duration: Theme.animFast } }
 
         Behavior on color {
             ColorAnimation { duration: Theme.animFast }
@@ -77,7 +92,16 @@ Item {
                     text: root.icon
                     font.family: Theme.fontFamily
                     font.pixelSize: 16
-                    color: root.isMuted ? Theme.critical : "#ffffff"
+                    color: {
+                        if (root.isMuted) {
+                            return root.value > 12 ? "#161616" : Theme.critical;
+                        }
+                        return root.value > 12 ? "#161616" : Theme.textSecondary;
+                    }
+
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.animFast }
+                    }
 
                     scale: iconMouse.pressed ? 0.85 : 1.0
                     Behavior on scale {
@@ -109,9 +133,18 @@ Item {
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
                 font.weight: Font.DemiBold
-                color: "#ffffff"
+                color: {
+                    if (root.isMuted) {
+                        return root.value >= 88 ? "#161616" : Theme.critical;
+                    }
+                    return root.value >= 88 ? "#161616" : Theme.text;
+                }
                 verticalAlignment: Text.AlignVCenter
                 opacity: 0.95
+
+                Behavior on color {
+                    ColorAnimation { duration: Theme.animFast }
+                }
             }
         }
 

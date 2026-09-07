@@ -10,6 +10,40 @@ Item {
     implicitHeight: 32
     Layout.fillWidth: true
 
+    property bool lockFocused: false
+    property bool powerFocused: false
+
+    property int powerNavIndex: 4 // 0: Volver, 1: Suspender, 2: Salir, 3: Reiniciar, 4: Apagar
+    property bool isPowerNavActive: false
+
+    function triggerLock() {
+        ControlCenterService.lockScreen();
+    }
+
+    function triggerPower() {
+        ControlCenterService.togglePowerMenu();
+    }
+
+    function nextPowerItem() {
+        isPowerNavActive = true;
+        powerNavIndex = (powerNavIndex + 1) % 5;
+    }
+
+    function prevPowerItem() {
+        isPowerNavActive = true;
+        powerNavIndex = (powerNavIndex + 4) % 5;
+    }
+
+    function triggerPowerCurrent() {
+        switch (powerNavIndex) {
+            case 0: ControlCenterService.togglePowerMenu(); break;
+            case 1: ControlCenterService.suspend(); break;
+            case 2: ControlCenterService.logout(); break;
+            case 3: ControlCenterService.reboot(); break;
+            case 4: ControlCenterService.shutdown(); break;
+        }
+    }
+
     // =========================================================================
     // CAPA A: Estado Normal (Batería + Bloqueo + Botón de Energía)
     // =========================================================================
@@ -89,8 +123,11 @@ Item {
                 implicitWidth: 32
                 implicitHeight: 32
                 radius: 8
-                color: lockMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
-                border.width: 0
+                color: (lockMouse.containsMouse || root.lockFocused) ? Theme.surfaceHover : Theme.surfaceBase
+                border.width: root.lockFocused ? 2 : 0
+                border.color: Theme.wsActiveColor
+
+                Behavior on border.width { NumberAnimation { duration: Theme.animFast } }
 
                 scale: lockMouse.pressed ? 0.92 : 1.0
                 Behavior on scale {
@@ -105,7 +142,7 @@ Item {
                     text: "󰌾"
                     font.family: Theme.fontFamily
                     font.pixelSize: 14
-                    color: lockMouse.containsMouse ? Theme.highlight : Theme.textSecondary
+                    color: (lockMouse.containsMouse || root.lockFocused) ? Theme.highlight : Theme.textSecondary
 
                     Behavior on color {
                         ColorAnimation { duration: Theme.animFast }
@@ -117,7 +154,7 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: ControlCenterService.lockScreen()
+                    onClicked: root.triggerLock()
                 }
             }
 
@@ -127,8 +164,11 @@ Item {
                 implicitWidth: 32
                 implicitHeight: 32
                 radius: 8
-                color: powerMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
-                border.width: 0
+                color: (powerMouse.containsMouse || root.powerFocused) ? Theme.surfaceHover : Theme.surfaceBase
+                border.width: root.powerFocused ? 2 : 0
+                border.color: Theme.critical
+
+                Behavior on border.width { NumberAnimation { duration: Theme.animFast } }
 
                 scale: powerMouse.pressed ? 0.92 : 1.0
                 Behavior on scale {
@@ -174,6 +214,12 @@ Item {
             NumberAnimation { duration: Theme.animFast }
         }
 
+        HoverHandler {
+            onPointChanged: {
+                if (root.isPowerNavActive) root.isPowerNavActive = false;
+            }
+        }
+
         RowLayout {
             anchors.fill: parent
             spacing: 8
@@ -185,7 +231,8 @@ Item {
                 implicitHeight: 32
                 radius: 8
                 color: backMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
-                border.width: 0
+                border.width: (root.isPowerNavActive && root.powerNavIndex === 0) ? 2 : 0
+                border.color: Theme.wsActiveColor
 
                 scale: backMouse.pressed ? 0.92 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -197,7 +244,7 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 18
                     font.weight: Font.Bold
-                    color: backMouse.containsMouse ? Theme.highlight : Theme.textSecondary
+                    color: (backMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 0)) ? Theme.wsActiveColor : Theme.textSecondary
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
                 }
@@ -211,12 +258,19 @@ Item {
                 }
             }
 
-            // Espaciador central con etiqueta indicadora sutil en hover
+            // Espaciador central con etiqueta indicadora sutil en hover o foco de teclado
             Item {
                 Layout.fillWidth: true
                 implicitHeight: 32
 
                 readonly property string hoveredHint: {
+                    if (root.isPowerNavActive) {
+                        if (root.powerNavIndex === 0) return "Volver";
+                        if (root.powerNavIndex === 1) return "Suspender";
+                        if (root.powerNavIndex === 2) return "Salir";
+                        if (root.powerNavIndex === 3) return "Reiniciar";
+                        if (root.powerNavIndex === 4) return "Apagar";
+                    }
                     if (suspMouse.containsMouse) return "Suspender";
                     if (exitMouse.containsMouse) return "Salir";
                     if (rebootMouse.containsMouse) return "Reiniciar";
@@ -249,7 +303,8 @@ Item {
                     implicitHeight: 32
                     radius: 8
                     color: suspMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
-                    border.width: 0
+                    border.width: (root.isPowerNavActive && root.powerNavIndex === 1) ? 2 : 0
+                    border.color: Theme.wsActiveColor
                     scale: suspMouse.pressed ? 0.92 : 1.0
 
                     Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -260,7 +315,7 @@ Item {
                         text: "󰤄"
                         font.family: Theme.fontFamily
                         font.pixelSize: 14
-                        color: suspMouse.containsMouse ? Theme.highlight : Theme.textSecondary
+                        color: (suspMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 1)) ? Theme.highlight : Theme.textSecondary
 
                         Behavior on color { ColorAnimation { duration: Theme.animFast } }
                     }
@@ -280,7 +335,8 @@ Item {
                     implicitHeight: 32
                     radius: 8
                     color: exitMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
-                    border.width: 0
+                    border.width: (root.isPowerNavActive && root.powerNavIndex === 2) ? 2 : 0
+                    border.color: Theme.warning
                     scale: exitMouse.pressed ? 0.92 : 1.0
 
                     Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -291,7 +347,7 @@ Item {
                         text: "󰍃"
                         font.family: Theme.fontFamily
                         font.pixelSize: 14
-                        color: exitMouse.containsMouse ? Theme.warning : Theme.textSecondary
+                        color: (exitMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 2)) ? Theme.warning : Theme.textSecondary
 
                         Behavior on color { ColorAnimation { duration: Theme.animFast } }
                     }
@@ -311,7 +367,8 @@ Item {
                     implicitHeight: 32
                     radius: 8
                     color: rebootMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
-                    border.width: 0
+                    border.width: (root.isPowerNavActive && root.powerNavIndex === 3) ? 2 : 0
+                    border.color: Theme.warning
                     scale: rebootMouse.pressed ? 0.92 : 1.0
 
                     Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -322,7 +379,7 @@ Item {
                         text: "󰑐"
                         font.family: Theme.fontFamily
                         font.pixelSize: 14
-                        color: rebootMouse.containsMouse ? Theme.warning : Theme.textSecondary
+                        color: (rebootMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 3)) ? Theme.warning : Theme.textSecondary
 
                         Behavior on color { ColorAnimation { duration: Theme.animFast } }
                     }
@@ -342,7 +399,8 @@ Item {
                     implicitHeight: 32
                     radius: 8
                     color: shutMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
-                    border.width: 0
+                    border.width: (root.isPowerNavActive && root.powerNavIndex === 4) ? 2 : 0
+                    border.color: Theme.critical
                     scale: shutMouse.pressed ? 0.92 : 1.0
 
                     Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -353,7 +411,7 @@ Item {
                         text: "󰐥"
                         font.family: Theme.fontFamily
                         font.pixelSize: 14
-                        color: shutMouse.containsMouse ? Theme.critical : Theme.textSecondary
+                        color: (shutMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 4)) ? Theme.critical : Theme.textSecondary
 
                         Behavior on color { ColorAnimation { duration: Theme.animFast } }
                     }

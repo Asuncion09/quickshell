@@ -20,8 +20,47 @@ PopupWindow {
     grabFocus: true
 
     property bool _isOpen: false
-
     property int currentView: 0 // 0 = Principal, 1 = Wi-Fi, 2 = Bluetooth
+    property int focusedIndex: 0 // 0..7 para los elementos del panel principal
+    property bool isKeyNavActive: false // Solo se activa al presionar flechas o teclado
+
+    function triggerSpaceAction(idx) {
+        switch (idx) {
+            case 0: ControlCenterService.toggleWifi(); break;
+            case 1: ControlCenterService.toggleBluetooth(); break;
+            case 2: ControlCenterService.toggleDnd(); break;
+            case 3: ControlCenterService.toggleMicMute(); break;
+            case 4: AudioService.toggleMute(); break;
+            case 5: BrightnessService.setBrightness(BrightnessService.brightnessPercent > 10 ? 10 : 100); break;
+            case 6: ControlCenterService.lockScreen(); break;
+            case 7:
+                ControlCenterService.togglePowerMenu();
+                if (ControlCenterService.isPowerMenuOpen) {
+                    batCard.powerNavIndex = 4;
+                    batCard.isPowerNavActive = true;
+                }
+                break;
+        }
+    }
+
+    function triggerEnterAction(idx) {
+        switch (idx) {
+            case 0: root.currentView = 1; break;
+            case 1: root.currentView = 2; break;
+            case 2: ControlCenterService.toggleDnd(); break;
+            case 3: ControlCenterService.toggleMicMute(); break;
+            case 4: AudioService.toggleMute(); break;
+            case 5: BrightnessService.setBrightness(BrightnessService.brightnessPercent > 10 ? 10 : 100); break;
+            case 6: ControlCenterService.lockScreen(); break;
+            case 7:
+                ControlCenterService.togglePowerMenu();
+                if (ControlCenterService.isPowerMenuOpen) {
+                    batCard.powerNavIndex = 4;
+                    batCard.isPowerNavActive = true;
+                }
+                break;
+        }
+    }
 
     Timer {
         id: closeTimer
@@ -46,10 +85,14 @@ PopupWindow {
         closeTimer.stop();
         root.visible = true;
         root._isOpen = true;
+        root.focusedIndex = 0;
+        root.isKeyNavActive = false;
+        Qt.callLater(() => mainCard.forceActiveFocus());
     }
 
     function close() {
         root._isOpen = false;
+        root.isKeyNavActive = false;
         closeTimer.restart();
         if (ControlCenterService.isOpen) ControlCenterService.close();
     }
@@ -57,10 +100,14 @@ PopupWindow {
     onVisibleChanged: {
         if (!visible) {
             root._isOpen = false;
+            root.isKeyNavActive = false;
             root.currentView = 0;
             if (ControlCenterService.isOpen) ControlCenterService.close();
         } else {
             root._isOpen = true;
+            root.focusedIndex = 0;
+            root.isKeyNavActive = false;
+            Qt.callLater(() => mainCard.forceActiveFocus());
             if (ControlCenterService.hasPasskeyPrompt) {
                 root.currentView = 2;
             }
@@ -160,6 +207,202 @@ PopupWindow {
             color: Theme.bgDark
             border.color: "#2e2e2e"
             border.width: 1
+            focus: true
+
+            HoverHandler {
+                onPointChanged: {
+                    if (root.isKeyNavActive) {
+                        root.isKeyNavActive = false;
+                        root.focusedIndex = 0;
+                    }
+                }
+            }
+
+            Keys.onPressed: event => {
+                if (event.key === Qt.Key_Escape) {
+                    event.accepted = true;
+                    if (root.currentView === 1 && wifiView.selectedSsid !== "") {
+                        wifiView.cancelPassword();
+                    } else if (root.currentView !== 0) {
+                        root.currentView = 0;
+                        Qt.callLater(() => mainCard.forceActiveFocus());
+                    } else if (ControlCenterService.isPowerMenuOpen) {
+                        ControlCenterService.closePowerMenu();
+                    } else {
+                        root.close();
+                    }
+                    return;
+                }
+
+                if (event.key === Qt.Key_Back || event.key === Qt.Key_Backspace) {
+                    if (root.currentView === 1 && wifiView.selectedSsid !== "") {
+                        return;
+                    }
+                    if (root.currentView !== 0) {
+                        event.accepted = true;
+                        root.currentView = 0;
+                        Qt.callLater(() => mainCard.forceActiveFocus());
+                        return;
+                    }
+                    if (ControlCenterService.isPowerMenuOpen) {
+                        event.accepted = true;
+                        ControlCenterService.closePowerMenu();
+                        return;
+                    }
+                }
+
+                // --- GESTIÓN DE SUBVISTA WI-FI (currentView === 1) ---
+                if (root.currentView === 1) {
+                    if (wifiView.handleKey(event)) {
+                        event.accepted = true;
+                        return;
+                    }
+                    return;
+                }
+
+                // --- GESTIÓN DE SUBVISTA BLUETOOTH (currentView === 2) ---
+                if (root.currentView === 2) {
+                    if (btView.handleKey(event)) {
+                        event.accepted = true;
+                        return;
+                    }
+                    return;
+                }
+
+                // --- GESTIÓN DE MENÚ DE APAGADO (isPowerMenuOpen) ---
+                if (ControlCenterService.isPowerMenuOpen) {
+                    if (event.key === Qt.Key_Right || event.key === Qt.Key_Tab) {
+                        event.accepted = true;
+                        batCard.nextPowerItem();
+                        return;
+                    }
+                    if (event.key === Qt.Key_Left || event.key === Qt.Key_Backtab) {
+                        event.accepted = true;
+                        batCard.prevPowerItem();
+                        return;
+                    }
+                    if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                        event.accepted = true;
+                        batCard.triggerPowerCurrent();
+                        return;
+                    }
+                    if (event.key === Qt.Key_Up || event.key === Qt.Key_Down) {
+                        event.accepted = true;
+                        ControlCenterService.closePowerMenu();
+                        root.focusedIndex = 7;
+                        return;
+                    }
+                    return;
+                }
+
+                // --- VISTA PRINCIPAL (currentView === 0) ---
+                let isNavKey = (event.key === Qt.Key_Right ||
+                                event.key === Qt.Key_Left  ||
+                                event.key === Qt.Key_Down  ||
+                                event.key === Qt.Key_Up    ||
+                                event.key === Qt.Key_Tab   ||
+                                event.key === Qt.Key_Backtab);
+
+                // Si el foco aún no está visible, cualquier flecha o tecla despierta el foco directamente en Wi-Fi (0)
+                if (!root.isKeyNavActive) {
+                    if (isNavKey) {
+                        event.accepted = true;
+                        root.focusedIndex = 0;
+                        root.isKeyNavActive = true;
+                        return;
+                    }
+                    if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                        root.focusedIndex = 0;
+                        root.isKeyNavActive = true;
+                    }
+                }
+
+                root.isKeyNavActive = true;
+
+                if (event.key === Qt.Key_Tab) {
+                    event.accepted = true;
+                    if (event.modifiers & Qt.ShiftModifier) {
+                        root.focusedIndex = (root.focusedIndex + 7) % 8;
+                    } else {
+                        root.focusedIndex = (root.focusedIndex + 1) % 8;
+                    }
+                    return;
+                }
+                if (event.key === Qt.Key_Backtab) {
+                    event.accepted = true;
+                    root.focusedIndex = (root.focusedIndex + 7) % 8;
+                    return;
+                }
+
+                // Flecha Derecha (→)
+                if (event.key === Qt.Key_Right) {
+                    event.accepted = true;
+                    if (root.focusedIndex === 4) {
+                        sliderVol.stepUp();
+                    } else if (root.focusedIndex === 5) {
+                        sliderBri.stepUp();
+                    } else {
+                        // Flujo continuo: Wi-Fi(0) -> BT(1) -> DND(2) -> Mic(3) -> Vol(4), etc.
+                        root.focusedIndex = (root.focusedIndex + 1) % 8;
+                    }
+                    return;
+                }
+
+                // Flecha Izquierda (←)
+                if (event.key === Qt.Key_Left) {
+                    event.accepted = true;
+                    if (root.focusedIndex === 4) {
+                        sliderVol.stepDown();
+                    } else if (root.focusedIndex === 5) {
+                        sliderBri.stepDown();
+                    } else {
+                        // Flujo continuo hacia atrás
+                        root.focusedIndex = (root.focusedIndex + 7) % 8;
+                    }
+                    return;
+                }
+
+                // Flecha Abajo (↓)
+                if (event.key === Qt.Key_Down) {
+                    event.accepted = true;
+                    if (root.focusedIndex === 0) root.focusedIndex = 2;       // Wi-Fi -> DND
+                    else if (root.focusedIndex === 1) root.focusedIndex = 3;  // BT -> Mic
+                    else if (root.focusedIndex === 2 || root.focusedIndex === 3) root.focusedIndex = 4; // DND/Mic -> Slider Vol
+                    else if (root.focusedIndex === 4) root.focusedIndex = 5;  // Slider Vol -> Slider Brillo
+                    else if (root.focusedIndex === 5) root.focusedIndex = 6;  // Slider Brillo -> Lock
+                    else if (root.focusedIndex === 6) root.focusedIndex = 0;  // Lock -> Wi-Fi (wrap)
+                    else if (root.focusedIndex === 7) root.focusedIndex = 1;  // Power -> BT (wrap)
+                    return;
+                }
+
+                // Flecha Arriba (↑)
+                if (event.key === Qt.Key_Up) {
+                    event.accepted = true;
+                    if (root.focusedIndex === 0) root.focusedIndex = 6;       // Wi-Fi -> Lock (wrap)
+                    else if (root.focusedIndex === 1) root.focusedIndex = 7;  // BT -> Power (wrap)
+                    else if (root.focusedIndex === 2) root.focusedIndex = 0;  // DND -> Wi-Fi
+                    else if (root.focusedIndex === 3) root.focusedIndex = 1;  // Mic -> BT
+                    else if (root.focusedIndex === 4) root.focusedIndex = 2;  // Slider Vol -> DND
+                    else if (root.focusedIndex === 5) root.focusedIndex = 4;  // Slider Brillo -> Slider Vol
+                    else if (root.focusedIndex === 6) root.focusedIndex = 5;  // Lock -> Slider Brillo
+                    else if (root.focusedIndex === 7) root.focusedIndex = 5;  // Power -> Slider Brillo
+                    return;
+                }
+
+                // Espacio (Space): conmuta el toggle o estado
+                if (event.key === Qt.Key_Space) {
+                    event.accepted = true;
+                    root.triggerSpaceAction(root.focusedIndex);
+                    return;
+                }
+
+                // Intro / Return: abre submenú si existe, o activa acción
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    event.accepted = true;
+                    root.triggerEnterAction(root.focusedIndex);
+                    return;
+                }
+            }
 
             Item {
                 id: viewsContainer
@@ -205,6 +448,8 @@ PopupWindow {
 
                             // Toggle Wi-Fi
                             QuickToggle {
+                                id: toggleWifi
+                                focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 0
                                 icon: NetworkService.icon
                                 title: "Wi-Fi"
                                 subtitle: NetworkService.connectionName
@@ -216,6 +461,8 @@ PopupWindow {
 
                             // Toggle Bluetooth
                             QuickToggle {
+                                id: toggleBt
+                                focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 1
                                 icon: BluetoothService.icon
                                 title: "Bluetooth"
                                 subtitle: BluetoothService.deviceName
@@ -227,6 +474,8 @@ PopupWindow {
 
                             // Toggle No Molestar (DND)
                             QuickToggle {
+                                id: toggleDnd
+                                focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 2
                                 icon: ControlCenterService.isDnd ? "󰂛" : "󰂚"
                                 title: "No Molestar"
                                 subtitle: ControlCenterService.isDnd ? "Silenciado" : "Desactivado"
@@ -237,6 +486,8 @@ PopupWindow {
 
                             // Toggle Micrófono
                             QuickToggle {
+                                id: toggleMic
+                                focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 3
                                 icon: ControlCenterService.isMicMuted ? "󰍭" : "󰍬"
                                 title: "Micrófono"
                                 subtitle: ControlCenterService.isMicMuted ? "Silenciado" : "Activo"
@@ -260,6 +511,8 @@ PopupWindow {
 
                             // Slider de Volumen
                             SliderControl {
+                                id: sliderVol
+                                focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 4
                                 icon: AudioService.icon
                                 value: AudioService.currentPercent
                                 isMuted: AudioService.isMuted
@@ -270,6 +523,8 @@ PopupWindow {
 
                             // Slider de Brillo
                             SliderControl {
+                                id: sliderBri
+                                focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 5
                                 icon: BrightnessService.icon
                                 value: BrightnessService.brightnessPercent
                                 isMuted: false
@@ -288,7 +543,10 @@ PopupWindow {
 
                         // 3. Fila de Utilidades (Batería compacta y Bloqueo de 32px)
                         BatteryCard {
+                            id: batCard
                             Layout.fillWidth: true
+                            lockFocused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 6
+                            powerFocused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 7
                         }
                     }
                 }
@@ -306,7 +564,10 @@ PopupWindow {
                     x: root.currentView === 1 ? 0 : 20
                     visible: opacity > 0.01
 
-                    onBackRequested: root.currentView = 0
+                    onBackRequested: {
+                        root.currentView = 0;
+                        Qt.callLater(() => mainCard.forceActiveFocus());
+                    }
 
                     Behavior on opacity {
                         NumberAnimation { duration: Theme.animFast }
@@ -329,7 +590,10 @@ PopupWindow {
                     x: root.currentView === 2 ? 0 : 20
                     visible: opacity > 0.01
 
-                    onBackRequested: root.currentView = 0
+                    onBackRequested: {
+                        root.currentView = 0;
+                        Qt.callLater(() => mainCard.forceActiveFocus());
+                    }
 
                     Behavior on opacity {
                         NumberAnimation { duration: Theme.animFast }

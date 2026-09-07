@@ -16,6 +16,152 @@ Item {
 
     signal backRequested()
 
+    property int navIndex: 0
+    property bool isKeyNavActive: false
+
+    HoverHandler {
+        onPointChanged: {
+            if (root.isKeyNavActive) root.isKeyNavActive = false;
+        }
+    }
+
+    function scrollToIndex(idx) {
+        if (!netScroll || !netScroll.ScrollBar || !netScroll.ScrollBar.vertical) return;
+        if (idx < 3) {
+            netScroll.ScrollBar.vertical.position = 0;
+            return;
+        }
+        let netIdx = idx - 3;
+        let total = root.savedNetworks.length + root.availableNetworks.length;
+        if (total <= 1) {
+            netScroll.ScrollBar.vertical.position = 0;
+            return;
+        }
+        let targetRatio = Math.max(0, Math.min(1, netIdx / (total - 1)));
+        let maxPos = Math.max(0, 1.0 - (netScroll.height / Math.max(1, scrollCol.height)));
+        if (maxPos > 0) {
+            netScroll.ScrollBar.vertical.position = Math.max(0, Math.min(maxPos, targetRatio * maxPos));
+        }
+    }
+
+    function triggerCurrentItem() {
+        if (root.navIndex === 0) {
+            root.cancelPassword();
+            root.backRequested();
+            return;
+        }
+        if (root.navIndex === 1) {
+            if (root.isScanning) root.stopScan();
+            else root.refreshScan();
+            return;
+        }
+        if (root.navIndex === 2) {
+            ControlCenterService.toggleWifi();
+            return;
+        }
+        let netIdx = root.navIndex - 3;
+        let savedCount = root.savedNetworks.length;
+        if (netIdx < savedCount) {
+            let net = root.savedNetworks[netIdx];
+            if (net) {
+                if (net.connected) {
+                    ControlCenterService.disconnectWifi(net.name);
+                } else {
+                    ControlCenterService.connectWifi(net.name);
+                }
+            }
+            return;
+        }
+        let availIdx = netIdx - savedCount;
+        if (availIdx >= 0 && availIdx < root.availableNetworks.length) {
+            let net = root.availableNetworks[availIdx];
+            if (net) {
+                if (root.isConnectingNet(net.name)) return;
+                if (net.isProtected) {
+                    root.promptPassword(net.name);
+                } else {
+                    ControlCenterService.connectWifi(net.name);
+                }
+            }
+        }
+    }
+
+    function handleKey(event) {
+        if (root.selectedSsid !== "") return false;
+
+        let totalNets = (Networking.wifiEnabled || NetworkService.isConnected) ? (root.savedNetworks.length + root.availableNetworks.length) : 0;
+        let totalItems = 3 + totalNets;
+
+        if (!root.isKeyNavActive) {
+            if (event.key === Qt.Key_Down || event.key === Qt.Key_Up || event.key === Qt.Key_Right || event.key === Qt.Key_Left || event.key === Qt.Key_Tab) {
+                root.isKeyNavActive = true;
+                root.navIndex = 0;
+                return true;
+            }
+        }
+
+        if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
+            root.isKeyNavActive = true;
+            if (root.navIndex < 3) {
+                if (totalNets > 0) root.navIndex = 3;
+                else root.navIndex = 0;
+            } else {
+                root.navIndex = (root.navIndex - 3 + 1) % totalNets + 3;
+            }
+            root.scrollToIndex(root.navIndex);
+            return true;
+        }
+
+        if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab) {
+            root.isKeyNavActive = true;
+            if (root.navIndex === 3) {
+                root.navIndex = 0;
+                root.scrollToIndex(0);
+            } else if (root.navIndex > 3) {
+                root.navIndex--;
+                root.scrollToIndex(root.navIndex);
+            } else {
+                if (totalNets > 0) {
+                    root.navIndex = totalItems - 1;
+                    root.scrollToIndex(root.navIndex);
+                }
+            }
+            return true;
+        }
+
+        if (event.key === Qt.Key_Right) {
+            root.isKeyNavActive = true;
+            if (root.navIndex === 0) root.navIndex = 1;
+            else if (root.navIndex === 1) root.navIndex = 2;
+            else if (root.navIndex === 2) {
+                if (totalNets > 0) root.navIndex = 3;
+                else root.navIndex = 0;
+            }
+            root.scrollToIndex(root.navIndex);
+            return true;
+        }
+
+        if (event.key === Qt.Key_Left) {
+            root.isKeyNavActive = true;
+            if (root.navIndex === 2) root.navIndex = 1;
+            else if (root.navIndex === 1) root.navIndex = 0;
+            else if (root.navIndex === 0) {
+                root.backRequested();
+            } else if (root.navIndex >= 3) {
+                root.navIndex = 0;
+                root.scrollToIndex(0);
+            }
+            return true;
+        }
+
+        if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+            root.triggerCurrentItem();
+            return true;
+        }
+
+        return false;
+    }
+
     // Resuelve el dispositivo Wi-Fi nativo en Quickshell
     readonly property var wifiDevice: {
         if (!Networking.devices || !Networking.devices.values) return null;
@@ -43,6 +189,8 @@ Item {
     }
 
     onVisibleChanged: {
+        root.isKeyNavActive = false;
+        root.navIndex = 0;
         if (visible) {
             updateScanner(true);
             refreshScan();
@@ -386,7 +534,8 @@ Item {
                 implicitHeight: 32
                 radius: 8
                 color: backMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
-                border.width: 0
+                border.width: (root.isKeyNavActive && root.navIndex === 0) ? 2 : 0
+                border.color: Theme.wsActiveColor
 
                 scale: backMouse.pressed ? 0.92 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -398,7 +547,7 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 18
                     font.weight: Font.Bold
-                    color: backMouse.containsMouse ? Theme.wsActiveColor : Theme.textSecondary
+                    color: (backMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 0)) ? Theme.wsActiveColor : Theme.textSecondary
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
                 }
@@ -436,7 +585,8 @@ Item {
                 implicitHeight: 28
                 radius: 6
                 color: refreshMouse.containsMouse ? Theme.surfaceHover : "transparent"
-                border.width: 0
+                border.width: (root.isKeyNavActive && root.navIndex === 1) ? 2 : 0
+                border.color: Theme.wsActiveColor
 
                 scale: refreshMouse.pressed ? 0.90 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -451,7 +601,7 @@ Item {
                         if (root.isScanning) {
                             return refreshMouse.containsMouse ? Theme.critical : Theme.wsActiveColor;
                         }
-                        return refreshMouse.containsMouse ? Theme.wsActiveColor : Theme.textMuted;
+                        return (refreshMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 1)) ? Theme.wsActiveColor : Theme.textMuted;
                     }
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
@@ -479,7 +629,8 @@ Item {
                 implicitHeight: 22
                 radius: 11
                 color: (Networking.wifiEnabled || NetworkService.isConnected) ? Theme.wsActiveColor : Theme.surfaceBase
-                border.width: 0
+                border.width: (root.isKeyNavActive && root.navIndex === 2) ? 2 : 0
+                border.color: (Networking.wifiEnabled || NetworkService.isConnected) ? "#ffffff" : Theme.wsActiveColor
 
                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
@@ -612,6 +763,12 @@ Item {
                             mouseSelectionMode: TextInput.SelectCharacters
                             onTextChanged: root.passwordText = text
                             onAccepted: root.submitPassword()
+                            Keys.onEscapePressed: event => {
+                                event.accepted = true;
+                                root.selectedSsidForPassword = "";
+                                root.passwordText = "";
+                                root.backRequested();
+                            }
 
                             Text {
                                 text: "Contraseña..."
@@ -824,7 +981,8 @@ Item {
                                     if (modelData.connected) return savedRowMouse.containsMouse ? Theme.surfaceActiveHover : Theme.surfaceActive;
                                     return savedRowMouse.containsMouse ? Theme.surfaceHover : "transparent";
                                 }
-                                border.width: 0
+                                border.width: (root.isKeyNavActive && root.navIndex === (3 + index)) ? 2 : 0
+                                border.color: Theme.wsActiveColor
 
                                 scale: savedRowMouse.pressed ? 0.98 : 1.0
                                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -984,7 +1142,8 @@ Item {
                                 implicitHeight: 34
                                 radius: 8
                                 color: availNetMouse.containsMouse ? Theme.surfaceHover : "transparent"
-                                border.width: 0
+                                border.width: (root.isKeyNavActive && root.navIndex === (3 + root.savedNetworks.length + index)) ? 2 : 0
+                                border.color: Theme.wsActiveColor
 
                                 scale: availNetMouse.pressed ? 0.98 : 1.0
                                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }

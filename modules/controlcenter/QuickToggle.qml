@@ -18,6 +18,8 @@ Item {
     implicitHeight: 48
     Layout.fillWidth: true
 
+    property bool focused: false
+
     readonly property bool isHovered: mainMouse.containsMouse
 
     // Solo animación táctil al hacer click (presionar), sin elevarse ni saltar en hover
@@ -33,12 +35,15 @@ Item {
         id: cardBg
         anchors.fill: parent
         radius: 12
-        border.width: 0
-        border.color: "transparent"
+        border.width: root.focused ? 2 : 0
+        border.color: root.active ? "#ffffff" : Theme.wsActiveColor
+
+        Behavior on border.width { NumberAnimation { duration: Theme.animFast } }
+        Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
 
         color: root.active
-               ? (root.isHovered ? Qt.lighter(Theme.wsActiveColor, 1.08) : Theme.wsActiveColor)
-               : (root.isHovered ? Theme.surfaceHover : Theme.surfaceBase)
+               ? ((root.isHovered || root.focused) ? Qt.lighter(Theme.wsActiveColor, 1.08) : Theme.wsActiveColor)
+               : ((root.isHovered || root.focused) ? Theme.surfaceHover : Theme.surfaceBase)
 
         Behavior on color {
             ColorAnimation { duration: Theme.animFast }

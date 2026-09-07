@@ -448,6 +448,10 @@ Item {
         root.isPowerMenuOpen = !root.isPowerMenuOpen;
     }
 
+    function closePowerMenu() {
+        root.isPowerMenuOpen = false;
+    }
+
     Process {
         id: sysActionProc
     }

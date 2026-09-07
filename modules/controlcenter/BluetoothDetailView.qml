@@ -16,6 +16,166 @@ Item {
 
     signal backRequested()
 
+    property int navIndex: 0
+    property bool isKeyNavActive: false
+    property int passkeyNavIndex: 1 // 0: Rechazar, 1: Confirmar
+
+    HoverHandler {
+        onPointChanged: {
+            if (root.isKeyNavActive) root.isKeyNavActive = false;
+        }
+    }
+
+    function scrollToIndex(idx) {
+        if (!devScroll || !devScroll.ScrollBar || !devScroll.ScrollBar.vertical) return;
+        if (idx < 3) {
+            devScroll.ScrollBar.vertical.position = 0;
+            return;
+        }
+        let devIdx = idx - 3;
+        let total = root.pairedDevices.length + root.availableDevices.length;
+        if (total <= 1) {
+            devScroll.ScrollBar.vertical.position = 0;
+            return;
+        }
+        let targetRatio = Math.max(0, Math.min(1, devIdx / (total - 1)));
+        let maxPos = Math.max(0, 1.0 - (devScroll.height / Math.max(1, scrollCol.height)));
+        if (maxPos > 0) {
+            devScroll.ScrollBar.vertical.position = Math.max(0, Math.min(maxPos, targetRatio * maxPos));
+        }
+    }
+
+    function triggerCurrentItem() {
+        if (ControlCenterService.hasPasskeyPrompt) {
+            if (root.passkeyNavIndex === 0) ControlCenterService.rejectPasskey();
+            else ControlCenterService.confirmPasskey();
+            return;
+        }
+
+        if (root.navIndex === 0) {
+            root.backRequested();
+            return;
+        }
+        if (root.navIndex === 1) {
+            if (root.isScanning) root.stopBtScan();
+            else root.refreshBtScan();
+            return;
+        }
+        if (root.navIndex === 2) {
+            ControlCenterService.toggleBluetooth();
+            return;
+        }
+        let devIdx = root.navIndex - 3;
+        let pairedCount = root.pairedDevices.length;
+        if (devIdx < pairedCount) {
+            let dev = root.pairedDevices[devIdx];
+            if (dev) {
+                if (dev.connected) {
+                    if (dev.nativeObj && dev.nativeObj.disconnect) dev.nativeObj.disconnect();
+                    else ControlCenterService.disconnectBluetooth(dev.address);
+                } else {
+                    ControlCenterService.connectBluetooth(dev.address);
+                }
+            }
+            return;
+        }
+        let availIdx = devIdx - pairedCount;
+        if (availIdx >= 0 && availIdx < root.availableDevices.length) {
+            let dev = root.availableDevices[availIdx];
+            if (dev) {
+                ControlCenterService.pairAndTrustBluetooth(dev.address);
+            }
+        }
+    }
+
+    function handleKey(event) {
+        if (ControlCenterService.hasPasskeyPrompt) {
+            root.isKeyNavActive = true;
+            if (event.key === Qt.Key_Left || event.key === Qt.Key_Right || event.key === Qt.Key_Tab) {
+                root.passkeyNavIndex = root.passkeyNavIndex === 0 ? 1 : 0;
+                return true;
+            }
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                if (root.passkeyNavIndex === 0) ControlCenterService.rejectPasskey();
+                else ControlCenterService.confirmPasskey();
+                return true;
+            }
+            return false;
+        }
+
+        let totalDevs = BluetoothService.isEnabled ? (root.pairedDevices.length + root.availableDevices.length) : 0;
+        let totalItems = 3 + totalDevs;
+
+        if (!root.isKeyNavActive) {
+            if (event.key === Qt.Key_Down || event.key === Qt.Key_Up || event.key === Qt.Key_Right || event.key === Qt.Key_Left || event.key === Qt.Key_Tab) {
+                root.isKeyNavActive = true;
+                root.navIndex = 0;
+                return true;
+            }
+        }
+
+        if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
+            root.isKeyNavActive = true;
+            if (root.navIndex < 3) {
+                if (totalDevs > 0) root.navIndex = 3;
+                else root.navIndex = 0;
+            } else {
+                root.navIndex = (root.navIndex - 3 + 1) % totalDevs + 3;
+            }
+            root.scrollToIndex(root.navIndex);
+            return true;
+        }
+
+        if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab) {
+            root.isKeyNavActive = true;
+            if (root.navIndex === 3) {
+                root.navIndex = 0;
+                root.scrollToIndex(0);
+            } else if (root.navIndex > 3) {
+                root.navIndex--;
+                root.scrollToIndex(root.navIndex);
+            } else {
+                if (totalDevs > 0) {
+                    root.navIndex = totalItems - 1;
+                    root.scrollToIndex(root.navIndex);
+                }
+            }
+            return true;
+        }
+
+        if (event.key === Qt.Key_Right) {
+            root.isKeyNavActive = true;
+            if (root.navIndex === 0) root.navIndex = 1;
+            else if (root.navIndex === 1) root.navIndex = 2;
+            else if (root.navIndex === 2) {
+                if (totalDevs > 0) root.navIndex = 3;
+                else root.navIndex = 0;
+            }
+            root.scrollToIndex(root.navIndex);
+            return true;
+        }
+
+        if (event.key === Qt.Key_Left) {
+            root.isKeyNavActive = true;
+            if (root.navIndex === 2) root.navIndex = 1;
+            else if (root.navIndex === 1) root.navIndex = 0;
+            else if (root.navIndex === 0) {
+                root.backRequested();
+            } else if (root.navIndex >= 3) {
+                root.navIndex = 0;
+                root.scrollToIndex(0);
+            }
+            return true;
+        }
+
+        if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+            root.triggerCurrentItem();
+            return true;
+        }
+
+        return false;
+    }
+
     // 1. Dispositivos resueltos nativamente por Quickshell.Bluetooth
     readonly property var nativeDevices: {
         let raw = [];
@@ -120,6 +280,9 @@ Item {
     Component.onCompleted: refreshBtScan()
 
     onVisibleChanged: {
+        root.isKeyNavActive = false;
+        root.navIndex = 0;
+        root.passkeyNavIndex = 1;
         if (visible) {
             refreshBtScan();
             ControlCenterService.refreshBluetoothBatteries();
@@ -226,7 +389,8 @@ Item {
                 implicitHeight: 32
                 radius: 8
                 color: backMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
-                border.width: 0
+                border.width: (root.isKeyNavActive && root.navIndex === 0) ? 2 : 0
+                border.color: Theme.wsActiveColor
 
                 scale: backMouse.pressed ? 0.92 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -238,7 +402,7 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 18
                     font.weight: Font.Bold
-                    color: backMouse.containsMouse ? Theme.wsActiveColor : Theme.textSecondary
+                    color: (backMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 0)) ? Theme.wsActiveColor : Theme.textSecondary
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
                 }
@@ -273,7 +437,8 @@ Item {
                 implicitHeight: 28
                 radius: 6
                 color: refreshMouse.containsMouse ? Theme.surfaceHover : "transparent"
-                border.width: 0
+                border.width: (root.isKeyNavActive && root.navIndex === 1) ? 2 : 0
+                border.color: Theme.wsActiveColor
 
                 scale: refreshMouse.pressed ? 0.90 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -288,7 +453,7 @@ Item {
                         if (root.isScanning) {
                             return refreshMouse.containsMouse ? Theme.critical : Theme.wsActiveColor;
                         }
-                        return refreshMouse.containsMouse ? Theme.wsActiveColor : Theme.textMuted;
+                        return (refreshMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 1)) ? Theme.wsActiveColor : Theme.textMuted;
                     }
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
@@ -316,7 +481,8 @@ Item {
                 implicitHeight: 22
                 radius: 11
                 color: BluetoothService.isEnabled ? Theme.wsActiveColor : Theme.surfaceBase
-                border.width: 0
+                border.width: (root.isKeyNavActive && root.navIndex === 2) ? 2 : 0
+                border.color: BluetoothService.isEnabled ? "#ffffff" : Theme.wsActiveColor
 
                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
@@ -457,7 +623,8 @@ Item {
                         implicitHeight: 32
                         radius: 8
                         color: rejectMouse.containsMouse ? Theme.surfaceHover : Theme.bgDark
-                        border.width: 0
+                        border.width: (root.isKeyNavActive && root.passkeyNavIndex === 0) ? 2 : 0
+                        border.color: Theme.critical
 
                         Text {
                             anchors.centerIn: parent
@@ -483,7 +650,8 @@ Item {
                         implicitHeight: 32
                         radius: 8
                         color: Theme.wsActiveColor
-                        border.width: 0
+                        border.width: (root.isKeyNavActive && root.passkeyNavIndex === 1) ? 2 : 0
+                        border.color: "#ffffff"
 
                         Text {
                             anchors.centerIn: parent
@@ -583,7 +751,8 @@ Item {
                                     if (modelData.connected) return rowMouse.containsMouse ? Theme.surfaceActiveHover : Theme.surfaceActive;
                                     return rowMouse.containsMouse ? Theme.surfaceHover : "transparent";
                                 }
-                                border.width: 0
+                                border.width: (root.isKeyNavActive && root.navIndex === (3 + index)) ? 2 : 0
+                                border.color: Theme.wsActiveColor
 
                                 scale: rowMouse.pressed ? 0.98 : 1.0
                                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -772,7 +941,8 @@ Item {
                                 implicitHeight: 34
                                 radius: 8
                                 color: availMouse.containsMouse ? Theme.surfaceHover : "transparent"
-                                border.width: 0
+                                border.width: (root.isKeyNavActive && root.navIndex === (3 + root.pairedDevices.length + index)) ? 2 : 0
+                                border.color: Theme.wsActiveColor
 
                                 scale: availMouse.pressed ? 0.98 : 1.0
                                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
