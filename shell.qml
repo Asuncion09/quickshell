@@ -104,6 +104,19 @@ ShellRoot {
         }
     }
 
+    IpcHandler {
+        target: "battery"
+        function test(percent: int, charging: bool): void {
+            BatteryService.setTestMode(percent, charging);
+        }
+        function reset(): void {
+            BatteryService.clearTestMode();
+        }
+        function snooze(): void {
+            BatteryService.snooze();
+        }
+    }
+
     Variants {
         model: Quickshell.screens
         Bar {}
@@ -112,6 +125,11 @@ ShellRoot {
     Variants {
         model: Quickshell.screens
         VolumeOsd {}
+    }
+
+    Variants {
+        model: Quickshell.screens
+        CriticalBatteryAlert {}
     }
 }
 

@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Notifications
 
 Item {
@@ -8,6 +9,23 @@ Item {
 
     Component.onCompleted: {
         console.log("[NotificationService] Singleton INICIALIZADO correctamente");
+    }
+
+    // --- Configuración de Sonidos de Notificación ---
+    property bool soundEnabled: true
+    property string defaultSoundPath: "/usr/share/sounds/freedesktop/stereo/message-new-instant.oga"
+
+    Process {
+        id: soundProc
+        command: ["paplay", root.defaultSoundPath]
+    }
+
+    function playSound(customPath) {
+        if (!root.soundEnabled) return;
+        let file = (customPath && customPath !== "") ? customPath : root.defaultSoundPath;
+        if (soundProc.running) soundProc.running = false;
+        soundProc.command = ["paplay", file];
+        soundProc.running = true;
     }
 
     // Estado de la interfaz
@@ -144,6 +162,41 @@ Item {
         if (!root.isCenterOpen && (!root.dnd || notif.urgency === 2)) {
             root.currentToast = item;
             toastTimer.restart();
+        }
+
+        // Reproducir sonido si está habilitado y no está en DND (o si es urgente/crítica)
+        if (root.soundEnabled && (!root.dnd || notif.urgency === 2)) {
+            root.playSound();
+        }
+    }
+
+    // Permite que servicios internos del sistema (como la batería) emitan notificaciones limpias
+    function postInternalNotification(appName, summary, body, urgency, icon, customSound) {
+        let notifId = Math.floor(Math.random() * 100000) + 900000;
+        let item = {
+            id: notifId,
+            ref: null,
+            appName: appName || "Sistema",
+            appIcon: icon || resolveAppIcon("", "", appName),
+            summary: summary || "",
+            body: body || "",
+            urgency: urgency !== undefined ? urgency : 1,
+            image: "",
+            actions: [],
+            timestamp: Date.now()
+        };
+
+        let list = root.notifications.slice();
+        list.unshift(item);
+        root.notifications = list;
+
+        if (!root.isCenterOpen && (!root.dnd || urgency === 2)) {
+            root.currentToast = item;
+            toastTimer.restart();
+        }
+
+        if (root.soundEnabled && (!root.dnd || urgency === 2)) {
+            root.playSound(customSound);
         }
     }
 

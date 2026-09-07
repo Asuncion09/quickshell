@@ -40,9 +40,9 @@ Item {
     function focusWindow(address, workspaceId, toplevel) {
         // 1. Si la ventana está en otro workspace, cambiar primero al workspace correspondiente
         if (workspaceId > 0 && workspaceId !== root.currentWorkspaceId) {
-            if (typeof Hyprland.dispatch === "function") {
-                Hyprland.dispatch("workspace " + workspaceId);
-            }
+            if (focusProc.running) focusProc.running = false;
+            focusProc.command = ["hyprctl", "dispatch", "workspace", workspaceId.toString()];
+            focusProc.running = true;
         }
 
         // 2. Intentar el método nativo Wayland si está presente
@@ -50,14 +50,10 @@ Item {
             toplevel.wayland.activate();
         }
 
-        // 3. Dispatch vía socket IPC nativo de Quickshell (inmediato, sin spawn de proceso)
-        if (typeof Hyprland.dispatch === "function") {
-            Hyprland.dispatch("focuswindow address:" + address);
-        } else {
-            if (focusProc.running) focusProc.running = false;
-            focusProc.command = ["hyprctl", "dispatch", "focuswindow", "address:" + address];
-            focusProc.running = true;
-        }
+        // 3. Dispatch vía hyprctl para garantizar foco inmediato
+        if (focusProc.running) focusProc.running = false;
+        focusProc.command = ["hyprctl", "dispatch", "focuswindow", "address:" + address];
+        focusProc.running = true;
     }
 
     function closeWindow(address, toplevel) {
@@ -65,13 +61,9 @@ Item {
             toplevel.wayland.close();
         }
 
-        if (typeof Hyprland.dispatch === "function") {
-            Hyprland.dispatch("closewindow address:" + address);
-        } else {
-            if (closeProc.running) closeProc.running = false;
-            closeProc.command = ["hyprctl", "dispatch", "closewindow", "address:" + address];
-            closeProc.running = true;
-        }
+        if (closeProc.running) closeProc.running = false;
+        closeProc.command = ["hyprctl", "dispatch", "closewindow", "address:" + address];
+        closeProc.running = true;
     }
 
     // ID del espacio de trabajo activo
@@ -247,17 +239,6 @@ Item {
                 implicitWidth: 26
                 implicitHeight: 26
 
-                // Fondo reactivo ÚNICAMENTE al hover (sin marco de color cuando está activo)
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 6
-                    color: taskMouse.containsMouse ? Theme.hoverBg : "transparent"
-
-                    Behavior on color {
-                        ColorAnimation { duration: Theme.animFast }
-                    }
-                }
-
                 // Icono a color de la aplicación
                 IconImage {
                     id: appIcon
@@ -268,7 +249,7 @@ Item {
                     visible: taskItem.modelData.iconSource !== ""
                     opacity: taskItem.modelData.isFocused ? 1.0 : (taskMouse.containsMouse ? 1.0 : 0.80)
 
-                    scale: taskMouse.pressed ? 0.86 : (taskMouse.containsMouse ? 1.12 : 1.0)
+                    scale: taskMouse.pressed ? 0.88 : ((taskMouse.containsMouse && !taskItem.modelData.isFocused) ? 1.15 : 1.0)
 
                     Behavior on scale {
                         NumberAnimation {
@@ -292,7 +273,7 @@ Item {
                     font.pixelSize: 13
                     color: taskItem.modelData.isFocused ? Theme.highlight : Theme.textSecondary
 
-                    scale: taskMouse.pressed ? 0.86 : (taskMouse.containsMouse ? 1.12 : 1.0)
+                    scale: taskMouse.pressed ? 0.88 : ((taskMouse.containsMouse && !taskItem.modelData.isFocused) ? 1.15 : 1.0)
 
                     Behavior on scale {
                         NumberAnimation {

@@ -27,12 +27,7 @@ RowLayout {
             }
         }
 
-        // 2. Enviar la orden por el socket IPC nativo de Quickshell
-        if (typeof Hyprland.dispatch === "function") {
-            Hyprland.dispatch("workspace " + id);
-        }
-
-        // 3. Ejecutar hyprctl dispatch para garantizar el cambio al 100%
+        // 2. Ejecutar hyprctl dispatch para garantizar el cambio al 100%
         wsProcess.command = ["hyprctl", "dispatch", "workspace", id.toString()];
         if (!wsProcess.running) {
             wsProcess.running = true;
