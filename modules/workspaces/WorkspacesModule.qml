@@ -42,22 +42,65 @@ RowLayout {
     // Contador reactivo para forzar reevaluación inmediata ante eventos de ventanas en Hyprland
     property int _eventVersion: 0
 
-    readonly property int _toplevelsCount: (Hyprland.toplevels && typeof Hyprland.toplevels.count === "number") ? Hyprland.toplevels.count : 0
-    readonly property int _workspacesCount: (Hyprland.workspaces && typeof Hyprland.workspaces.count === "number") ? Hyprland.workspaces.count : 0
+    readonly property int _toplevelsCount: (Hyprland.toplevels && Hyprland.toplevels.values) ? Hyprland.toplevels.values.length : 0
+    readonly property int _workspacesCount: (Hyprland.workspaces && Hyprland.workspaces.values) ? Hyprland.workspaces.values.length : 0
 
     Connections {
         target: Hyprland
         function onRawEvent(event) {
-            if (event && (event.name === "openwindow"
-                       || event.name === "closewindow"
-                       || event.name === "movewindow"
-                       || event.name === "workspace"
-                       || event.name === "createworkspace"
-                       || event.name === "destroyworkspace"
-                       || event.name === "urgent")) {
+            if (!event) return;
+            let n = event.name;
+            if (n === "openwindow"
+             || n === "closewindow"
+             || n === "movewindow"
+             || n === "activewindow"
+             || n === "activewindowv2"
+             || n === "workspace"
+             || n === "createworkspace"
+             || n === "destroyworkspace"
+             || n === "urgent") {
                 root._eventVersion++;
+                if (typeof Hyprland.refreshWorkspaces === "function") {
+                    Hyprland.refreshWorkspaces();
+                }
             }
         }
+    }
+
+    // Determina si un toplevel es una ventana real o un popup/dummy/superficie vacía
+    function isRealWindow(top) {
+        if (!top) return false;
+
+        let ipc = top.lastIpcObject || {};
+        if (ipc.mapped === false || ipc.hidden === true) return false;
+
+        let windowWs = top.workspace ? top.workspace.id : (ipc.workspace ? ipc.workspace.id : -1);
+        if (windowWs <= 0) return false;
+
+        // Descartar ventanas dummy / auxiliares de 1x1 o 0x0
+        if (ipc.size && Array.isArray(ipc.size)) {
+            if (ipc.size[0] <= 1 && ipc.size[1] <= 1) return false;
+        }
+
+        let rawTitle = ((top.title !== undefined && top.title !== null) ? top.title : (ipc.title || "")).trim();
+        let appClass = (ipc.class || (top.wayland ? top.wayland.appId : "") || "").trim();
+        let lowerClass = appClass.toLowerCase();
+        let lowerTitle = rawTitle.toLowerCase();
+
+        // 1. Filtrar popups, tooltips y menús hover de Steam
+        if (lowerClass.includes("steam")) {
+            if (rawTitle === "") return false;
+            if (lowerTitle.includes("notificationtoasts")) return false;
+            if (lowerTitle === "special" || lowerClass === "steamwebhelper") return false;
+        }
+
+        // 2. Ventanas sin clase ni título (fantasmas o auxiliares de arrastre)
+        if (appClass === "" && rawTitle === "") return false;
+
+        // 3. Ventanas XWayland sin título
+        if (ipc.xwayland && rawTitle === "") return false;
+
+        return true;
     }
 
     // Comprueba si un workspace específico contiene ventanas abiertas
@@ -67,8 +110,12 @@ RowLayout {
             for (let i = 0; i < Hyprland.workspaces.values.length; i++) {
                 let ws = Hyprland.workspaces.values[i];
                 if (ws && ws.id === wsId) {
-                    if (ws.toplevels && ws.toplevels.count > 0) return true;
-                    if (ws.lastIpcObject && ws.lastIpcObject.windows > 0) return true;
+                    if (ws.toplevels && ws.toplevels.values) {
+                        for (let j = 0; j < ws.toplevels.values.length; j++) {
+                            let top = ws.toplevels.values[j];
+                            if (root.isRealWindow(top)) return true;
+                        }
+                    }
                 }
             }
         }
@@ -77,7 +124,10 @@ RowLayout {
         if (Hyprland.toplevels && Hyprland.toplevels.values) {
             for (let i = 0; i < Hyprland.toplevels.values.length; i++) {
                 let top = Hyprland.toplevels.values[i];
-                if (top && top.workspace && top.workspace.id === wsId) {
+                if (!root.isRealWindow(top)) continue;
+
+                let windowWs = top.workspace ? top.workspace.id : (top.lastIpcObject && top.lastIpcObject.workspace ? top.lastIpcObject.workspace.id : -1);
+                if (windowWs === wsId) {
                     return true;
                 }
             }
