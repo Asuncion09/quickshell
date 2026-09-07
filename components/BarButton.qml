@@ -30,6 +30,21 @@ Rectangle {
         ColorAnimation { duration: Theme.animNormal }
     }
 
+    scale: mouseArea.pressed ? 0.88 : (mouseArea.containsMouse ? 1.05 : 1.0)
+    opacity: mouseArea.pressed ? 0.82 : 1.0
+
+    Behavior on scale {
+        NumberAnimation {
+            duration: Theme.animFast
+            easing.type: Easing.OutBack
+            easing.overshoot: 1.4
+        }
+    }
+
+    Behavior on opacity {
+        NumberAnimation { duration: Theme.animFast }
+    }
+
     Text {
         id: label
         anchors.centerIn: parent

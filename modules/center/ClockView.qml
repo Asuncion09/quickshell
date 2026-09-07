@@ -63,6 +63,16 @@ Item {
             Behavior on color {
                 ColorAnimation { duration: Theme.animFast }
             }
+
+            scale: mouseArea.pressed ? 0.92 : (mouseArea.containsMouse ? 1.04 : 1.0)
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: Theme.animFast
+                    easing.type: Easing.OutBack
+                    easing.overshoot: 1.3
+                }
+            }
         }
     }
 

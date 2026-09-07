@@ -234,6 +234,16 @@ Item {
                     visible: taskItem.modelData.iconSource !== ""
                     opacity: taskItem.modelData.isFocused ? 1.0 : (taskMouse.containsMouse ? 1.0 : 0.80)
 
+                    scale: taskMouse.pressed ? 0.86 : (taskMouse.containsMouse ? 1.12 : 1.0)
+
+                    Behavior on scale {
+                        NumberAnimation {
+                            duration: Theme.animFast
+                            easing.type: Easing.OutBack
+                            easing.overshoot: 1.4
+                        }
+                    }
+
                     Behavior on opacity {
                         NumberAnimation { duration: Theme.animFast }
                     }
@@ -247,6 +257,16 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
                     color: taskItem.modelData.isFocused ? Theme.highlight : Theme.textSecondary
+
+                    scale: taskMouse.pressed ? 0.86 : (taskMouse.containsMouse ? 1.12 : 1.0)
+
+                    Behavior on scale {
+                        NumberAnimation {
+                            duration: Theme.animFast
+                            easing.type: Easing.OutBack
+                            easing.overshoot: 1.4
+                        }
+                    }
                 }
 
                 // Línea indicadora iluminada en la base:
@@ -263,8 +283,9 @@ Item {
 
                     Behavior on width {
                         NumberAnimation {
-                            duration: Theme.animFast
-                            easing.type: Easing.OutQuad
+                            duration: Theme.animNormal
+                            easing.type: Easing.OutBack
+                            easing.overshoot: 1.3
                         }
                     }
                 }

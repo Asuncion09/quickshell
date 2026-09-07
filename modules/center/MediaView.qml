@@ -132,6 +132,7 @@ Item {
                     font.pixelSize: 15
                     color: prevMouse.containsMouse ? Theme.highlight : Theme.text
                     anchors.verticalCenter: parent.verticalCenter
+                    scale: prevMouse.pressed ? 0.80 : (prevMouse.containsMouse ? 1.18 : 1.0)
 
                     MouseArea {
                         id: prevMouse
@@ -145,6 +146,14 @@ Item {
                     Behavior on color {
                         ColorAnimation { duration: Theme.animFast }
                     }
+
+                    Behavior on scale {
+                        NumberAnimation {
+                            duration: Theme.animFast
+                            easing.type: Easing.OutBack
+                            easing.overshoot: 1.5
+                        }
+                    }
                 }
 
                 // Botón Play / Pausa (󰐊 / 󰏤)
@@ -154,6 +163,7 @@ Item {
                     font.pixelSize: 16
                     color: playMouse.containsMouse ? Theme.highlight : (MediaService.isPlaying ? Theme.success : Theme.text)
                     anchors.verticalCenter: parent.verticalCenter
+                    scale: playMouse.pressed ? 0.80 : (playMouse.containsMouse ? 1.18 : 1.0)
 
                     MouseArea {
                         id: playMouse
@@ -167,6 +177,14 @@ Item {
                     Behavior on color {
                         ColorAnimation { duration: Theme.animFast }
                     }
+
+                    Behavior on scale {
+                        NumberAnimation {
+                            duration: Theme.animFast
+                            easing.type: Easing.OutBack
+                            easing.overshoot: 1.5
+                        }
+                    }
                 }
 
                 // Botón Siguiente (󰒭)
@@ -176,6 +194,7 @@ Item {
                     font.pixelSize: 15
                     color: nextMouse.containsMouse ? Theme.highlight : Theme.text
                     anchors.verticalCenter: parent.verticalCenter
+                    scale: nextMouse.pressed ? 0.80 : (nextMouse.containsMouse ? 1.18 : 1.0)
 
                     MouseArea {
                         id: nextMouse
@@ -188,6 +207,14 @@ Item {
 
                     Behavior on color {
                         ColorAnimation { duration: Theme.animFast }
+                    }
+
+                    Behavior on scale {
+                        NumberAnimation {
+                            duration: Theme.animFast
+                            easing.type: Easing.OutBack
+                            easing.overshoot: 1.5
+                        }
                     }
                 }
             }

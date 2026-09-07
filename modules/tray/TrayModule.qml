@@ -53,7 +53,15 @@ Row {
                 width: 16
                 height: 16
                 source: trayButton.resolvedSource
-                opacity: mouseArea.containsMouse ? 1.0 : 0.9
+                scale: mouseArea.pressed ? 0.86 : (mouseArea.containsMouse ? 1.10 : 1.0)
+
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: Theme.animFast
+                        easing.type: Easing.OutBack
+                        easing.overshoot: 1.4
+                    }
+                }
 
                 Behavior on opacity {
                     NumberAnimation { duration: Theme.animFast }

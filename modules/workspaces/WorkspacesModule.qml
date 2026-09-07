@@ -158,7 +158,17 @@ RowLayout {
                 Behavior on implicitWidth {
                     NumberAnimation {
                         duration: Theme.animWorkspaces
-                        easing.type: Easing.OutQuad
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                scale: wsMouse.pressed ? 0.78 : (wsMouse.containsMouse && !wsButton.isActive ? 1.25 : 1.0)
+
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: Theme.animFast
+                        easing.type: Easing.OutBack
+                        easing.overshoot: 1.5
                     }
                 }
 
@@ -170,6 +180,7 @@ RowLayout {
             }
 
             MouseArea {
+                id: wsMouse
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
