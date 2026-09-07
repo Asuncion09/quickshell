@@ -18,9 +18,9 @@ Item {
     implicitHeight: 48
     Layout.fillWidth: true
 
-    readonly property bool isHovered: mouseArea.containsMouse || (root.hasSubmenu && arrowMouse.containsMouse)
+    readonly property bool isHovered: mainMouse.containsMouse
 
-    scale: (mouseArea.pressed || (root.hasSubmenu && arrowMouse.pressed)) ? 0.97 : (root.isHovered ? 1.015 : 1.0)
+    scale: mainMouse.pressed ? 0.97 : (root.isHovered ? 1.015 : 1.0)
     Behavior on scale {
         NumberAnimation {
             duration: Theme.animFast
@@ -103,8 +103,12 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     radius: 6
-                    color: arrowMouse.containsMouse ? (root.active ? "#384152" : "#323232") : "transparent"
+                    color: root.active ? "#414d61" : "#353535"
+                    opacity: mainMouse.isOverArrow ? 1.0 : 0.0
 
+                    Behavior on opacity {
+                        NumberAnimation { duration: Theme.animFast }
+                    }
                     Behavior on color {
                         ColorAnimation { duration: Theme.animFast }
                     }
@@ -116,28 +120,32 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 17
                     font.weight: Font.Bold
-                    color: arrowMouse.containsMouse ? Theme.highlight : Theme.textMuted
+                    color: mainMouse.isOverArrow ? Theme.highlight : (root.active ? "#9bbdff" : Theme.textMuted)
                     opacity: root.active ? 0.95 : 0.55
-                }
 
-                MouseArea {
-                    id: arrowMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.submenuClicked()
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.animFast }
+                    }
                 }
             }
         }
 
-        // Clic general sobre el toggle principal
+        // MouseArea unificado para todo el botón (elimina cualquier parpadeo o color intermedio)
         MouseArea {
-            id: mouseArea
+            id: mainMouse
             anchors.fill: parent
-            anchors.rightMargin: root.hasSubmenu ? 30 : 0
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: root.clicked()
+
+            readonly property bool isOverArrow: root.hasSubmenu && (mouseX >= (cardBg.width - 34))
+
+            onClicked: mouse => {
+                if (isOverArrow) {
+                    root.submenuClicked();
+                } else {
+                    root.clicked();
+                }
+            }
         }
     }
 }

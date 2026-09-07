@@ -11,8 +11,8 @@ PopupWindow {
 
     property alias targetItem: root.anchor.item
 
-    anchor.edges: Edges.Bottom
-    anchor.gravity: Edges.Bottom
+    anchor.edges: Edges.Bottom | Edges.Right
+    anchor.gravity: Edges.Bottom | Edges.Left
     anchor.margins.top: 2
     color: "transparent"
     visible: false
@@ -68,8 +68,8 @@ PopupWindow {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        anchors.leftMargin: 8
-        anchors.rightMargin: 8
+        anchors.leftMargin: 12
+        anchors.rightMargin: 2
         anchors.topMargin: 4
         anchors.bottomMargin: 10
         transformOrigin: Item.TopRight
