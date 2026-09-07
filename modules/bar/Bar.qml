@@ -10,6 +10,8 @@ import "../center"
 import "../tray"
 import "../hardware"
 import "../taskbar"
+import "../controlcenter"
+import "../../services"
 
 PanelWindow {
     id: root
@@ -111,6 +113,8 @@ PanelWindow {
                 id: hardwarePill
                 spacing: 6
                 paddingHorizontal: 8
+                clickable: true
+                onClicked: controlCenter.toggle()
 
                 BluetoothModule {
                     id: bluetooth
@@ -125,5 +129,11 @@ PanelWindow {
                 }
             }
         }
+    }
+
+    // Centro de Control Flotante anclado a la cápsula de hardware
+    ControlCenter {
+        id: controlCenter
+        targetItem: hardwarePill
     }
 }

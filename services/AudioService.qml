@@ -108,4 +108,23 @@ Item {
         wpctlProc.command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", newMute ? "1" : "0"];
         wpctlProc.running = true;
     }
+
+    // --- Control de Micrófono ---
+    readonly property PwNode defaultSource: Pipewire.defaultAudioSource
+    readonly property bool isMicMuted: (defaultSource && defaultSource.audio) ? defaultSource.audio.muted : false
+
+    Process {
+        id: micWpctlProc
+        command: ["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"]
+    }
+
+    function toggleMicMute() {
+        let newMute = !root.isMicMuted;
+        if (defaultSource && defaultSource.audio) {
+            defaultSource.audio.muted = newMute;
+        }
+        if (micWpctlProc.running) micWpctlProc.running = false;
+        micWpctlProc.command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", newMute ? "1" : "0"];
+        micWpctlProc.running = true;
+    }
 }
