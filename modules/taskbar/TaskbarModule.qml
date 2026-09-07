@@ -26,15 +26,15 @@ Item {
         }
     }
 
-    // Procesos auxiliares compatibles con la sintaxis de Hyprland-Lua (hl.dsp)
+    // Procesos auxiliares de respaldo si Hyprland.dispatch no estuviera disponible
     Process {
         id: focusProc
-        command: ["hyprctl", "dispatch", "hl.dsp.focus({ window = 'address:0x0' })"]
+        command: ["hyprctl", "dispatch", "focuswindow", "address:0x0"]
     }
 
     Process {
         id: closeProc
-        command: ["hyprctl", "dispatch", "hl.dsp.window.close({ window = 'address:0x0' })"]
+        command: ["hyprctl", "dispatch", "closewindow", "address:0x0"]
     }
 
     function focusWindow(address, toplevel) {
@@ -43,36 +43,28 @@ Item {
             toplevel.wayland.activate();
         }
 
-        // 2. Intentar dispatch vía socket IPC nativo
+        // 2. Dispatch vía socket IPC nativo de Quickshell (inmediato, sin spawn de proceso)
         if (typeof Hyprland.dispatch === "function") {
             Hyprland.dispatch("focuswindow address:" + address);
+        } else {
+            if (focusProc.running) focusProc.running = false;
+            focusProc.command = ["hyprctl", "dispatch", "focuswindow", "address:" + address];
+            focusProc.running = true;
         }
-
-        // 3. Ejecutar hyprctl dispatch compatible con Hyprland-Lua
-        if (focusProc.running) {
-            focusProc.running = false;
-        }
-        focusProc.command = ["hyprctl", "dispatch", "hl.dsp.focus({ window = 'address:" + address + "' })"];
-        focusProc.running = true;
     }
 
     function closeWindow(address, toplevel) {
-        // 1. Intentar método Wayland nativo
         if (toplevel && toplevel.wayland && typeof toplevel.wayland.close === "function") {
             toplevel.wayland.close();
         }
 
-        // 2. Intentar dispatch vía socket
         if (typeof Hyprland.dispatch === "function") {
             Hyprland.dispatch("closewindow address:" + address);
+        } else {
+            if (closeProc.running) closeProc.running = false;
+            closeProc.command = ["hyprctl", "dispatch", "closewindow", "address:" + address];
+            closeProc.running = true;
         }
-
-        // 3. Ejecutar hyprctl dispatch con sintaxis Lua
-        if (closeProc.running) {
-            closeProc.running = false;
-        }
-        closeProc.command = ["hyprctl", "dispatch", "hl.dsp.window.close({ window = 'address:" + address + "' })"];
-        closeProc.running = true;
     }
 
     // ID del espacio de trabajo activo
@@ -145,6 +137,45 @@ Item {
         return "";
     }
 
+    // Determina si un toplevel es una ventana real de aplicación o un popup/tooltip efímero
+    function isRealWindow(top) {
+        if (!top) return false;
+
+        let ipc = top.lastIpcObject || {};
+        if (ipc.mapped === false || ipc.hidden === true) return false;
+
+        let windowWs = top.workspace ? top.workspace.id : (ipc.workspace ? ipc.workspace.id : -1);
+        if (windowWs <= 0) return false;
+
+        // Descartar ventanas dummy / auxiliares de 1x1 o 0x0 (superficies de arrastre o transparentes)
+        if (ipc.size && Array.isArray(ipc.size)) {
+            if (ipc.size[0] <= 1 && ipc.size[1] <= 1) return false;
+        }
+
+        let rawTitle = ((top.title !== undefined && top.title !== null) ? top.title : (ipc.title || "")).trim();
+        let appClass = (ipc.class || (top.wayland ? top.wayland.appId : "") || "").trim();
+        let lowerClass = appClass.toLowerCase();
+        let lowerTitle = rawTitle.toLowerCase();
+
+        // 1. Filtrar popups, tooltips y menús hover de Steam (Tienda, Biblioteca, Comunidad, Usuario)
+        if (lowerClass.includes("steam")) {
+            // En Steam (XWayland), los submenús emergentes al hacer hover tienen título vacío
+            if (rawTitle === "") return false;
+            // Notificaciones flotantes emergentes (toasts de mensajes/amigos)
+            if (lowerTitle.includes("notificationtoasts")) return false;
+            // Ventanas invisibles o procesos de fondo de Steam
+            if (lowerTitle === "special" || lowerClass === "steamwebhelper") return false;
+        }
+
+        // 2. Ventanas sin clase ni título (fantasmas o auxiliares de arrastre)
+        if (appClass === "" && rawTitle === "") return false;
+
+        // 3. Ventanas XWayland sin título (suelen ser popups, dropdowns o tooltips que X11 expone como toplevel)
+        if (ipc.xwayland && rawTitle === "") return false;
+
+        return true;
+    }
+
     // Lista reactiva de todas las ventanas abiertas en el sistema
     readonly property var activeWindows: {
         let _dep = root._eventVersion;
@@ -154,14 +185,10 @@ Item {
 
         for (let i = 0; i < Hyprland.toplevels.values.length; i++) {
             let top = Hyprland.toplevels.values[i];
-            if (!top) continue;
+            if (!root.isRealWindow(top)) continue;
 
             let ipc = top.lastIpcObject || {};
-            if (ipc.mapped === false || ipc.hidden === true) continue;
-
             let windowWs = top.workspace ? top.workspace.id : (ipc.workspace ? ipc.workspace.id : -1);
-            if (windowWs <= 0) continue;
-
             let appClass = ipc.class || (top.wayland ? top.wayland.appId : "") || "";
             let title = top.title || ipc.title || appClass || "Ventana";
             let addr = top.address || "";
