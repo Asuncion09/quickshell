@@ -14,6 +14,7 @@ PopupWindow {
     anchor.edges: Edges.Bottom | Edges.Right
     anchor.gravity: Edges.Bottom | Edges.Left
     anchor.margins.top: 2
+    anchor.margins.right: -6
     color: "transparent"
     visible: false
     grabFocus: true
@@ -48,7 +49,7 @@ PopupWindow {
     }
 
     // Dimensiones totales incluyendo margen para el difuminado de sombra
-    implicitWidth: 300 + 16
+    implicitWidth: 300 + 8
     implicitHeight: mainCard.implicitHeight + 14
 
     // Procesos auxiliares para submenús
@@ -68,8 +69,8 @@ PopupWindow {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        anchors.leftMargin: 12
-        anchors.rightMargin: 2
+        anchors.leftMargin: 8
+        anchors.rightMargin: 0
         anchors.topMargin: 4
         anchors.bottomMargin: 10
         transformOrigin: Item.TopRight

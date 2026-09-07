@@ -13,18 +13,19 @@ Item {
     property int paddingVertical: Theme.pillPaddingVertical
     property alias borderColor: pillBackground.border.color
     property alias borderWidth: pillBackground.border.width
+    property int radius: Theme.pillRadius
     property bool clickable: false
     signal clicked(var mouse)
 
     implicitWidth: pillBackground.implicitWidth
     implicitHeight: pillBackground.implicitHeight
 
-    scale: (root.clickable && pillMouse.pressed) ? 0.95 : ((root.clickable && pillMouse.containsMouse) ? 1.03 : 1.0)
+    // Solo animación táctil al hacer click (presionar), sin alterar el tamaño en hover
+    scale: (root.clickable && pillMouse.pressed) ? 0.96 : 1.0
     Behavior on scale {
         NumberAnimation {
             duration: Theme.animFast
-            easing.type: Easing.OutBack
-            easing.overshoot: 1.3
+            easing.type: Easing.OutQuad
         }
     }
 
@@ -32,7 +33,7 @@ Item {
     Rectangle {
         id: shadowSource
         anchors.fill: pillBackground
-        radius: Theme.pillRadius
+        radius: root.radius
         color: "#000000"
         visible: false
     }
@@ -58,10 +59,11 @@ Item {
         implicitWidth: contentLayout.implicitWidth + (root.paddingHorizontal * 2)
         implicitHeight: Theme.barHeight
 
+        // En hover solo cambia suavemente de color sin cambiar de tamaño
         color: (root.clickable && pillMouse.containsMouse) ? Theme.bgDarkAlt : Theme.bgDark
         border.color: Theme.borderDark
         border.width: Theme.pillBorderWidth
-        radius: Theme.pillRadius
+        radius: root.radius
 
         Behavior on color {
             ColorAnimation { duration: Theme.animFast }

@@ -20,12 +20,12 @@ Item {
 
     readonly property bool isHovered: mainMouse.containsMouse
 
-    scale: mainMouse.pressed ? 0.97 : (root.isHovered ? 1.015 : 1.0)
+    // Solo animación táctil al hacer click (presionar), sin elevarse ni saltar en hover
+    scale: mainMouse.pressed ? 0.97 : 1.0
     Behavior on scale {
         NumberAnimation {
             duration: Theme.animFast
-            easing.type: Easing.OutBack
-            easing.overshoot: 1.2
+            easing.type: Easing.OutQuad
         }
     }
 
@@ -130,14 +130,15 @@ Item {
             }
         }
 
-        // MouseArea unificado para todo el botón (elimina cualquier parpadeo o color intermedio)
+        // MouseArea unificado para todo el botón (con desvanecimiento seguro al salir)
         MouseArea {
             id: mainMouse
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
 
-            readonly property bool isOverArrow: root.hasSubmenu && (mouseX >= (cardBg.width - 34))
+            // Solo es true SI contiene el ratón Y además está sobre las coordenadas de la flecha
+            readonly property bool isOverArrow: root.hasSubmenu && mainMouse.containsMouse && (mouseX >= (cardBg.width - 34))
 
             onClicked: mouse => {
                 if (isOverArrow) {
