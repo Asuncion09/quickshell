@@ -4,8 +4,8 @@ import QtQuick
 QtObject {
     // --- Paleta de colores (extraída de Waybar style.css) ---
     readonly property color bgDark: "#161616"             // @dark-9
-    readonly property color bgDarkAlt: "#262626"          // @dark-8
-    readonly property color borderDark: "transparent"     // Sin borde en las islas
+    readonly property color bgDarkAlt: "#1e1e1e"          // Hover sutil sobre cápsulas (sutilmente más claro que #161616)
+    readonly property color borderDark: Qt.rgba(1, 1, 1, 0.08)  // Borde sutil de relieve (rim light)
     readonly property color dark6: "#80525252"            // @dark-6 (50% opacity)
     readonly property color dark5: "#1f525252"            // @dark-5 (12% opacity)
     readonly property color highlight: "#78a9ff"          // @highlight (azul acento)
@@ -36,7 +36,7 @@ QtObject {
 
     // --- Dimensiones de Cápsulas (Pills) ---
     readonly property int pillRadius: 10
-    readonly property int pillBorderWidth: 0
+    readonly property int pillBorderWidth: 1
     readonly property int pillPaddingVertical: 2
     readonly property int pillPaddingHorizontal: 8
     readonly property int centerPillPaddingHorizontal: 14
@@ -60,9 +60,9 @@ QtObject {
     // --- Tokens de Sombra para Píldoras ---
     readonly property bool pillShadowEnabled: true
     readonly property color pillShadowColor: "#000000"
-    readonly property real pillShadowOpacity: 0.35
-    readonly property real pillShadowBlur: 0.4
-    readonly property real pillShadowOffsetY: 2.5
+    readonly property real pillShadowOpacity: 0.58
+    readonly property real pillShadowBlur: 0.52
+    readonly property real pillShadowOffsetY: 3.5
 
     // --- Tipografía ---
     readonly property string fontFamily: "JetBrainsMono Nerd Font Propo"

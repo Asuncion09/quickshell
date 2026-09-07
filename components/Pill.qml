@@ -40,6 +40,9 @@ Item {
         }
     }
 
+    // Detección de elevación para isla expandida (Centro de Notificaciones o Lanzador)
+    readonly property bool isExpanded: pillBackground.height > 60
+
     // 1. Elemento fuente para la sombra (invisible, define la forma redondeada exacta)
     Rectangle {
         id: shadowSource
@@ -49,17 +52,27 @@ Item {
         visible: false
     }
 
-    // 2. Sombra suave por hardware (MultiEffect)
+    // 2. Sombra volumétrica por hardware con elevación dinámica (MultiEffect)
     MultiEffect {
         source: shadowSource
         anchors.fill: shadowSource
         visible: Theme.pillShadowEnabled
         shadowEnabled: true
         shadowColor: Theme.pillShadowColor
-        shadowOpacity: Theme.pillShadowOpacity
-        shadowBlur: Theme.pillShadowBlur
-        shadowVerticalOffset: Theme.pillShadowOffsetY
+        shadowOpacity: root.isExpanded ? 0.85 : Theme.pillShadowOpacity
+        shadowBlur: root.isExpanded ? 0.70 : Theme.pillShadowBlur
+        shadowVerticalOffset: root.isExpanded ? 8.0 : Theme.pillShadowOffsetY
         shadowHorizontalOffset: 0
+
+        Behavior on shadowOpacity {
+            NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutQuad }
+        }
+        Behavior on shadowBlur {
+            NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutQuad }
+        }
+        Behavior on shadowVerticalOffset {
+            NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutQuad }
+        }
     }
 
     // 3. Cápsula visual principal
@@ -73,7 +86,7 @@ Item {
 
         // En hover solo cambia suavemente de color sin cambiar de tamaño
         color: (root.clickable && pillMouse.containsMouse) ? Theme.bgDarkAlt : Theme.bgDark
-        border.color: Theme.borderDark
+        border.color: root.isExpanded ? Qt.rgba(1, 1, 1, 0.12) : Theme.borderDark
         border.width: Theme.pillBorderWidth
         radius: root.radius
 

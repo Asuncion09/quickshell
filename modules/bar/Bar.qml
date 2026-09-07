@@ -5,7 +5,6 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 import "../../theme"
 import "../../components"
-import "../launcher"
 import "../workspaces"
 import "../center"
 import "../tray"
@@ -30,8 +29,8 @@ PanelWindow {
     margins {
         top: Theme.barMarginTop
         bottom: Theme.barMarginBottom
-        left: Theme.barMarginLeft
-        right: Theme.barMarginRight
+        left: 0
+        right: 0
     }
 
     // Altura del lienzo fija a 460px:
@@ -107,17 +106,13 @@ PanelWindow {
         // SECCIÓN IZQUIERDA: .modules-left (Launcher + Workspaces)
         RowLayout {
             anchors.left: parent.left
+            anchors.leftMargin: Theme.barMarginLeft
             anchors.top: parent.top
             spacing: 8
             z: 1
 
             Pill {
                 id: leftPill
-                spacing: 6
-
-                LauncherModule {
-                    id: launcher
-                }
 
                 WorkspacesModule {
                     id: workspaces
@@ -157,6 +152,7 @@ PanelWindow {
         RowLayout {
             id: rightLayout
             anchors.right: parent.right
+            anchors.rightMargin: Theme.barMarginRight
             anchors.top: parent.top
             spacing: 8
             z: 1
@@ -179,7 +175,6 @@ PanelWindow {
                 spacing: 6
                 paddingHorizontal: 8
                 clickable: true
-                tooltipText: "Centro de Control"
                 onClicked: controlCenter.toggle()
 
                 BluetoothModule {
@@ -204,9 +199,9 @@ PanelWindow {
         ControlCenter {
             id: controlCenter
             anchors.top: rightLayout.bottom
-            anchors.topMargin: 4
+            anchors.topMargin: 3
             anchors.right: parent.right
-            anchors.rightMargin: 0
+            anchors.rightMargin: 4
             z: 100
         }
     }

@@ -121,7 +121,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.leftMargin: 8
         anchors.rightMargin: 0
-        anchors.topMargin: 4
+        anchors.topMargin: 2
         anchors.bottomMargin: 10
         transformOrigin: Item.TopRight
 
@@ -297,7 +297,7 @@ Item {
                                 event.key === Qt.Key_Tab   ||
                                 event.key === Qt.Key_Backtab);
 
-                // Si el foco aún no está visible, cualquier flecha o tecla despierta el foco directamente en Wi-Fi (0)
+                // Si la navegación por teclado aún no está activa:
                 if (!root.isKeyNavActive) {
                     if (isNavKey) {
                         event.accepted = true;
@@ -305,13 +305,13 @@ Item {
                         root.isKeyNavActive = true;
                         return;
                     }
+                    // Si se presiona Espacio o Enter sin haber seleccionado un elemento con las flechas, ignorar para evitar acciones accidentales (como apagar el Wi-Fi)
                     if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                        root.focusedIndex = 0;
-                        root.isKeyNavActive = true;
+                        event.accepted = true;
+                        return;
                     }
+                    return;
                 }
-
-                root.isKeyNavActive = true;
 
                 if (event.key === Qt.Key_Tab) {
                     event.accepted = true;
