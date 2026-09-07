@@ -22,16 +22,14 @@ Item {
 
     Process {
         id: batReader
-        command: ["sh", "-c", "cat /sys/class/power_supply/BAT0/capacity 2>/dev/null; cat /sys/class/power_supply/BAT0/status 2>/dev/null"]
+        command: ["sh", "-c", "printf '%s:%s\\n' \"$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -n 1)\" \"$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -n 1)\""]
         stdout: SplitParser {
             onRead: data => {
-                let lines = data.trim().split("\n");
-                if (lines.length >= 1 && lines[0] !== "") {
-                    let cap = parseInt(lines[0]);
+                let parts = data.trim().split(":");
+                if (parts.length >= 2) {
+                    let cap = parseInt(parts[0]);
                     if (!isNaN(cap)) root._sysCapacity = cap;
-                }
-                if (lines.length >= 2 && lines[1] !== "") {
-                    root._sysStatus = lines[1].trim();
+                    if (parts[1]) root._sysStatus = parts[1].trim();
                 }
             }
         }
@@ -51,7 +49,7 @@ Item {
     readonly property int percentage: {
         if (UPower.displayDevice && UPower.displayDevice.isPresent) {
             let p = UPower.displayDevice.percentage;
-            return Math.round(p > 1.0 ? p : p * 100);
+            return Math.round(p <= 1.0 ? p * 100 : p);
         }
         return root._sysCapacity;
     }

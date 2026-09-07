@@ -11,15 +11,12 @@ Row {
 
     spacing: 8
 
-    property int activeCount: (SystemTray.items && SystemTray.items.values) ? SystemTray.items.values.length : 0
+    readonly property int activeCount: (SystemTray.items && SystemTray.items.values) ? SystemTray.items.values.length : 0
     readonly property bool hasItems: activeCount > 0
 
     Repeater {
         id: trayRepeater
         model: SystemTray.items
-
-        onItemAdded: (index, item) => root.activeCount++
-        onItemRemoved: (index, item) => root.activeCount--
 
         Item {
             id: trayButton

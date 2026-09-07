@@ -56,8 +56,10 @@ Item {
 
     onIsMutedChanged: {
         if (root._readyForOsd) {
-            root._lastReportedMuted = root.isMuted;
-            root.volumeChangedTriggered(root.currentPercent, root.isMuted);
+            if (root.isMuted !== root._lastReportedMuted) {
+                root._lastReportedMuted = root.isMuted;
+                root.volumeChangedTriggered(root.currentPercent, root.isMuted);
+            }
         }
     }
 
@@ -85,14 +87,12 @@ Item {
 
     function increaseVolume(step) {
         let s = step || 5;
-        let base = Math.max(currentPercent, volumePercent);
-        setVolume(base + s);
+        setVolume(currentPercent + s);
     }
 
     function decreaseVolume(step) {
         let s = step || 5;
-        let base = Math.min(currentPercent, volumePercent);
-        setVolume(base - s);
+        setVolume(currentPercent - s);
     }
 
     function toggleMute() {

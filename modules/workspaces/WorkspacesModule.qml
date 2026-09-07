@@ -52,6 +52,8 @@ RowLayout {
                        || event.name === "closewindow"
                        || event.name === "movewindow"
                        || event.name === "workspace"
+                       || event.name === "createworkspace"
+                       || event.name === "destroyworkspace"
                        || event.name === "urgent")) {
                 root._eventVersion++;
             }
@@ -86,6 +88,7 @@ RowLayout {
 
     // Lista de IDs: incluye persistentemente los workspaces 1 al 5 + cualquier otro abierto
     readonly property var workspaceIds: {
+        let _dep = root._eventVersion + root._workspacesCount;
         let set = new Set([1, 2, 3, 4, 5]);
 
         if (Hyprland.workspaces && Hyprland.workspaces.values) {

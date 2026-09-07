@@ -19,7 +19,8 @@ Item {
             if (!event) return;
             let n = event.name;
             if (n === "openwindow" || n === "closewindow" || n === "movewindow" 
-             || n === "activewindow" || n === "activewindowv2" || n === "workspace") {
+             || n === "activewindow" || n === "activewindowv2" || n === "workspace"
+             || n === "windowtitle") {
                 root._eventVersion++;
             }
         }
@@ -44,7 +45,6 @@ Item {
 
         // 2. Intentar dispatch vía socket IPC nativo
         if (typeof Hyprland.dispatch === "function") {
-            Hyprland.dispatch("dispatch hl.dsp.focus({ window = 'address:" + address + "' })");
             Hyprland.dispatch("focuswindow address:" + address);
         }
 
@@ -64,7 +64,6 @@ Item {
 
         // 2. Intentar dispatch vía socket
         if (typeof Hyprland.dispatch === "function") {
-            Hyprland.dispatch("dispatch hl.dsp.window.close({ window = 'address:" + address + "' })");
             Hyprland.dispatch("closewindow address:" + address);
         }
 

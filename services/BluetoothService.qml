@@ -14,19 +14,17 @@ Item {
 
     Process {
         id: btReader
-        command: ["sh", "-c", "bluetoothctl show 2>/dev/null | grep -q 'Powered: yes' && echo 'POWERED_ON' || echo 'POWERED_OFF'; bluetoothctl info 2>/dev/null | grep 'Name:' | head -n 1 | cut -d ':' -f 2"]
+        command: ["sh", "-c", "powered=$(bluetoothctl show 2>/dev/null | grep -q 'Powered: yes' && echo 'yes' || echo 'no'); name=$(bluetoothctl info 2>/dev/null | grep 'Name:' | head -n 1 | cut -d ':' -f 2- | xargs); echo \"$powered:$name\""]
         stdout: SplitParser {
             onRead: data => {
-                let lines = data.trim().split("\n");
-                if (lines.length >= 1) {
-                    root._sysPowered = lines[0].includes("POWERED_ON");
-                }
-                if (lines.length >= 2 && lines[1].trim() !== "") {
-                    root._sysConnected = true;
-                    root._sysDeviceName = lines[1].trim();
-                } else {
-                    root._sysConnected = false;
-                    root._sysDeviceName = "";
+                let line = data.trim();
+                let sep = line.indexOf(":");
+                if (sep !== -1) {
+                    let powered = line.substring(0, sep) === "yes";
+                    let name = line.substring(sep + 1).trim();
+                    root._sysPowered = powered;
+                    root._sysConnected = powered && name !== "";
+                    root._sysDeviceName = root._sysConnected ? name : "";
                 }
             }
         }
