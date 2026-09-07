@@ -37,11 +37,8 @@ PanelWindow {
     }
 
     // Estado interno de visualización
-    property bool displayed: false
-    property bool isPluggedNotice: false
 
     // Control de animación de pulso crítico en el borde
-    property real pulseAlpha: 0.4
     SequentialAnimation {
         running: root.displayed && !root.isPluggedNotice
         loops: Animation.Infinite
@@ -63,13 +60,11 @@ PanelWindow {
 
     // Reproductor de sonido de advertencia crítica
     Process {
-        id: soundAlert
         command: ["paplay", "/usr/share/sounds/freedesktop/stereo/dialog-error.oga"]
     }
 
     // Temporizador para desvanecer la alerta al conectar el cargador
     Timer {
-        id: plugNoticeTimer
         interval: 1800
         onTriggered: {
             root.displayed = false;
@@ -81,7 +76,6 @@ PanelWindow {
     Connections {
         target: BatteryService
 
-        function onShouldAlertCriticalChanged() {
             if (BatteryService.shouldAlertCritical) {
                 root.isPluggedNotice = false;
                 root.displayed = true;
@@ -113,7 +107,6 @@ PanelWindow {
     visible: cardContainer.opacity > 0.001
 
     Item {
-        id: cardContainer
         anchors.fill: parent
         opacity: root.displayed ? 1.0 : 0.0
         scale: root.displayed ? 1.0 : 0.94
@@ -156,7 +149,6 @@ PanelWindow {
 
         // Tarjeta principal de alerta
         Rectangle {
-            id: alertCard
             anchors.fill: parent
             radius: 10
             color: Theme.bgDark
@@ -279,7 +271,6 @@ PanelWindow {
                         Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                         RowLayout {
-                            id: snoozeRow
                             anchors.centerIn: parent
                             spacing: 5
 
@@ -292,7 +283,6 @@ PanelWindow {
                             }
 
                             Text {
-                                id: snoozeBtnLabel
                                 text: "Posponer 5 min"
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 9
@@ -303,7 +293,6 @@ PanelWindow {
                         }
 
                         MouseArea {
-                            id: snoozeMouse
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor

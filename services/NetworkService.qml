@@ -9,12 +9,8 @@ Item {
 
     // Estado del sistema
     property bool _sysConnected: false
-    property bool _sysIsWifi: false
-    property bool _sysIsEthernet: false
-    property string _sysConnectionName: ""
 
     Process {
-        id: netReader
         command: ["sh", "-c", "LC_ALL=C nmcli -t -f NAME,TYPE connection show --active 2>/dev/null || (for iface in /sys/class/net/*; do b=$(basename \"$iface\"); [ \"$b\" = \"lo\" ] && continue; if [ \"$(cat \"$iface/operstate\" 2>/dev/null)\" = \"up\" ]; then if [ -d \"$iface/wireless\" ] || [ -e \"/sys/class/net/$b/phy80211\" ]; then echo \"$b:802-11-wireless\"; else echo \"$b:802-3-ethernet\"; fi; fi; done)"]
         stdout: SplitParser {
             onRead: data => {
@@ -83,7 +79,6 @@ Item {
         return root._sysIsWifi;
     }
 
-    readonly property bool isEthernet: {
         if (Networking.devices && Networking.devices.values) {
             let devs = Networking.devices.values;
             for (let i = 0; i < devs.length; i++) {

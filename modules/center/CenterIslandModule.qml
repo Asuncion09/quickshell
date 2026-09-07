@@ -10,15 +10,11 @@ import "../../services"
 Item {
     id: root
 
-    readonly property bool isMediaHovered: mediaView.isHovered
 
     // Estados para control manual y temporizador de gracia
-    property bool forceClock: false
-    property bool manualMediaActive: false
 
     // Temporizador de gracia de 5 segundos al retirar el cursor de música en pausa
     Timer {
-        id: graceTimer
         interval: 5000
         onTriggered: {
             root.manualMediaActive = false;
@@ -26,9 +22,7 @@ Item {
     }
 
     // Cooldown anti-rebote para touchpad (absorbe la inercia de libinput de ~300ms)
-    property bool _wheelLocked: false
     Timer {
-        id: wheelCooldown
         interval: 350
         onTriggered: root._wheelLocked = false
     }
@@ -40,7 +34,6 @@ Item {
     // 4. Si el usuario lo despertó manualmente (clic rueda ratón / scroll en reloj) -> Multimedia
     // 5. Si está en pausa y el cursor está encima de la música (Regla 1: Anti-frustración) -> Multimedia
     // 6. Si está en pausa y corre el temporizador de gracia (Regla 2: 5s grace period) -> Multimedia
-    readonly property bool isMediaActive: {
         if (!MediaService.hasMedia || MediaService.title === "") return false;
         if (root.forceClock) return false;
         if (MediaService.isPlaying) return true;
@@ -64,7 +57,6 @@ Item {
 
     Connections {
         target: MediaService
-        function onIsPlayingChanged() {
             if (MediaService.isPlaying) {
                 root.forceClock = false;
                 root.manualMediaActive = false;
@@ -76,7 +68,6 @@ Item {
                 }
             }
         }
-        function onHasMediaChanged() {
             if (!MediaService.hasMedia) {
                 root.forceClock = false;
                 root.manualMediaActive = false;
@@ -96,7 +87,6 @@ Item {
                 });
             }
         }
-        function onSelectedIndexChanged() {
             root.ensureItemVisible(LauncherService.selectedIndex);
         }
     }
@@ -117,7 +107,6 @@ Item {
         graceTimer.stop();
     }
 
-    function handleWheel() {
         if (LauncherService.isOpen || NotificationService.isCenterOpen) return;
         if (root._wheelLocked) return;
         root._wheelLocked = true;
@@ -140,10 +129,6 @@ Item {
     }
 
     // Dimensiones optimizadas: más angosto (330px total) y altura calibrada para múltiplos exactos de ítems
-    readonly property int launcherWidth: 330 - (6 * 2)
-    readonly property int launcherHeight: 323
-    readonly property int notificationCenterWidth: 330 - (6 * 2)
-    readonly property int notificationCenterHeight: 330
 
     implicitWidth: {
         if (LauncherService.isOpen) {
@@ -196,7 +181,6 @@ Item {
         return Quickshell.iconPath("application-x-executable") || "";
     }
 
-    function ensureItemVisible(idx) {
         if (!appListView || appListView.count === 0) return;
         let slotHeight = 44; // 40 item height + 4 spacing
         let visibleCount = 6;
@@ -214,7 +198,6 @@ Item {
 
     // 1. Vista de Reloj (Reposo / En Pausa tras gracia)
     ClockView {
-        id: clockView
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
         width: implicitWidth
@@ -244,7 +227,6 @@ Item {
 
     // 2. Vista de Reproductor Multimedia (Dynamic Island)
     MediaView {
-        id: mediaView
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
         width: implicitWidth
@@ -265,7 +247,6 @@ Item {
 
     // 3. Vista de Notificación Emergente (Toast en la Dynamic Island)
     NotificationToastView {
-        id: notificationToastView
         anchors.fill: parent
         opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && NotificationService.isToastActive) ? 1.0 : 0.0
         visible: opacity > 0.01
@@ -280,7 +261,6 @@ Item {
 
     // 4. Vista Unificada del Centro de Notificaciones (Isla Metamorfoseada)
     Item {
-        id: notifCenterWrapper
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
         width: root.notificationCenterWidth
@@ -311,7 +291,6 @@ Item {
 
     // 5. Vista Unificada del Lanzador de Aplicaciones (Isla Metamorfoseada)
     Item {
-        id: launcherView
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
         width: root.launcherWidth
@@ -378,7 +357,6 @@ Item {
                     }
 
                     TextInput {
-                        id: searchField
                         Layout.fillWidth: true
                         font.family: Theme.fontFamily
                         font.pixelSize: 12
@@ -438,7 +416,6 @@ Item {
                         Layout.alignment: Qt.AlignVCenter
 
                         Text {
-                            id: escBadgeText
                             anchors.centerIn: parent
                             text: "ESC"
                             font.family: Theme.fontFamily
@@ -482,7 +459,6 @@ Item {
                 }
 
                 ListView {
-                    id: appListView
                     anchors.fill: parent
                     visible: LauncherService.filteredApplications.length > 0
                     model: LauncherService.filteredApplications
@@ -504,12 +480,10 @@ Item {
                     }
 
                     delegate: Rectangle {
-                        id: appItem
                         width: appListView.width
                         height: 40
                         radius: 7
 
-                        readonly property bool isSelected: index === LauncherService.selectedIndex
 
                         // Señalización elegante mediante fondo tonal neutro suave (cero bordes o líneas azules)
                         color: isSelected ? "#2e2e2e" : (itemMouse.containsMouse ? "#222222" : "transparent")
@@ -571,7 +545,6 @@ Item {
                                     border.color: Qt.rgba(1, 1, 1, 0.08)
 
                                     Text {
-                                        id: enterBadgeText
                                         anchors.centerIn: parent
                                         text: "↵ abrir"
                                         font.family: Theme.fontFamily
@@ -584,7 +557,6 @@ Item {
                         }
 
                         MouseArea {
-                            id: itemMouse
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor

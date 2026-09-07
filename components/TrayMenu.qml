@@ -21,7 +21,6 @@ PopupWindow {
 
 
     QsMenuOpener {
-        id: menuOpener
     }
 
     implicitWidth: container.implicitWidth + 16
@@ -66,7 +65,6 @@ PopupWindow {
             border.width: 1
 
             ColumnLayout {
-                id: layout
                 anchors.centerIn: parent
                 width: container.implicitWidth - 12
                 spacing: 2
@@ -75,7 +73,6 @@ PopupWindow {
                     model: (menuOpener.children && menuOpener.children.values) ? menuOpener.children.values : []
 
                     delegate: Item {
-                        id: entryItem
                         required property var modelData
 
                         Layout.fillWidth: true
@@ -140,7 +137,6 @@ PopupWindow {
                             }
 
                             MouseArea {
-                                id: entryMouse
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: entryItem.modelData.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor

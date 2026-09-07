@@ -25,7 +25,6 @@ PanelWindow {
 
     color: "transparent"
 
-    property real osdOpacity: 0.0
     visible: osdOpacity > 0.001
 
     Behavior on osdOpacity {
@@ -36,20 +35,15 @@ PanelWindow {
     }
 
     // Modo actual: "volume" o "brightness"
-    property string currentMode: "volume"
-    property int currentValue: 0
-    property string currentIcon: "󰕾"
     property bool isMuted: false
 
     Timer {
-        id: hideTimer
         interval: 1500
         onTriggered: root.osdOpacity = 0.0
     }
 
     Connections {
         target: AudioService
-        function onVolumeChangedTriggered(percent, muted) {
             root.currentMode = "volume";
             root.currentValue = percent;
             root.isMuted = muted;
@@ -61,7 +55,6 @@ PanelWindow {
 
     Connections {
         target: BrightnessService
-        function onBrightnessChangedTriggered(percent) {
             root.currentMode = "brightness";
             root.currentValue = percent;
             root.isMuted = false;
@@ -100,7 +93,6 @@ PanelWindow {
 
         // Contenedor principal estilo cápsula oscura
         Rectangle {
-            id: osdContainer
             anchors.centerIn: parent
 
             implicitWidth: 260

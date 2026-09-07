@@ -41,7 +41,6 @@ Item {
     property var savedWifiConnections: []
 
     Timer {
-        id: connectingWifiTimer
         interval: 15000
         repeat: false
         onTriggered: {
@@ -52,7 +51,6 @@ Item {
     }
 
     Process {
-        id: wifiToggleProc
         command: ["sh", "-c", "if nmcli radio wifi | grep -q 'enabled'; then nmcli radio wifi off; else nmcli radio wifi on; fi"]
     }
 
@@ -62,10 +60,8 @@ Item {
         }
     }
 
-    property var _accumulatedSavedLines: []
 
     Process {
-        id: wifiSavedProc
         command: ["sh", "-c", "LC_ALL=C nmcli -t -f NAME,TYPE connection show 2>/dev/null | while IFS=: read -r name type; do [ \"$type\" = \"802-11-wireless\" ] || continue; echo \"$name\"; ssid=$(nmcli -s -g 802-11-wireless.ssid connection show \"$name\" 2>/dev/null); [ -n \"$ssid\" ] && echo \"$ssid\"; done | sort -u"]
         onStarted: root._accumulatedSavedLines = []
         stdout: SplitParser {
@@ -91,7 +87,6 @@ Item {
     }
 
     Process {
-        id: wifiConnProc
         stdout: SplitParser {
             onRead: data => {
                 let text = data.trim();
@@ -121,10 +116,8 @@ Item {
         }
     }
 
-    signal wifiConnectionFinished()
 
     Process {
-        id: wifiDeleteProc
         onExited: root.refreshSavedWifiConnections()
     }
 
@@ -217,19 +210,16 @@ Item {
     // --- Control de Bluetooth ---
     property string connectingMac: ""
     Timer {
-        id: connectingTimer
         interval: 10000
         repeat: false
         onTriggered: root.connectingMac = ""
     }
 
     Process {
-        id: btToggleProc
         command: ["sh", "-c", "if bluetoothctl show | grep -q 'Powered: yes'; then bluetoothctl power off; else bluetoothctl power on; fi"]
     }
 
     Process {
-        id: btConnProc
         onExited: {
             root.connectingMac = "";
             root.refreshBluetoothBatteries();
@@ -237,13 +227,10 @@ Item {
     }
 
     Process {
-        id: btRemoveProc
     }
 
-    property var deviceBatteries: ({})
 
     Timer {
-        id: btBatteryTimer
         interval: 12000
         running: root.isOpen && BluetoothService.isEnabled && BluetoothService.isConnected
         repeat: true
@@ -253,7 +240,6 @@ Item {
 
     Connections {
         target: BluetoothService
-        function onIsConnectedChanged() {
             if (BluetoothService.isConnected) {
                 root.refreshBluetoothBatteries();
             } else {
@@ -263,7 +249,6 @@ Item {
     }
 
     Process {
-        id: btBatteryProc
         command: ["sh", "-c", "for mac in $(bluetoothctl devices Connected 2>/dev/null | awk '{print $2}'); do bat=$(bluetoothctl info \"$mac\" 2>/dev/null | awk '/[Bb]attery [Pp]ercentage/ { if (match($0, /\\([0-9]+\\)/)) print substr($0, RSTART+1, RLENGTH-2); else if (match($0, /[0-9]+%/)) print substr($0, RSTART, RLENGTH-1); else if (match($0, /[0-9]+/)) print substr($0, RSTART, RLENGTH) }' | head -n 1); [ -n \"$bat\" ] && echo \"$mac|$bat\"; done"]
         stdout: SplitParser {
             onRead: data => {
@@ -340,12 +325,10 @@ Item {
     // --- Agente BlueZ para Emparejamiento / Passkey ---
     property bool hasPasskeyPrompt: false
     property string promptDeviceName: ""
-    property string promptMac: ""
     property string promptPasskey: ""
     property string promptType: "" // "confirmation", "display_passkey", "display_pin"
 
     Process {
-        id: btAgentProc
         command: ["python3", Qt.resolvedUrl("bt_agent.py").toString().replace(/^file:\/\//, "")]
         stdinEnabled: true
         running: true
@@ -387,7 +370,6 @@ Item {
     }
 
     Timer {
-        id: btAgentRestartTimer
         interval: 2500
         repeat: false
         onTriggered: {
@@ -412,7 +394,6 @@ Item {
     }
 
     // --- Control de No Molestar (DND sincronizado con NotificationService) ---
-    readonly property bool isDnd: NotificationService.dnd
 
     function toggleDnd() {
         NotificationService.toggleDnd();
@@ -430,10 +411,8 @@ Item {
     }
 
     Process {
-        id: sysActionProc
     }
 
-    function runSysCommand(cmd) {
         root.close();
         root.isPowerMenuOpen = false;
         if (sysActionProc.running) sysActionProc.running = false;

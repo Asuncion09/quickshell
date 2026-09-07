@@ -12,7 +12,6 @@ Item {
     property bool hasSubmenu: false
 
     signal clicked()
-    signal submenuClicked()
 
     implicitWidth: 135
     implicitHeight: 48
@@ -32,7 +31,6 @@ Item {
     }
 
     Rectangle {
-        id: cardBg
         anchors.fill: parent
         radius: 12
         border.width: root.focused ? 2 : 0
@@ -104,7 +102,6 @@ Item {
 
             // Botón opcional de submenú (flecha) con micro-cápsula interactiva
             Item {
-                id: arrowContainer
                 implicitWidth: 26
                 implicitHeight: 34
                 visible: root.hasSubmenu
@@ -143,13 +140,11 @@ Item {
 
         // MouseArea unificado para todo el botón (con desvanecimiento seguro al salir)
         MouseArea {
-            id: mainMouse
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
 
             // Solo es true SI contiene el ratón Y además está sobre las coordenadas de la flecha
-            readonly property bool isOverArrow: root.hasSubmenu && mainMouse.containsMouse && (mouseX >= (cardBg.width - 34))
 
             onClicked: mouse => {
                 if (isOverArrow) {

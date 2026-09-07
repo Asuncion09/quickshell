@@ -11,7 +11,6 @@ import "modules/osd"
 
 ShellRoot {
     NotificationServer {
-        id: notifServer
         keepOnReload: false
         actionsSupported: true
         imageSupported: true
@@ -99,7 +98,6 @@ ShellRoot {
         function dnd(): void {
             NotificationService.toggleDnd();
         }
-        function dump(): void {
             console.warn("[DUMP_NOTIF]", JSON.stringify(NotificationService.notifications[0]));
         }
     }

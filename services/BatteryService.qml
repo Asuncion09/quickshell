@@ -9,20 +9,15 @@ Item {
     id: root
 
     // Listas de íconos idénticas a config.jsonc de Waybar (11 niveles de 0% a 100%)
-    readonly property var defaultIcons: [
         "󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"
     ]
 
-    readonly property var chargingIcons: [
         "󰢟", "󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"
     ]
 
     // Lectura de sysfs como respaldo garantizado
-    property int _sysCapacity: 100
-    property string _sysStatus: "Discharging"
 
     Process {
-        id: batReader
         command: ["sh", "-c", "printf '%s:%s\\n' \"$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -n 1)\" \"$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -n 1)\""]
         stdout: SplitParser {
             onRead: data => {
@@ -47,8 +42,6 @@ Item {
     }
 
     // Propiedades de simulación/prueba segura para QA
-    property int testPercentage: -1
-    property int testCharging: -1
 
     function setTestMode(percent, charging) {
         root._notifiedLow = false;
@@ -69,10 +62,8 @@ Item {
     }
 
     // Control de posponer / silenciar alerta temporalmente (5 minutos)
-    property bool isSnoozed: false
 
     Timer {
-        id: snoozeTimer
         interval: 300000 // 5 minutos
         onTriggered: {
             root.isSnoozed = false;
@@ -84,7 +75,6 @@ Item {
         snoozeTimer.restart();
     }
 
-    function resetSnooze(): void {
         root.isSnoozed = false;
         snoozeTimer.stop();
     }
@@ -109,10 +99,7 @@ Item {
     }
 
     // Banderas de estado para evitar spam de notificaciones
-    property bool _notifiedLow: false
-    property bool _notifiedFull: false
 
-    function checkBatteryAlerts() {
         let p = root.percentage;
         let charging = root.isCharging;
 
@@ -169,14 +156,12 @@ Item {
     }
 
     // Umbrales de batería: Advertencia al 25% (amarillo), Crítica al 15% (rojo/alerta)
-    readonly property bool isWarning: percentage <= 25 && !isCharging
     readonly property bool isCritical: percentage <= 15 && !isCharging
 
     // Condición para mostrar la alerta visual persistente
     readonly property bool shouldAlertCritical: isCritical && !isCharging && !isSnoozed
 
     // Cálculo del índice de ícono (0 a 10)
-    readonly property int iconIndex: Math.min(10, Math.max(0, Math.floor(percentage / 10)))
 
     // Ícono actual
     readonly property string icon: isCharging ? chargingIcons[iconIndex] : defaultIcons[iconIndex]

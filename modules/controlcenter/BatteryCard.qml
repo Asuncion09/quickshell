@@ -16,7 +16,6 @@ Item {
     property int powerNavIndex: 4 // 0: Volver, 1: Suspender, 2: Salir, 3: Reiniciar, 4: Apagar
     property bool isPowerNavActive: false
 
-    function triggerLock() {
         ControlCenterService.lockScreen();
     }
 
@@ -48,7 +47,6 @@ Item {
     // CAPA A: Estado Normal (Batería + Bloqueo + Botón de Energía)
     // =========================================================================
     Item {
-        id: normalLayer
         anchors.fill: parent
         visible: opacity > 0.01
         opacity: !ControlCenterService.isPowerMenuOpen ? 1.0 : 0.0
@@ -63,7 +61,6 @@ Item {
 
             // Píldora compacta de Batería (32px de alto)
             Rectangle {
-                id: batChip
                 implicitHeight: 32
                 implicitWidth: batLayout.implicitWidth + 18
                 radius: 8
@@ -79,7 +76,6 @@ Item {
                 }
 
                 RowLayout {
-                    id: batLayout
                     anchors.centerIn: parent
                     spacing: 6
 
@@ -105,7 +101,6 @@ Item {
                 }
 
                 MouseArea {
-                    id: batMouse
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
@@ -119,7 +114,6 @@ Item {
 
             // Botón de Bloqueo de Pantalla (32x32)
             Rectangle {
-                id: lockBtn
                 implicitWidth: 32
                 implicitHeight: 32
                 radius: 8
@@ -150,7 +144,6 @@ Item {
                 }
 
                 MouseArea {
-                    id: lockMouse
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
@@ -160,7 +153,6 @@ Item {
 
             // Botón de Menú de Energía (32x32)
             Rectangle {
-                id: powerBtn
                 implicitWidth: 32
                 implicitHeight: 32
                 radius: 8
@@ -191,7 +183,6 @@ Item {
                 }
 
                 MouseArea {
-                    id: powerMouse
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
@@ -205,7 +196,6 @@ Item {
     // CAPA B: Transición In-Place (Reemplazo en los mismos 32px sin cambio de altura)
     // =========================================================================
     Item {
-        id: powerLayer
         anchors.fill: parent
         visible: opacity > 0.01
         opacity: ControlCenterService.isPowerMenuOpen ? 1.0 : 0.0
@@ -263,7 +253,6 @@ Item {
                 Layout.fillWidth: true
                 implicitHeight: 32
 
-                readonly property string hoveredHint: {
                     if (root.isPowerNavActive) {
                         if (root.powerNavIndex === 0) return "Volver";
                         if (root.powerNavIndex === 1) return "Suspender";
@@ -321,7 +310,6 @@ Item {
                     }
 
                     MouseArea {
-                        id: suspMouse
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
@@ -353,7 +341,6 @@ Item {
                     }
 
                     MouseArea {
-                        id: exitMouse
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
@@ -385,7 +372,6 @@ Item {
                     }
 
                     MouseArea {
-                        id: rebootMouse
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
@@ -417,7 +403,6 @@ Item {
                     }
 
                     MouseArea {
-                        id: shutMouse
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor

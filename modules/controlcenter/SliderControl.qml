@@ -10,8 +10,6 @@ Item {
     property color accentColor: Theme.highlight
     property bool isMuted: false
 
-    signal valueChangedByUser(int newValue)
-    signal iconClicked()
 
     property bool focused: false
 
@@ -31,7 +29,6 @@ Item {
 
     // Pista de fondo con bordes redondeados armónicos (radius: 12)
     Rectangle {
-        id: trackBg
         anchors.fill: parent
         radius: 12
         color: (mouseArea.containsMouse || root.focused) ? Theme.surfaceHover : Theme.surfaceBase
@@ -47,7 +44,6 @@ Item {
 
         // Relleno de progreso visual limpio sin texto encima
         Rectangle {
-            id: fillRect
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
@@ -87,7 +83,6 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
 
                 Text {
-                    id: iconText
                     anchors.centerIn: parent
                     text: root.icon
                     font.family: Theme.fontFamily
@@ -114,7 +109,6 @@ Item {
                 }
 
                 MouseArea {
-                    id: iconMouse
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
@@ -156,7 +150,6 @@ Item {
             hoverEnabled: true
             cursorShape: pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
 
-            function updateFromMouse(posX) {
                 if (mouseArea.width <= 0) return;
                 let clamped = Math.max(0, Math.min(mouseArea.width, posX));
                 let pct = Math.round((clamped / mouseArea.width) * 100);

@@ -28,16 +28,13 @@ Item {
 
     // Procesos auxiliares de respaldo si Hyprland.dispatch no estuviera disponible
     Process {
-        id: focusProc
         command: ["hyprctl", "dispatch", "focuswindow", "address:0x0"]
     }
 
     Process {
-        id: closeProc
         command: ["hyprctl", "dispatch", "closewindow", "address:0x0"]
     }
 
-    function focusWindow(address, workspaceId, toplevel) {
         // 1. Si la ventana está en otro workspace, cambiar primero al workspace correspondiente
         if (workspaceId > 0 && workspaceId !== root.currentWorkspaceId) {
             if (focusProc.running) focusProc.running = false;
@@ -56,7 +53,6 @@ Item {
         focusProc.running = true;
     }
 
-    function closeWindow(address, toplevel) {
         if (toplevel && toplevel.wayland && typeof toplevel.wayland.close === "function") {
             toplevel.wayland.close();
         }
@@ -67,10 +63,8 @@ Item {
     }
 
     // ID del espacio de trabajo activo
-    readonly property int currentWorkspaceId: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1
 
     // Dirección de la ventana enfocada actualmente
-    readonly property string activeAddress: {
         let _dep = root._eventVersion;
         if (Hyprland.activeToplevel && Hyprland.activeToplevel.address) {
             return Hyprland.activeToplevel.address;
@@ -176,7 +170,6 @@ Item {
     }
 
     // Lista reactiva de todas las ventanas abiertas en el sistema
-    readonly property var activeWindows: {
         let _dep = root._eventVersion;
         let list = [];
 
@@ -231,7 +224,6 @@ Item {
             model: root.activeWindows
 
             Item {
-                id: taskItem
                 required property var modelData
 
                 width: 26
@@ -306,7 +298,6 @@ Item {
                 }
 
                 MouseArea {
-                    id: taskMouse
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor

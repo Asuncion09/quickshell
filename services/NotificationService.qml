@@ -12,15 +12,11 @@ Item {
     }
 
     // --- Configuración de Sonidos de Notificación ---
-    property bool soundEnabled: true
-    property string defaultSoundPath: "/usr/share/sounds/freedesktop/stereo/message-new-instant.oga"
 
     Process {
-        id: soundProc
         command: ["paplay", root.defaultSoundPath]
     }
 
-    function playSound(customPath) {
         if (!root.soundEnabled) return;
         let file = (customPath && customPath !== "") ? customPath : root.defaultSoundPath;
         if (soundProc.running) soundProc.running = false;
@@ -37,17 +33,14 @@ Item {
     readonly property bool isToastActive: currentToast !== null && !isCenterOpen && !isLauncherOpen
 
     // Comprobación segura de estado de Launcher
-    readonly property bool isLauncherOpen: {
         return (typeof LauncherService !== "undefined" && LauncherService && LauncherService.isOpen);
     }
 
     // Lista de notificaciones activas (más recientes al principio)
     property var notifications: []
     readonly property int count: notifications.length
-    readonly property bool hasNotifications: count > 0
 
     // Temporizador para actualizar los tiempos relativos cada 30 segundos
-    property int _ticker: 0
     Timer {
         interval: 30000
         running: true
@@ -57,7 +50,6 @@ Item {
 
     // Temporizador de cortesía de 4 segundos para el toast emergente
     Timer {
-        id: toastTimer
         interval: 4000
         onTriggered: {
             root.currentToast = null;
@@ -174,7 +166,6 @@ Item {
     function postInternalNotification(appName, summary, body, urgency, icon, customSound) {
         let notifId = Math.floor(Math.random() * 100000) + 900000;
         let item = {
-            id: notifId,
             ref: null,
             appName: appName || "Sistema",
             appIcon: icon || resolveAppIcon("", "", appName),
@@ -200,7 +191,6 @@ Item {
         }
     }
 
-    function removeNotification(id) {
         let list = root.notifications.slice();
         let idx = list.findIndex(n => n.id === id);
         if (idx !== -1) {

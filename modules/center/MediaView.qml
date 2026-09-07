@@ -10,7 +10,6 @@ Item {
 
     // Progreso único de animación (0.0 = reposo, 1.0 = expandido en hover)
     // Sincroniza al 100% la cápsula exterior y los controles interiores sin ningún lag
-    property real expandProgress: isHovered ? 1.0 : 0.0
     Behavior on expandProgress {
         NumberAnimation {
             duration: Theme.animNormal
@@ -23,12 +22,10 @@ Item {
     width: implicitWidth
     height: implicitHeight
 
-    signal dismissToClockRequested()
     signal wheelRequested()
 
     // 1. Detección de hover y clics en el fondo (z: 0)
     MouseArea {
-        id: hoverArea
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
@@ -74,7 +71,6 @@ Item {
 
         // Título de la pista / video
         Text {
-            id: titleLabel
             anchors.verticalCenter: parent.verticalCenter
             text: MediaService.title
             font.family: Theme.fontFamily
@@ -87,7 +83,6 @@ Item {
 
         // Nombre del Artista / Canal
         Text {
-            id: artistLabel
             anchors.verticalCenter: parent.verticalCenter
             visible: MediaService.artist !== ""
             text: "•  " + MediaService.artist
@@ -102,7 +97,6 @@ Item {
         // Su ancho y opacidad están ligados directamente a expandProgress,
         // garantizando que la cápsula y los controles se muevan exactamente al mismo tiempo
         Item {
-            id: controlsContainer
             anchors.verticalCenter: parent.verticalCenter
             width: Math.round((controlsRow.implicitWidth + 4) * root.expandProgress)
             height: 26
@@ -111,7 +105,6 @@ Item {
             visible: root.expandProgress > 0.01
 
             Row {
-                id: controlsRow
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 9
@@ -135,7 +128,6 @@ Item {
                     scale: prevMouse.pressed ? 0.80 : (prevMouse.containsMouse ? 1.18 : 1.0)
 
                     MouseArea {
-                        id: prevMouse
                         anchors.fill: parent
                         anchors.margins: -4
                         hoverEnabled: true
@@ -166,7 +158,6 @@ Item {
                     scale: playMouse.pressed ? 0.80 : (playMouse.containsMouse ? 1.18 : 1.0)
 
                     MouseArea {
-                        id: playMouse
                         anchors.fill: parent
                         anchors.margins: -4
                         hoverEnabled: true
@@ -197,7 +188,6 @@ Item {
                     scale: nextMouse.pressed ? 0.80 : (nextMouse.containsMouse ? 1.18 : 1.0)
 
                     MouseArea {
-                        id: nextMouse
                         anchors.fill: parent
                         anchors.margins: -4
                         hoverEnabled: true

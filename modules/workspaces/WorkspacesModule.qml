@@ -11,12 +11,10 @@ RowLayout {
 
     // Proceso auxiliar para garantizar el cambio de workspace mediante hyprctl en cualquier circunstancia
     Process {
-        id: wsProcess
         command: ["hyprctl", "dispatch", "workspace", "1"]
     }
 
     // Función robusta para cambiar de workspace
-    function switchToWorkspace(id) {
         // 1. Invocar el método nativo activate() en el objeto del workspace si existe
         if (Hyprland.workspaces && Hyprland.workspaces.values) {
             for (let i = 0; i < Hyprland.workspaces.values.length; i++) {
@@ -37,8 +35,6 @@ RowLayout {
     // Contador reactivo para forzar reevaluación inmediata ante eventos de ventanas en Hyprland
     property int _eventVersion: 0
 
-    readonly property int _toplevelsCount: (Hyprland.toplevels && Hyprland.toplevels.values) ? Hyprland.toplevels.values.length : 0
-    readonly property int _workspacesCount: (Hyprland.workspaces && Hyprland.workspaces.values) ? Hyprland.workspaces.values.length : 0
 
     Connections {
         target: Hyprland
@@ -132,7 +128,6 @@ RowLayout {
     }
 
     // Lista de IDs: incluye persistentemente los workspaces 1 al 5 + cualquier otro abierto
-    readonly property var workspaceIds: {
         let _dep = root._eventVersion + root._workspacesCount;
         let set = new Set([1, 2, 3, 4, 5]);
 
@@ -157,21 +152,16 @@ RowLayout {
 
         // Contenedor con área de clic ampliada para facilitar la interacción
         Item {
-            id: wsButton
 
             required property int modelData
 
-            readonly property int wsId: modelData
-            readonly property bool isActive: Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id === wsId
 
             // Comprobación reactiva de si contiene ventanas abiertas
-            readonly property bool isOccupied: {
                 let _dep = root._eventVersion + root._toplevelsCount + root._workspacesCount;
                 return root.hasWindows(wsId);
             }
             
             // Comprobación de estado urgente
-            readonly property bool isUrgent: {
                 let _dep = root._eventVersion;
                 if (!Hyprland.workspaces || !Hyprland.workspaces.values) return false;
                 for (let i = 0; i < Hyprland.workspaces.values.length; i++) {
@@ -186,7 +176,6 @@ RowLayout {
 
             // Píldora visual centrada
             Rectangle {
-                id: wsPill
                 anchors.centerIn: parent
 
                 implicitWidth: wsButton.isActive ? Theme.wsActiveWidth : Theme.wsInactiveWidth
@@ -225,7 +214,6 @@ RowLayout {
             }
 
             MouseArea {
-                id: wsMouse
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor

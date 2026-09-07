@@ -112,7 +112,6 @@ PanelWindow {
             z: 1
 
             Pill {
-                id: leftPill
 
                 WorkspacesModule {
                     id: workspaces
@@ -121,12 +120,10 @@ PanelWindow {
 
             // Cápsula #taskbar (Dock de Ventanas Abiertas con salto a Workspace)
             Pill {
-                id: taskbarPill
                 visible: taskbar.hasWindows
                 paddingHorizontal: 6
 
                 TaskbarModule {
-                    id: taskbar
                 }
             }
         }
@@ -143,14 +140,12 @@ PanelWindow {
                 paddingHorizontal: (LauncherService.isOpen || NotificationService.isCenterOpen) ? 6 : (NotificationService.isToastActive ? 8 : Theme.centerPillPaddingHorizontal)
 
                 CenterIslandModule {
-                    id: centerIsland
                 }
             }
         }
 
         // SECCIÓN DERECHA: .modules-right (Tray + Sistema/Hardware)
         RowLayout {
-            id: rightLayout
             anchors.right: parent.right
             anchors.rightMargin: Theme.barMarginRight
             anchors.top: parent.top
@@ -160,7 +155,6 @@ PanelWindow {
             // Cápsula #tray (Solo iconos de la bandeja del sistema)
             // Se auto-oculta limpiamente si no hay aplicaciones activas en la bandeja
             Pill {
-                id: trayPill
                 visible: tray.hasItems
                 spacing: 8
 
@@ -171,7 +165,6 @@ PanelWindow {
 
             // Cápsula #hardware (Bluetooth + Red + Batería)
             Pill {
-                id: hardwarePill
                 spacing: 6
                 paddingHorizontal: 8
                 clickable: true
@@ -197,7 +190,6 @@ PanelWindow {
 
         // Centro de Control Flotante integrado en la misma superficie
         ControlCenter {
-            id: controlCenter
             anchors.top: rightLayout.bottom
             anchors.topMargin: 3
             anchors.right: parent.right
