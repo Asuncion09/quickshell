@@ -1,7 +1,6 @@
 pragma Singleton
 import QtQuick
 import Quickshell.Io
-import Quickshell.Services.Pipewire
 
 Item {
     id: root
@@ -18,6 +17,7 @@ Item {
 
     function close() {
         root.isOpen = false;
+        root.isPowerMenuOpen = false;
     }
 
     // --- Control de Micrófono con Pipewire (enlazado a AudioService) ---
@@ -87,15 +87,43 @@ Item {
         }
     }
 
-    // --- Acciones de Sistema ---
+    // --- Acciones de Sistema y Energía ---
+    property bool isPowerMenuOpen: false
+
+    function togglePowerMenu() {
+        root.isPowerMenuOpen = !root.isPowerMenuOpen;
+    }
+
     Process {
-        id: lockProc
-        command: ["hyprlock"]
+        id: sysActionProc
+    }
+
+    function runSysCommand(cmd) {
+        root.close();
+        root.isPowerMenuOpen = false;
+        if (sysActionProc.running) sysActionProc.running = false;
+        sysActionProc.command = cmd;
+        sysActionProc.running = true;
     }
 
     function lockScreen() {
-        root.close();
-        if (!lockProc.running) lockProc.running = true;
+        runSysCommand(["hyprlock"]);
+    }
+
+    function suspend() {
+        runSysCommand(["systemctl", "suspend"]);
+    }
+
+    function reboot() {
+        runSysCommand(["systemctl", "reboot"]);
+    }
+
+    function shutdown() {
+        runSysCommand(["systemctl", "poweroff"]);
+    }
+
+    function logout() {
+        runSysCommand(["hyprctl", "dispatch", "exit"]);
     }
 }
 

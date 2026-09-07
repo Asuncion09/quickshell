@@ -1,7 +1,6 @@
 pragma Singleton
 import QtQuick
 import Quickshell.Services.Mpris
-import "../theme"
 
 Item {
     id: root
@@ -48,6 +47,15 @@ Item {
         return "";
     }
 
+    readonly property string album: activePlayer ? (activePlayer.trackAlbum || "") : ""
+
+    readonly property string artUrl: {
+        if (!activePlayer || !activePlayer.trackArtUrl) return "";
+        let url = activePlayer.trackArtUrl;
+        if (url.startsWith("/")) return "file://" + url;
+        return url;
+    }
+
     readonly property string identity: activePlayer ? (activePlayer.identity || "") : ""
 
     readonly property string appIcon: {
@@ -66,10 +74,13 @@ Item {
     readonly property bool canPause: activePlayer ? activePlayer.canPause : false
     readonly property bool canGoNext: activePlayer ? activePlayer.canGoNext : false
     readonly property bool canGoPrevious: activePlayer ? activePlayer.canGoPrevious : false
+    readonly property bool canRaise: activePlayer ? activePlayer.canRaise : false
 
     function playPause() {
         if (!activePlayer) return;
-        if (activePlayer.playPause) {
+        if (activePlayer.togglePlaying) {
+            activePlayer.togglePlaying();
+        } else if (activePlayer.playPause) {
             activePlayer.playPause();
         } else if (isPlaying && activePlayer.pause) {
             activePlayer.pause();
@@ -87,6 +98,12 @@ Item {
     function previous() {
         if (activePlayer && activePlayer.previous) {
             activePlayer.previous();
+        }
+    }
+
+    function raise() {
+        if (activePlayer && activePlayer.canRaise && activePlayer.raise) {
+            activePlayer.raise();
         }
     }
 }

@@ -32,6 +32,19 @@ ShellRoot {
         }
     }
 
+    IpcHandler {
+        target: "controlcenter"
+        function toggle(): void {
+            ControlCenterService.toggle();
+        }
+        function open(): void {
+            ControlCenterService.open();
+        }
+        function close(): void {
+            ControlCenterService.close();
+        }
+    }
+
     Variants {
         model: Quickshell.screens
         Bar {}
