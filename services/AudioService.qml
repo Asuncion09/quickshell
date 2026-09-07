@@ -76,13 +76,14 @@ Item {
 
         if (defaultSink && defaultSink.audio) {
             defaultSink.audio.volume = normalized;
+        } else {
+            if (wpctlProc.running) wpctlProc.running = false;
+            wpctlProc.command = ["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SINK@", normalized.toFixed(2)];
+            wpctlProc.running = true;
         }
         if (root._readyForOsd) {
             root.volumeChangedTriggered(clamped, root.isMuted);
         }
-        if (wpctlProc.running) wpctlProc.running = false;
-        wpctlProc.command = ["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SINK@", normalized.toFixed(2)];
-        wpctlProc.running = true;
     }
 
     function increaseVolume(step) {
@@ -100,13 +101,14 @@ Item {
         root._lastReportedMuted = newMute;
         if (defaultSink && defaultSink.audio) {
             defaultSink.audio.muted = newMute;
+        } else {
+            if (wpctlProc.running) wpctlProc.running = false;
+            wpctlProc.command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", newMute ? "1" : "0"];
+            wpctlProc.running = true;
         }
         if (root._readyForOsd) {
             root.volumeChangedTriggered(root.currentPercent, newMute);
         }
-        if (wpctlProc.running) wpctlProc.running = false;
-        wpctlProc.command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", newMute ? "1" : "0"];
-        wpctlProc.running = true;
     }
 
     // --- Control de Micrófono ---
@@ -122,9 +124,10 @@ Item {
         let newMute = !root.isMicMuted;
         if (defaultSource && defaultSource.audio) {
             defaultSource.audio.muted = newMute;
+        } else {
+            if (micWpctlProc.running) micWpctlProc.running = false;
+            micWpctlProc.command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", newMute ? "1" : "0"];
+            micWpctlProc.running = true;
         }
-        if (micWpctlProc.running) micWpctlProc.running = false;
-        micWpctlProc.command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", newMute ? "1" : "0"];
-        micWpctlProc.running = true;
     }
 }

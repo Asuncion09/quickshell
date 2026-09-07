@@ -75,54 +75,69 @@ Item {
 
     // 2. Respaldo directo de nmcli por CLI
     property var cliNetworks: []
+    property var _accumulatedNetLines: []
     property bool isScanning: false
 
     Process {
         id: scanProc
         command: ["sh", "-c", "LC_ALL=C nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY device wifi list 2>/dev/null"]
+        onStarted: {
+            root._accumulatedNetLines = [];
+        }
         stdout: SplitParser {
             onRead: data => {
-                let lines = data.trim().split("\n");
-                let map = new Map();
-
-                for (let i = 0; i < lines.length; i++) {
-                    let line = lines[i].trim();
-                    if (!line) continue;
-                    let parts = line.split(":");
-                    if (parts.length >= 3) {
-                        let isConn = parts[0].trim() === "*";
-                        let ssid = parts[1].trim();
-                        let sig = parseInt(parts[2]) || 50;
-                        let sec = parts.length > 3 ? parts[3].trim() : "";
-
-                        if (ssid !== "") {
-                            let existing = map.get(ssid);
-                            let item = {
-                                name: ssid,
-                                connected: isConn,
-                                strength: Math.max(0.0, Math.min(1.0, sig / 100.0)),
-                                known: isConn || sec === "",
-                                isProtected: sec !== "" && sec !== "--"
-                            };
-                            if (!existing || (!existing.connected && isConn) || (item.strength > existing.strength)) {
-                                map.set(ssid, item);
-                            }
-                        }
+                let text = data.trim();
+                if (text) {
+                    let lines = text.split("\n");
+                    for (let i = 0; i < lines.length; i++) {
+                        let l = lines[i].trim();
+                        if (l) root._accumulatedNetLines.push(l);
                     }
                 }
-
-                let list = Array.from(map.values());
-                list.sort((a, b) => {
-                    if (a.connected && !b.connected) return -1;
-                    if (!a.connected && b.connected) return 1;
-                    return (b.strength || 0) - (a.strength || 0);
-                });
-                root.cliNetworks = list;
             }
         }
         onExited: {
             root.isScanning = false;
+            root.parseCliLines(root._accumulatedNetLines);
         }
+    }
+
+    function parseCliLines(lines) {
+        let map = new Map();
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+            if (!line) continue;
+            let parts = line.split(":");
+            if (parts.length >= 3) {
+                let isConn = parts[0].trim() === "*";
+                let ssid = parts[1].trim();
+                let sig = parseInt(parts[2]) || 50;
+                let sec = parts.length > 3 ? parts[3].trim() : "";
+
+                if (ssid !== "") {
+                    let existing = map.get(ssid);
+                    let item = {
+                        name: ssid,
+                        connected: isConn,
+                        strength: Math.max(0.0, Math.min(1.0, sig / 100.0)),
+                        known: isConn || sec === "",
+                        isProtected: sec !== "" && sec !== "--"
+                    };
+                    if (!existing || (!existing.connected && isConn) || (item.strength > existing.strength)) {
+                        map.set(ssid, item);
+                    }
+                }
+            }
+        }
+
+        let list = Array.from(map.values());
+        list.sort((a, b) => {
+            if (a.connected && !b.connected) return -1;
+            if (!a.connected && b.connected) return 1;
+            return (b.strength || 0) - (a.strength || 0);
+        });
+        root.cliNetworks = list;
     }
 
     function refreshScan() {
@@ -131,10 +146,33 @@ Item {
         scanProc.running = true;
     }
 
-    // Combina: Si Quickshell tiene redes nativas úsalas; si no, usa el respaldo instantáneo de nmcli
+    // Fusión de fuentes: muestra todas las redes del hardware detectadas por CLI y enriquece con nativas
     readonly property var displayNetworks: {
-        if (nativeNetworks.length > 0) return nativeNetworks;
-        return cliNetworks;
+        let map = new Map();
+
+        // 1. Redes encontradas por escaneo CLI
+        for (let i = 0; i < cliNetworks.length; i++) {
+            let c = cliNetworks[i];
+            if (c && c.name) {
+                map.set(c.name, c);
+            }
+        }
+
+        // 2. Redes nativas (agregan o enriquecen con objetos nativos si coinciden)
+        for (let i = 0; i < nativeNetworks.length; i++) {
+            let n = nativeNetworks[i];
+            if (n && n.name) {
+                map.set(n.name, n);
+            }
+        }
+
+        let list = Array.from(map.values());
+        list.sort((a, b) => {
+            if (a.connected && !b.connected) return -1;
+            if (!a.connected && b.connected) return 1;
+            return (b.strength || 0) - (a.strength || 0);
+        });
+        return list;
     }
 
     function signalIcon(strength) {

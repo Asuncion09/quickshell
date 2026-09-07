@@ -15,11 +15,25 @@ Item {
     signal brightnessChangedTriggered(int percent)
 
     property bool _readyForOsd: false
+    property int _lastReportedPercent: -1
+
+    onBrightnessPercentChanged: {
+        if (root._readyForOsd) {
+            if (root.brightnessPercent !== root._lastReportedPercent) {
+                root._lastReportedPercent = root.brightnessPercent;
+                root.brightnessChangedTriggered(root.brightnessPercent);
+            }
+        }
+    }
+
     Timer {
         id: initTimer
         interval: 1500
         running: true
-        onTriggered: root._readyForOsd = true
+        onTriggered: {
+            root._readyForOsd = true;
+            root._lastReportedPercent = root.brightnessPercent;
+        }
     }
 
     Process {
@@ -54,6 +68,7 @@ Item {
     function setBrightness(pct) {
         let val = Math.max(1, Math.min(100, pct));
         root.brightnessPercent = val;
+        root._lastReportedPercent = val;
         if (root._readyForOsd) {
             root.brightnessChangedTriggered(val);
         }

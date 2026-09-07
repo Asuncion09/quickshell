@@ -19,10 +19,10 @@ Item {
             }
         }
 
-        // 2. Si ninguno está reproduciendo, devolver el primero disponible que tenga título o identidad
+        // 2. Si ninguno está reproduciendo, devolver el primero disponible con título válido
         for (let i = 0; i < players.length; i++) {
             let p = players[i];
-            if (p && (p.trackTitle || p.identity)) {
+            if (p && p.trackTitle && p.trackTitle.trim() !== "") {
                 return p;
             }
         }
@@ -30,12 +30,15 @@ Item {
         return players[0] || null;
     }
 
-    readonly property bool hasMedia: activePlayer !== null && (activePlayer.trackTitle !== "" || activePlayer.identity !== "")
+    readonly property bool hasMedia: activePlayer !== null && (
+        (Boolean(activePlayer.trackTitle) && activePlayer.trackTitle.trim() !== "") ||
+        activePlayer.playbackState === MprisPlaybackState.Playing
+    )
     readonly property bool isPlaying: activePlayer !== null && activePlayer.playbackState === MprisPlaybackState.Playing
 
     readonly property string title: {
         if (!activePlayer) return "";
-        return activePlayer.trackTitle || "Sin título";
+        return activePlayer.trackTitle || (isPlaying ? "Reproduciendo" : "");
     }
 
     readonly property string artist: {

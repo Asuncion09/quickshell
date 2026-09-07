@@ -46,15 +46,19 @@ Item {
 
     Process {
         id: btScanProc
-        command: ["sh", "-c", "bluetoothctl devices 2>/dev/null"]
+        command: ["sh", "-c", "conn=$(bluetoothctl devices Connected 2>/dev/null | awk '{print $2}'); bluetoothctl devices 2>/dev/null | while read -r tag mac name; do [ \"$tag\" = \"Device\" ] || continue; is_conn=$(echo \"$conn\" | grep -Fq \"$mac\" && echo 'yes' || echo 'no'); echo \"$is_conn:$mac:$name\"; done"]
         onStarted: {
             root._accumulatedLines = [];
         }
         stdout: SplitParser {
             onRead: data => {
-                let line = data.trim();
-                if (line) {
-                    root._accumulatedLines.push(line);
+                let text = data.trim();
+                if (text) {
+                    let lines = text.split("\n");
+                    for (let i = 0; i < lines.length; i++) {
+                        let l = lines[i].trim();
+                        if (l) root._accumulatedLines.push(l);
+                    }
                 }
             }
         }
@@ -68,16 +72,17 @@ Item {
         let list = [];
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
-            if (!line.startsWith("Device ")) continue;
-            let parts = line.split(" ");
+            if (!line) continue;
+            let parts = line.split(":");
             if (parts.length >= 3) {
+                let isConn = parts[0] === "yes";
                 let mac = parts[1];
-                let name = parts.slice(2).join(" ");
+                let name = parts.slice(2).join(":");
                 list.push({
                     name: name,
                     deviceName: name,
                     address: mac,
-                    connected: BluetoothService.isConnected && BluetoothService.deviceName === name,
+                    connected: isConn,
                     paired: true
                 });
             }
@@ -92,7 +97,7 @@ Item {
 
     function refreshBtScan() {
         root.isScanning = true;
-        if (Bluetooth.defaultAdapter) {
+        if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) {
             Bluetooth.defaultAdapter.discovering = true;
         }
         if (btScanProc.running) btScanProc.running = false;
@@ -104,12 +109,12 @@ Item {
     onVisibleChanged: {
         if (visible) {
             refreshBtScan();
-            if (Bluetooth.defaultAdapter) {
+            if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) {
                 Bluetooth.defaultAdapter.discoverable = true;
                 Bluetooth.defaultAdapter.discovering = true;
             }
         } else {
-            if (Bluetooth.defaultAdapter) {
+            if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) {
                 Bluetooth.defaultAdapter.discoverable = false;
                 Bluetooth.defaultAdapter.discovering = false;
             }

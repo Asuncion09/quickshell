@@ -19,26 +19,48 @@ PopupWindow {
     visible: false
     grabFocus: true
 
+    property bool _isOpen: false
+
     property int currentView: 0 // 0 = Principal, 1 = Wi-Fi, 2 = Bluetooth
 
+    Timer {
+        id: closeTimer
+        interval: Theme.animNormal
+        onTriggered: {
+            if (!root._isOpen) {
+                root.visible = false;
+                root.currentView = 0;
+            }
+        }
+    }
+
     function toggle() {
-        root.visible = !root.visible;
+        if (root._isOpen) {
+            root.close();
+        } else {
+            root.open();
+        }
     }
 
     function open() {
+        closeTimer.stop();
         root.visible = true;
+        root._isOpen = true;
     }
 
     function close() {
-        root.visible = false;
-        root.currentView = 0;
+        root._isOpen = false;
+        closeTimer.restart();
+        if (ControlCenterService.isOpen) ControlCenterService.close();
     }
 
     onVisibleChanged: {
         if (!visible) {
+            root._isOpen = false;
             root.currentView = 0;
             if (ControlCenterService.isOpen) ControlCenterService.close();
         } else {
+            root._isOpen = true;
             if (ControlCenterService.hasPasskeyPrompt) {
                 root.currentView = 2;
             }
@@ -51,8 +73,10 @@ PopupWindow {
     Connections {
         target: ControlCenterService
         function onIsOpenChanged() {
-            if (root.visible !== ControlCenterService.isOpen) {
-                root.visible = ControlCenterService.isOpen;
+            if (ControlCenterService.isOpen && !root._isOpen) {
+                root.open();
+            } else if (!ControlCenterService.isOpen && root._isOpen) {
+                root.close();
             }
         }
         function onHasPasskeyPromptChanged() {
@@ -90,8 +114,8 @@ PopupWindow {
         anchors.bottomMargin: 10
         transformOrigin: Item.TopRight
 
-        scale: root.visible ? 1.0 : 0.94
-        opacity: root.visible ? 1.0 : 0.0
+        scale: root._isOpen ? 1.0 : 0.94
+        opacity: root._isOpen ? 1.0 : 0.0
 
         Behavior on scale {
             NumberAnimation {

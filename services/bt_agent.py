@@ -128,9 +128,12 @@ class BluezAgent(dbus.service.Object):
         sys.stdout.write(json.dumps(data) + "\n")
         sys.stdout.flush()
 
-def on_stdin_read(channel, condition, agent):
+import signal
+
+def on_stdin_read(channel, condition, agent, loop):
     line = sys.stdin.readline()
     if not line:
+        loop.quit()
         return False
     action = line.strip().lower()
     agent.handle_user_response(action)
@@ -161,8 +164,19 @@ def main():
         sys.stdout.flush()
         return
 
-    GLib.io_add_watch(0, GLib.IO_IN, on_stdin_read, agent)
     loop = GLib.MainLoop()
+
+    def sig_handler(signum, frame):
+        loop.quit()
+
+    try:
+        signal.signal(signal.SIGINT, sig_handler)
+        signal.signal(signal.SIGTERM, sig_handler)
+    except Exception:
+        pass
+
+    GLib.io_add_watch(0, GLib.IO_IN, lambda ch, cond: on_stdin_read(ch, cond, agent, loop))
+
     try:
         loop.run()
     except KeyboardInterrupt:

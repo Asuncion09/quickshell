@@ -15,6 +15,8 @@ Item {
     property alias borderWidth: pillBackground.border.width
     property int radius: Theme.pillRadius
     property bool clickable: false
+    property string tooltipText: ""
+    readonly property bool isHovered: root.clickable && pillMouse.containsMouse
     signal clicked(var mouse)
 
     implicitWidth: pillBackground.implicitWidth
@@ -95,5 +97,11 @@ Item {
         acceptedButtons: Qt.LeftButton
         z: 10
         onClicked: mouse => root.clicked(mouse)
+    }
+
+    BarToolTip {
+        targetItem: root
+        text: root.tooltipText
+        hovered: root.isHovered && root.tooltipText !== ""
     }
 }

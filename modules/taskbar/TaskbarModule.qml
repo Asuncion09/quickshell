@@ -18,9 +18,9 @@ Item {
         function onRawEvent(event) {
             if (!event) return;
             let n = event.name;
-            if (n === "openwindow" || n === "closewindow" || n === "movewindow" 
+            if (n === "openwindow" || n === "closewindow" || n === "movewindow" || n === "movewindowv2"
              || n === "activewindow" || n === "activewindowv2" || n === "workspace"
-             || n === "windowtitle") {
+             || n === "windowtitle" || n === "windowtitlev2") {
                 root._eventVersion++;
             }
         }
@@ -37,13 +37,20 @@ Item {
         command: ["hyprctl", "dispatch", "closewindow", "address:0x0"]
     }
 
-    function focusWindow(address, toplevel) {
-        // 1. Intentar el método nativo Wayland si está presente
+    function focusWindow(address, workspaceId, toplevel) {
+        // 1. Si la ventana está en otro workspace, cambiar primero al workspace correspondiente
+        if (workspaceId > 0 && workspaceId !== root.currentWorkspaceId) {
+            if (typeof Hyprland.dispatch === "function") {
+                Hyprland.dispatch("workspace " + workspaceId);
+            }
+        }
+
+        // 2. Intentar el método nativo Wayland si está presente
         if (toplevel && toplevel.wayland && typeof toplevel.wayland.activate === "function") {
             toplevel.wayland.activate();
         }
 
-        // 2. Dispatch vía socket IPC nativo de Quickshell (inmediato, sin spawn de proceso)
+        // 3. Dispatch vía socket IPC nativo de Quickshell (inmediato, sin spawn de proceso)
         if (typeof Hyprland.dispatch === "function") {
             Hyprland.dispatch("focuswindow address:" + address);
         } else {
@@ -326,8 +333,8 @@ Item {
 
                     onClicked: mouse => {
                         if (mouse.button === Qt.LeftButton) {
-                            // Clic izquierdo: Enfocar ventana mediante sintaxis de Hyprland-Lua garantizada
-                            root.focusWindow(taskItem.modelData.address, taskItem.modelData.toplevel);
+                            // Clic izquierdo: Cambia al workspace donde reside la ventana y le da foco
+                            root.focusWindow(taskItem.modelData.address, taskItem.modelData.workspaceId, taskItem.modelData.toplevel);
                         } else if (mouse.button === Qt.MiddleButton) {
                             // Clic central: Cerrar ventana
                             root.closeWindow(taskItem.modelData.address, taskItem.modelData.toplevel);

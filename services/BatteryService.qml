@@ -49,7 +49,7 @@ Item {
     readonly property int percentage: {
         if (UPower.displayDevice && UPower.displayDevice.isPresent) {
             let p = UPower.displayDevice.percentage;
-            return Math.round(p <= 1.0 ? p * 100 : p);
+            return Math.max(0, Math.min(100, Math.round(p * 100)));
         }
         return root._sysCapacity;
     }

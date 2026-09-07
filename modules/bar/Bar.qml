@@ -63,7 +63,7 @@ PanelWindow {
                 }
             }
 
-            // Cápsula #taskbar (Dock de Apps Abiertas en el Workspace Activo)
+            // Cápsula #taskbar (Dock de Ventanas Abiertas con salto a Workspace)
             Pill {
                 id: taskbarPill
                 visible: taskbar.hasWindows
@@ -114,6 +114,7 @@ PanelWindow {
                 spacing: 6
                 paddingHorizontal: 8
                 clickable: true
+                tooltipText: "Centro de Control"
                 onClicked: controlCenter.toggle()
 
                 BluetoothModule {

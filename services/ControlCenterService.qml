@@ -44,7 +44,7 @@ Item {
 
     function connectWifi(ssid) {
         if (wifiConnProc.running) wifiConnProc.running = false;
-        wifiConnProc.command = ["nmcli", "connection", "up", ssid];
+        wifiConnProc.command = ["nmcli", "device", "wifi", "connect", ssid];
         wifiConnProc.running = true;
     }
 

@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import "../../theme"
 import "../../components"
@@ -16,7 +17,7 @@ BarButton {
 
     Process {
         id: launcherProc
-        command: ["/home/daniel/.config/rofi/launcher.sh"]
+        command: [Quickshell.env("HOME") + "/.config/rofi/launcher.sh"]
     }
 
     onClicked: {

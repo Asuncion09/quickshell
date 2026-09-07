@@ -1,28 +1,25 @@
 import QtQuick
-import Quickshell.Io
 import "../../theme"
-import "../../components"
 import "../../services"
 
-BarButton {
+Item {
     id: root
 
-    text: BluetoothService.icon
-    pixelSize: Theme.fontSize
-    defaultTextColor: BluetoothService.color
-    hoverTextColor: Theme.highlight
-    hoverBgColor: "transparent"
-    tooltipText: BluetoothService.tooltipText
     implicitWidth: 20
+    implicitHeight: 26
 
-    Process {
-        id: btProc
-        command: ["ghostty", "--class=com.floating.medium", "-e", "bluetui"]
-    }
+    Text {
+        id: iconLabel
+        anchors.centerIn: parent
+        text: BluetoothService.icon
+        font.family: Theme.fontFamily
+        font.pixelSize: Theme.fontSize
+        color: BluetoothService.color
+        verticalAlignment: Text.AlignVCenter
+        horizontalAlignment: Text.AlignHCenter
 
-    onClicked: {
-        if (!btProc.running) {
-            btProc.running = true;
+        Behavior on color {
+            ColorAnimation { duration: Theme.animNormal }
         }
     }
 }

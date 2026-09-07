@@ -1,28 +1,25 @@
 import QtQuick
-import Quickshell.Io
 import "../../theme"
-import "../../components"
 import "../../services"
 
-BarButton {
+Item {
     id: root
 
-    text: NetworkService.icon
-    pixelSize: Theme.fontSize
-    defaultTextColor: NetworkService.color
-    hoverTextColor: Theme.highlight
-    hoverBgColor: "transparent"
-    tooltipText: NetworkService.tooltipText
     implicitWidth: 20
+    implicitHeight: 26
 
-    Process {
-        id: netProc
-        command: ["nmrs-gui"]
-    }
+    Text {
+        id: iconLabel
+        anchors.centerIn: parent
+        text: NetworkService.icon
+        font.family: Theme.fontFamily
+        font.pixelSize: Theme.fontSize
+        color: NetworkService.color
+        verticalAlignment: Text.AlignVCenter
+        horizontalAlignment: Text.AlignHCenter
 
-    onClicked: {
-        if (!netProc.running) {
-            netProc.running = true;
+        Behavior on color {
+            ColorAnimation { duration: Theme.animNormal }
         }
     }
 }

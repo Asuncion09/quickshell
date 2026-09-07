@@ -136,8 +136,9 @@ Item {
             cursorShape: pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
 
             function updateFromMouse(posX) {
-                let clampedX = Math.max(0, Math.min(trackBg.width, posX + 36));
-                let pct = Math.round((clampedX / trackBg.width) * 100);
+                if (mouseArea.width <= 0) return;
+                let clamped = Math.max(0, Math.min(mouseArea.width, posX));
+                let pct = Math.round((clamped / mouseArea.width) * 100);
                 root.valueChangedByUser(Math.max(0, Math.min(100, pct)));
             }
 

@@ -1,18 +1,27 @@
 import QtQuick
 import "../../theme"
-import "../../components"
 import "../../services"
 
-BarButton {
+Item {
     id: root
 
-    text: BatteryService.icon
-    pixelSize: Theme.fontSize
-    defaultTextColor: BatteryService.color
-    hoverTextColor: Theme.highlight
-    hoverBgColor: "transparent"
-    tooltipText: BatteryService.tooltipText
     implicitWidth: 20
+    implicitHeight: 26
+
+    Text {
+        id: iconLabel
+        anchors.centerIn: parent
+        text: BatteryService.icon
+        font.family: Theme.fontFamily
+        font.pixelSize: Theme.fontSize
+        color: BatteryService.color
+        verticalAlignment: Text.AlignVCenter
+        horizontalAlignment: Text.AlignHCenter
+
+        Behavior on color {
+            ColorAnimation { duration: Theme.animNormal }
+        }
+    }
 
     // Animación suave de pulsación solo en estado crítico (<15%)
     SequentialAnimation on opacity {

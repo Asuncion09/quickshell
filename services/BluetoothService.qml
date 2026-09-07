@@ -14,7 +14,7 @@ Item {
 
     Process {
         id: btReader
-        command: ["sh", "-c", "powered=$(bluetoothctl show 2>/dev/null | grep -q 'Powered: yes' && echo 'yes' || echo 'no'); name=$(bluetoothctl info 2>/dev/null | grep 'Name:' | head -n 1 | cut -d ':' -f 2- | xargs); echo \"$powered:$name\""]
+        command: ["sh", "-c", "powered=$(bluetoothctl show 2>/dev/null | grep -q 'Powered: yes' && echo 'yes' || echo 'no'); name=$(bluetoothctl devices Connected 2>/dev/null | head -n 1 | cut -d ' ' -f 3- | xargs); echo \"$powered:$name\""]
         stdout: SplitParser {
             onRead: data => {
                 let line = data.trim();
