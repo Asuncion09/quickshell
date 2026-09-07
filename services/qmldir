@@ -6,4 +6,5 @@ singleton AudioService 1.0 AudioService.qml
 singleton BrightnessService 1.0 BrightnessService.qml
 singleton ControlCenterService 1.0 ControlCenterService.qml
 singleton LauncherService 1.0 LauncherService.qml
+singleton NotificationService 1.0 NotificationService.qml
 

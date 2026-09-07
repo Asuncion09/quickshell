@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell.Io
+import "."
 
 Item {
     id: root
@@ -410,42 +411,11 @@ Item {
         root.hasPasskeyPrompt = false;
     }
 
-    // --- Control de No Molestar (DND) ---
-    property bool isDnd: false
-
-    Process {
-        id: dndCheckProc
-        command: ["swaync-client", "-D"]
-        stdout: SplitParser {
-            onRead: data => {
-                let val = data.trim();
-                root.isDnd = (val === "true");
-            }
-        }
-    }
-
-    Process {
-        id: dndToggleProc
-        command: ["swaync-client", "-d", "-sw"]
-        onExited: {
-            dndCheckProc.running = true;
-        }
-    }
+    // --- Control de No Molestar (DND sincronizado con NotificationService) ---
+    readonly property bool isDnd: NotificationService.dnd
 
     function toggleDnd() {
-        root.isDnd = !root.isDnd;
-        if (dndToggleProc.running) dndToggleProc.running = false;
-        dndToggleProc.running = true;
-    }
-
-    Timer {
-        interval: 10000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: {
-            if (!dndCheckProc.running) dndCheckProc.running = true;
-        }
+        NotificationService.toggleDnd();
     }
 
     // --- Acciones de Sistema y Energía ---

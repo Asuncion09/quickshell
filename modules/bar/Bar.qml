@@ -51,8 +51,8 @@ PanelWindow {
         Region {
             x: 0
             y: 0
-            width: (LauncherService.isOpen || ControlCenterService.isOpen) ? (root.screen ? root.screen.width : 1920) : 0
-            height: (LauncherService.isOpen || ControlCenterService.isOpen) ? (root.screen ? root.screen.height : 1080) : 0
+            width: (LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen) ? (root.screen ? root.screen.width : 1920) : 0
+            height: (LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen) ? (root.screen ? root.screen.height : 1080) : 0
         }
         Region { item: leftPill }
         Region { item: taskbarPill }
@@ -61,7 +61,7 @@ PanelWindow {
         Region { item: hardwarePill }
     }
 
-    // Cierra automáticamente el lanzador o centro de control si el usuario cambia de ventana activa o de workspace en Hyprland
+    // Cierra automáticamente el lanzador, centro de control o centro de notificaciones si el usuario cambia de ventana activa o de workspace en Hyprland
     Connections {
         target: Hyprland
         function onRawEvent(event) {
@@ -70,6 +70,7 @@ PanelWindow {
             if (n === "activewindow" || n === "activewindowv2" || n === "workspace") {
                 if (LauncherService.isOpen) LauncherService.close();
                 if (ControlCenterService.isOpen) ControlCenterService.close();
+                if (NotificationService.isCenterOpen) NotificationService.closeCenter();
             }
         }
     }
@@ -78,13 +79,13 @@ PanelWindow {
     Item {
         anchors.fill: parent
 
-        // Área de captura exterior invisible a pantalla completa (activa solo con lanzador o centro de control abierto)
+        // Área de captura exterior invisible a pantalla completa (activa solo con lanzador, centro de control o notificaciones abierto)
         // z: 90 cubre el fondo y las cápsulas laterales (z: 1), pero queda debajo de centerPill y controlCenter (z: 100).
         MouseArea {
             id: dismissArea
             anchors.fill: parent
-            visible: LauncherService.isOpen || ControlCenterService.isOpen
-            enabled: LauncherService.isOpen || ControlCenterService.isOpen
+            visible: LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen
+            enabled: LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen
             z: 90
             acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
             onPressed: {
@@ -95,6 +96,10 @@ PanelWindow {
                 if (ControlCenterService.isOpen) {
                     console.log("[Bar] Clic exterior detectado -> cerrando centro de control");
                     ControlCenterService.close();
+                }
+                if (NotificationService.isCenterOpen) {
+                    console.log("[Bar] Clic exterior detectado -> cerrando centro de notificaciones");
+                    NotificationService.closeCenter();
                 }
             }
         }
@@ -131,7 +136,7 @@ PanelWindow {
             }
         }
 
-        // SECCIÓN CENTRAL: .modules-center (Isla Dinámica: Reloj / Reproductor Multimedia / Lanzador Metamorfoseado)
+        // SECCIÓN CENTRAL: .modules-center (Isla Dinámica: Reloj / Reproductor Multimedia / Lanzador / Notificaciones)
         RowLayout {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
@@ -139,7 +144,8 @@ PanelWindow {
 
             Pill {
                 id: centerPill
-                paddingHorizontal: LauncherService.isOpen ? 6 : Theme.centerPillPaddingHorizontal
+                animateSize: false
+                paddingHorizontal: (LauncherService.isOpen || NotificationService.isCenterOpen) ? 6 : (NotificationService.isToastActive ? 8 : Theme.centerPillPaddingHorizontal)
 
                 CenterIslandModule {
                     id: centerIsland

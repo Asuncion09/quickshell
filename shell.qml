@@ -4,11 +4,26 @@
 //@ pragma Env QT_LOGGING_RULES = qt.qpa.services.warning=false
 import Quickshell
 import Quickshell.Io
+import Quickshell.Services.Notifications
 import "services"
 import "modules/bar"
 import "modules/osd"
 
 ShellRoot {
+    NotificationServer {
+        id: notifServer
+        keepOnReload: false
+        actionsSupported: true
+        imageSupported: true
+        bodySupported: true
+        bodyMarkupSupported: true
+        bodyHyperlinksSupported: true
+
+        onNotification: notif => {
+            NotificationService.handleNotification(notif);
+        }
+    }
+
     IpcHandler {
         target: "audio"
         function raise(): void {
@@ -64,6 +79,28 @@ ShellRoot {
         }
         function launch(): void {
             LauncherService.launchCurrent();
+        }
+    }
+
+    IpcHandler {
+        target: "notifications"
+        function toggle(): void {
+            NotificationService.toggleCenter();
+        }
+        function open(): void {
+            NotificationService.openCenter();
+        }
+        function close(): void {
+            NotificationService.closeCenter();
+        }
+        function clear(): void {
+            NotificationService.clearAll();
+        }
+        function dnd(): void {
+            NotificationService.toggleDnd();
+        }
+        function dump(): void {
+            console.warn("[DUMP_NOTIF]", JSON.stringify(NotificationService.notifications[0]));
         }
     }
 

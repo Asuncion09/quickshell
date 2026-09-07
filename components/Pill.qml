@@ -19,6 +19,15 @@ Item {
     readonly property bool isHovered: root.clickable && pillMouse.containsMouse
     signal clicked(var mouse)
 
+    property bool animateSize: true
+
+    Behavior on paddingHorizontal {
+        NumberAnimation {
+            duration: Theme.animNormal
+            easing.type: Easing.OutCubic
+        }
+    }
+
     implicitWidth: pillBackground.implicitWidth
     implicitHeight: pillBackground.implicitHeight
 
@@ -69,6 +78,7 @@ Item {
         radius: root.radius
 
         Behavior on implicitWidth {
+            enabled: root.animateSize
             NumberAnimation {
                 duration: Theme.animNormal
                 easing.type: Easing.OutCubic
@@ -76,6 +86,7 @@ Item {
         }
 
         Behavior on implicitHeight {
+            enabled: root.animateSize
             NumberAnimation {
                 duration: Theme.animNormal
                 easing.type: Easing.OutCubic

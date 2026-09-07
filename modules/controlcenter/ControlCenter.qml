@@ -24,7 +24,7 @@ Item {
         switch (idx) {
             case 0: ControlCenterService.toggleWifi(); break;
             case 1: ControlCenterService.toggleBluetooth(); break;
-            case 2: ControlCenterService.toggleDnd(); break;
+            case 2: NotificationService.toggleDnd(); break;
             case 3: ControlCenterService.toggleMicMute(); break;
             case 4: AudioService.toggleMute(); break;
             case 5: BrightnessService.setBrightness(BrightnessService.brightnessPercent > 10 ? 10 : 100); break;
@@ -43,7 +43,7 @@ Item {
         switch (idx) {
             case 0: root.currentView = 1; break;
             case 1: root.currentView = 2; break;
-            case 2: ControlCenterService.toggleDnd(); break;
+            case 2: NotificationService.toggleDnd(); break;
             case 3: ControlCenterService.toggleMicMute(); break;
             case 4: AudioService.toggleMute(); break;
             case 5: BrightnessService.setBrightness(BrightnessService.brightnessPercent > 10 ? 10 : 100); break;
@@ -470,12 +470,12 @@ Item {
                             QuickToggle {
                                 id: toggleDnd
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 2
-                                icon: ControlCenterService.isDnd ? "󰂛" : "󰂚"
+                                icon: NotificationService.dnd ? "󰂛" : "󰂚"
                                 title: "No Molestar"
-                                subtitle: ControlCenterService.isDnd ? "Silenciado" : "Desactivado"
-                                active: ControlCenterService.isDnd
+                                subtitle: NotificationService.dnd ? "Silenciado" : "Desactivado"
+                                active: NotificationService.dnd
                                 hasSubmenu: false
-                                onClicked: ControlCenterService.toggleDnd()
+                                onClicked: NotificationService.toggleDnd()
                             }
 
                             // Toggle Micrófono

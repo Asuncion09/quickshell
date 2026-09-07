@@ -88,8 +88,6 @@ Item {
     Connections {
         target: LauncherService
         function onIsOpenChanged() {
-            root._modeChanging = true;
-            modeTimer.restart();
             if (LauncherService.isOpen) {
                 searchField.text = "";
                 Qt.callLater(() => {
@@ -120,7 +118,7 @@ Item {
     }
 
     function handleWheel() {
-        if (LauncherService.isOpen) return;
+        if (LauncherService.isOpen || NotificationService.isCenterOpen) return;
         if (root._wheelLocked) return;
         root._wheelLocked = true;
         wheelCooldown.restart();
@@ -144,10 +142,18 @@ Item {
     // Dimensiones optimizadas: más angosto (330px total) y altura calibrada para múltiplos exactos de ítems
     readonly property int launcherWidth: 330 - (6 * 2)
     readonly property int launcherHeight: 323
+    readonly property int notificationCenterWidth: 330 - (6 * 2)
+    readonly property int notificationCenterHeight: 330
 
     implicitWidth: {
         if (LauncherService.isOpen) {
             return launcherWidth;
+        }
+        if (NotificationService.isCenterOpen) {
+            return notificationCenterWidth;
+        }
+        if (NotificationService.isToastActive) {
+            return notificationToastView.implicitWidth;
         }
         return Math.round(isMediaActive ? mediaView.implicitWidth : clockView.implicitWidth);
     }
@@ -156,29 +162,18 @@ Item {
         if (LauncherService.isOpen) {
             return launcherHeight;
         }
-        return 26;
+        if (NotificationService.isCenterOpen) {
+            return notificationCenterHeight;
+        }
+        return 28;
     }
 
     width: implicitWidth
     height: implicitHeight
     clip: true
 
-    // Animar SOLO cuando se cambia de modo entre Reloj, Multimedia y Lanzador.
-    // Durante el hover dentro de MediaView, el propio MediaView anima su expansión en sincronía exacta.
-    property bool _modeChanging: false
-    Timer {
-        id: modeTimer
-        interval: Theme.animNormal + 50
-        onTriggered: root._modeChanging = false
-    }
-
-    onIsMediaActiveChanged: {
-        root._modeChanging = true;
-        modeTimer.restart();
-    }
-
     Behavior on implicitWidth {
-        enabled: root._modeChanging
+        enabled: !(root.isMediaActive && mediaView.isHovered)
         NumberAnimation {
             duration: Theme.animNormal
             easing.type: Easing.OutCubic
@@ -186,7 +181,6 @@ Item {
     }
 
     Behavior on implicitHeight {
-        enabled: root._modeChanging
         NumberAnimation {
             duration: Theme.animNormal
             easing.type: Easing.OutCubic
@@ -216,14 +210,18 @@ Item {
         }
     }
 
+    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+
     // 1. Vista de Reloj (Reposo / En Pausa tras gracia)
     ClockView {
         id: clockView
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
         width: implicitWidth
-        height: 26
-        opacity: LauncherService.isOpen ? 0.0 : (root.isMediaActive ? 0.0 : 1.0)
+        height: 28
+        opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && root.height <= 36) ? (root.isMediaActive ? 0.0 : 1.0) : 0.0
+        scale: opacity > 0.8 ? 1.0 : 0.94
+        transformOrigin: Item.Center
         visible: opacity > 0.01
 
         onWakeMediaRequested: root.wakeMedia()
@@ -231,7 +229,14 @@ Item {
 
         Behavior on opacity {
             NumberAnimation {
-                duration: Theme.animFast
+                duration: 70
+                easing.type: Easing.OutQuad
+            }
+        }
+
+        Behavior on scale {
+            NumberAnimation {
+                duration: 70
                 easing.type: Easing.OutQuad
             }
         }
@@ -243,8 +248,8 @@ Item {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
         width: implicitWidth
-        height: 26
-        opacity: LauncherService.isOpen ? 0.0 : (root.isMediaActive ? 1.0 : 0.0)
+        height: 28
+        opacity: (LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastActive) ? 0.0 : (root.isMediaActive ? 1.0 : 0.0)
         visible: opacity > 0.01
 
         onDismissToClockRequested: root.dismissToClock()
@@ -258,12 +263,63 @@ Item {
         }
     }
 
-    // 3. Vista Unificada del Lanzador de Aplicaciones (Isla Metamorfoseada)
+    // 3. Vista de Notificación Emergente (Toast en la Dynamic Island)
+    NotificationToastView {
+        id: notificationToastView
+        anchors.fill: parent
+        opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && NotificationService.isToastActive) ? 1.0 : 0.0
+        visible: opacity > 0.01
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Theme.animFast
+                easing.type: Easing.OutQuad
+            }
+        }
+    }
+
+    // 4. Vista Unificada del Centro de Notificaciones (Isla Metamorfoseada)
+    Item {
+        id: notifCenterWrapper
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: root.notificationCenterWidth
+        height: root.notificationCenterHeight
+        opacity: (!LauncherService.isOpen && NotificationService.isCenterOpen && root.width >= 260) ? 1.0 : 0.0
+        scale: opacity > 0.5 ? 1.0 : 0.96
+        transformOrigin: Item.Top
+        visible: NotificationService.isCenterOpen && opacity > 0.01
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: NotificationService.isCenterOpen ? 90 : 0
+                easing.type: Easing.OutQuad
+            }
+        }
+
+        Behavior on scale {
+            NumberAnimation {
+                duration: 90
+                easing.type: Easing.OutQuad
+            }
+        }
+
+        NotificationCenterView {
+            anchors.fill: parent
+        }
+    }
+
+    // 5. Vista Unificada del Lanzador de Aplicaciones (Isla Metamorfoseada)
     Item {
         id: launcherView
-        anchors.fill: parent
-        opacity: LauncherService.isOpen ? 1.0 : 0.0
-        visible: opacity > 0.01
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: root.launcherWidth
+        height: root.launcherHeight
+        opacity: (LauncherService.isOpen && root.width >= 260) ? 1.0 : 0.0
+        scale: opacity > 0.5 ? 1.0 : 0.96
+        transformOrigin: Item.Top
+        visible: LauncherService.isOpen && opacity > 0.01
 
         // Absorbe clics dentro de la isla del lanzador para evitar que se propaguen a dismissArea
         MouseArea {
@@ -275,7 +331,14 @@ Item {
 
         Behavior on opacity {
             NumberAnimation {
-                duration: Theme.animFast
+                duration: LauncherService.isOpen ? 90 : 0
+                easing.type: Easing.OutQuad
+            }
+        }
+
+        Behavior on scale {
+            NumberAnimation {
+                duration: 90
                 easing.type: Easing.OutQuad
             }
         }

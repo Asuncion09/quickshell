@@ -1,7 +1,7 @@
 import QtQuick
-import Quickshell.Io
 import "../../theme"
 import "../../components"
+import "../../services"
 
 Item {
     id: root
@@ -16,7 +16,7 @@ Item {
     readonly property string activeText: showDate ? dateString : timeString
 
     implicitWidth: textLabel.implicitWidth
-    implicitHeight: 26
+    implicitHeight: 28
     width: implicitWidth
     height: implicitHeight
 
@@ -25,12 +25,6 @@ Item {
             duration: Theme.animFast
             easing.type: Easing.OutCubic
         }
-    }
-
-    // Proceso para abrir/cerrar el panel de SwayNC (Notificaciones + Calendario)
-    Process {
-        id: swayncProc
-        command: ["swaync-client", "-t", "-sw"]
     }
 
     Timer {
@@ -82,18 +76,12 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
 
         onClicked: mouse => {
-            if (mouse.button === Qt.LeftButton) {
-                // Clic izquierdo: Abre/cierra el Centro de Notificaciones y Calendario
-                if (swayncProc.running) {
-                    swayncProc.running = false;
-                }
-                swayncProc.running = true;
-            } else if (mouse.button === Qt.RightButton) {
-                // Clic derecho: Alterna rápidamente entre hora y fecha en la barra
-                root.showDate = !root.showDate;
+            if (mouse.button === Qt.LeftButton || mouse.button === Qt.RightButton) {
+                // Alterna el Centro de Notificaciones nativo de Quickshell
+                NotificationService.toggleCenter();
             } else if (mouse.button === Qt.MiddleButton) {
-                // Clic central (rueda ratón / toque 3 dedos): Despierta la música pausada
-                root.wakeMediaRequested();
+                // Clic central: alterna rápidamente entre hora y fecha
+                root.showDate = !root.showDate;
             }
         }
 
