@@ -19,6 +19,8 @@ PopupWindow {
     visible: false
     grabFocus: true
 
+    property int currentView: 0 // 0 = Principal, 1 = Wi-Fi, 2 = Bluetooth
+
     function toggle() {
         root.visible = !root.visible;
     }
@@ -29,13 +31,20 @@ PopupWindow {
 
     function close() {
         root.visible = false;
+        root.currentView = 0;
     }
 
     onVisibleChanged: {
-        if (!visible && ControlCenterService.isOpen) {
-            ControlCenterService.close();
-        } else if (visible && !ControlCenterService.isOpen) {
-            ControlCenterService.open();
+        if (!visible) {
+            root.currentView = 0;
+            if (ControlCenterService.isOpen) ControlCenterService.close();
+        } else {
+            if (ControlCenterService.hasPasskeyPrompt) {
+                root.currentView = 2;
+            }
+            if (!ControlCenterService.isOpen) {
+                ControlCenterService.open();
+            }
         }
     }
 
@@ -44,6 +53,12 @@ PopupWindow {
         function onIsOpenChanged() {
             if (root.visible !== ControlCenterService.isOpen) {
                 root.visible = ControlCenterService.isOpen;
+            }
+        }
+        function onHasPasskeyPromptChanged() {
+            if (ControlCenterService.hasPasskeyPrompt) {
+                root.currentView = 2;
+                root.open();
             }
         }
     }
@@ -115,120 +130,208 @@ PopupWindow {
         Rectangle {
             id: mainCard
             anchors.fill: parent
-            implicitHeight: contentColumn.implicitHeight + 22
+            implicitHeight: {
+                if (root.currentView === 1) return wifiView.implicitHeight + 22;
+                if (root.currentView === 2) return btView.implicitHeight + 22;
+                return contentColumn.implicitHeight + 22;
+            }
+
+            Behavior on implicitHeight {
+                NumberAnimation {
+                    duration: Theme.animNormal
+                    easing.type: Easing.OutCubic
+                }
+            }
 
             radius: 14
             color: Theme.bgDark
             border.color: "#383838"
             border.width: 1
 
-            ColumnLayout {
-                id: contentColumn
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
+            Item {
+                id: viewsContainer
+                anchors.fill: parent
                 anchors.margins: 11
-                spacing: 10
+                clip: true
 
-                // 1. Cuadrícula de Toggles 2x2
-                GridLayout {
-                    Layout.fillWidth: true
-                    columns: 2
-                    columnSpacing: 8
-                    rowSpacing: 8
+                // ==========================================
+                // VISTA 0: Panel Principal (Toggles 2x2, Sliders, Batería)
+                // ==========================================
+                Item {
+                    id: mainView
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    implicitHeight: contentColumn.implicitHeight
+                    height: implicitHeight
 
-                    // Toggle Wi-Fi
-                    QuickToggle {
-                        icon: NetworkService.icon
-                        title: "Wi-Fi"
-                        subtitle: NetworkService.connectionName
-                        active: NetworkService.isConnected
-                        hasSubmenu: true
-                        onClicked: ControlCenterService.toggleWifi()
-                        onSubmenuClicked: {
-                            if (!netGuiProc.running) netGuiProc.running = true;
+                    opacity: root.currentView === 0 ? 1.0 : 0.0
+                    x: root.currentView === 0 ? 0 : -20
+                    visible: opacity > 0.01
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: Theme.animFast }
+                    }
+                    Behavior on x {
+                        NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic }
+                    }
+
+                    ColumnLayout {
+                        id: contentColumn
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        spacing: 10
+
+                        // 1. Cuadrícula de Toggles 2x2
+                        GridLayout {
+                            Layout.fillWidth: true
+                            columns: 2
+                            columnSpacing: 8
+                            rowSpacing: 8
+
+                            // Toggle Wi-Fi
+                            QuickToggle {
+                                icon: NetworkService.icon
+                                title: "Wi-Fi"
+                                subtitle: NetworkService.connectionName
+                                active: NetworkService.isConnected
+                                hasSubmenu: true
+                                onClicked: ControlCenterService.toggleWifi()
+                                onSubmenuClicked: root.currentView = 1
+                            }
+
+                            // Toggle Bluetooth
+                            QuickToggle {
+                                icon: BluetoothService.icon
+                                title: "Bluetooth"
+                                subtitle: BluetoothService.deviceName
+                                active: BluetoothService.isEnabled
+                                hasSubmenu: true
+                                onClicked: ControlCenterService.toggleBluetooth()
+                                onSubmenuClicked: root.currentView = 2
+                            }
+
+                            // Toggle No Molestar (DND)
+                            QuickToggle {
+                                icon: ControlCenterService.isDnd ? "󰂛" : "󰂚"
+                                title: "No Molestar"
+                                subtitle: ControlCenterService.isDnd ? "Silenciado" : "Desactivado"
+                                active: ControlCenterService.isDnd
+                                hasSubmenu: false
+                                onClicked: ControlCenterService.toggleDnd()
+                            }
+
+                            // Toggle Micrófono
+                            QuickToggle {
+                                icon: ControlCenterService.isMicMuted ? "󰍭" : "󰍬"
+                                title: "Micrófono"
+                                subtitle: ControlCenterService.isMicMuted ? "Silenciado" : "Activo"
+                                active: !ControlCenterService.isMicMuted
+                                hasSubmenu: false
+                                onClicked: ControlCenterService.toggleMicMute()
+                            }
+                        }
+
+                        // Línea divisoria fina
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 1
+                            color: "#282828"
+                        }
+
+                        // 2. Controles Deslizantes (Volumen y Brillo)
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 8
+
+                            // Slider de Volumen
+                            SliderControl {
+                                icon: AudioService.icon
+                                value: AudioService.currentPercent
+                                title: "Volumen"
+                                isMuted: AudioService.isMuted
+                                accentColor: Theme.highlight
+                                onValueChangedByUser: pct => AudioService.setVolume(pct)
+                                onIconClicked: AudioService.toggleMute()
+                            }
+
+                            // Slider de Brillo
+                            SliderControl {
+                                icon: BrightnessService.icon
+                                value: BrightnessService.brightnessPercent
+                                title: "Brillo"
+                                isMuted: false
+                                accentColor: Theme.warning
+                                onValueChangedByUser: pct => BrightnessService.setBrightness(pct)
+                                onIconClicked: BrightnessService.setBrightness(BrightnessService.brightnessPercent > 10 ? 10 : 100)
+                            }
+                        }
+
+                        // Línea divisoria fina
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 1
+                            color: "#282828"
+                        }
+
+                        // 3. Fila de Utilidades (Batería compacta y Bloqueo de 32px)
+                        BatteryCard {
+                            Layout.fillWidth: true
                         }
                     }
+                }
 
-                    // Toggle Bluetooth
-                    QuickToggle {
-                        icon: BluetoothService.icon
-                        title: "Bluetooth"
-                        subtitle: BluetoothService.deviceName
-                        active: BluetoothService.isEnabled
-                        hasSubmenu: true
-                        onClicked: ControlCenterService.toggleBluetooth()
-                        onSubmenuClicked: {
-                            if (!btGuiProc.running) btGuiProc.running = true;
-                        }
+                // ==========================================
+                // VISTA 1: Detalle de Wi-Fi
+                // ==========================================
+                WifiDetailView {
+                    id: wifiView
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+
+                    opacity: root.currentView === 1 ? 1.0 : 0.0
+                    x: root.currentView === 1 ? 0 : 20
+                    visible: opacity > 0.01
+
+                    onBackRequested: root.currentView = 0
+                    onOpenAdvancedRequested: {
+                        if (!netGuiProc.running) netGuiProc.running = true;
                     }
 
-                    // Toggle No Molestar (DND)
-                    QuickToggle {
-                        icon: ControlCenterService.isDnd ? "󰂛" : "󰂚"
-                        title: "No Molestar"
-                        subtitle: ControlCenterService.isDnd ? "Silenciado" : "Desactivado"
-                        active: ControlCenterService.isDnd
-                        hasSubmenu: false
-                        onClicked: ControlCenterService.toggleDnd()
+                    Behavior on opacity {
+                        NumberAnimation { duration: Theme.animFast }
                     }
-
-                    // Toggle Micrófono
-                    QuickToggle {
-                        icon: ControlCenterService.isMicMuted ? "󰍭" : "󰍬"
-                        title: "Micrófono"
-                        subtitle: ControlCenterService.isMicMuted ? "Silenciado" : "Activo"
-                        active: !ControlCenterService.isMicMuted
-                        hasSubmenu: false
-                        onClicked: ControlCenterService.toggleMicMute()
+                    Behavior on x {
+                        NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic }
                     }
                 }
 
-                // Línea divisoria fina
-                Rectangle {
-                    Layout.fillWidth: true
-                    height: 1
-                    color: "#282828"
-                }
+                // ==========================================
+                // VISTA 2: Detalle de Bluetooth
+                // ==========================================
+                BluetoothDetailView {
+                    id: btView
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
 
-                // 2. Controles Deslizantes (Volumen y Brillo)
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
+                    opacity: root.currentView === 2 ? 1.0 : 0.0
+                    x: root.currentView === 2 ? 0 : 20
+                    visible: opacity > 0.01
 
-                    // Slider de Volumen
-                    SliderControl {
-                        icon: AudioService.icon
-                        value: AudioService.currentPercent
-                        title: "Volumen"
-                        isMuted: AudioService.isMuted
-                        accentColor: Theme.highlight
-                        onValueChangedByUser: pct => AudioService.setVolume(pct)
-                        onIconClicked: AudioService.toggleMute()
+                    onBackRequested: root.currentView = 0
+                    onOpenAdvancedRequested: {
+                        if (!btGuiProc.running) btGuiProc.running = true;
                     }
 
-                    // Slider de Brillo
-                    SliderControl {
-                        icon: BrightnessService.icon
-                        value: BrightnessService.brightnessPercent
-                        title: "Brillo"
-                        isMuted: false
-                        accentColor: Theme.warning
-                        onValueChangedByUser: pct => BrightnessService.setBrightness(pct)
-                        onIconClicked: BrightnessService.setBrightness(BrightnessService.brightnessPercent > 10 ? 10 : 100)
+                    Behavior on opacity {
+                        NumberAnimation { duration: Theme.animFast }
                     }
-                }
-
-                // Línea divisoria fina
-                Rectangle {
-                    Layout.fillWidth: true
-                    height: 1
-                    color: "#282828"
-                }
-
-                // 3. Fila de Utilidades (Batería compacta y Bloqueo de 32px)
-                BatteryCard {
-                    Layout.fillWidth: true
+                    Behavior on x {
+                        NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic }
+                    }
                 }
             }
         }
