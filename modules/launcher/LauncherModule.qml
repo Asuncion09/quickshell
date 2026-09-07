@@ -1,29 +1,23 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import "../../theme"
 import "../../components"
+import "../../services"
 
 BarButton {
     id: root
 
     text: ""
     pixelSize: Theme.launcherFontSize
-    defaultTextColor: Theme.text
+    defaultTextColor: LauncherService.isOpen ? Theme.wsActiveColor : Theme.text
     hoverTextColor: Theme.highlight
     hoverBgColor: "transparent"
-    tooltipText: "Lanzador de aplicaciones"
+    tooltipText: "Lanzador de aplicaciones (Super + Space)"
     implicitWidth: 22
 
-    Process {
-        id: launcherProc
-        command: [Quickshell.env("HOME") + "/.config/rofi/launcher.sh"]
-    }
-
     onClicked: {
-        if (!launcherProc.running) {
-            launcherProc.running = true;
-        }
+        LauncherService.toggle();
     }
 }
+
 

@@ -8,10 +8,17 @@ Item {
     property bool isOpen: false
 
     function toggle() {
-        root.isOpen = !root.isOpen;
+        if (root.isOpen) {
+            root.close();
+        } else {
+            root.open();
+        }
     }
 
     function open() {
+        if (LauncherService.isOpen) {
+            LauncherService.close();
+        }
         root.isOpen = true;
     }
 

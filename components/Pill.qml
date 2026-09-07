@@ -59,13 +59,28 @@ Item {
 
         anchors.fill: parent
         implicitWidth: contentLayout.implicitWidth + (root.paddingHorizontal * 2)
-        implicitHeight: Theme.barHeight
+        implicitHeight: Math.max(Theme.barHeight, contentLayout.implicitHeight + (root.paddingVertical * 2))
+        clip: true
 
         // En hover solo cambia suavemente de color sin cambiar de tamaño
         color: (root.clickable && pillMouse.containsMouse) ? Theme.bgDarkAlt : Theme.bgDark
         border.color: Theme.borderDark
         border.width: Theme.pillBorderWidth
         radius: root.radius
+
+        Behavior on implicitWidth {
+            NumberAnimation {
+                duration: Theme.animNormal
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        Behavior on implicitHeight {
+            NumberAnimation {
+                duration: Theme.animNormal
+                easing.type: Easing.OutCubic
+            }
+        }
 
         Behavior on color {
             ColorAnimation { duration: Theme.animFast }

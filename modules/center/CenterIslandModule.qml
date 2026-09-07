@@ -1,4 +1,8 @@
 import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import Quickshell
+import Quickshell.Widgets
 import "../../theme"
 import "../../components"
 import "../../services"
@@ -81,6 +85,24 @@ Item {
         }
     }
 
+    Connections {
+        target: LauncherService
+        function onIsOpenChanged() {
+            root._modeChanging = true;
+            modeTimer.restart();
+            if (LauncherService.isOpen) {
+                searchField.text = "";
+                Qt.callLater(() => {
+                    searchField.forceActiveFocus();
+                    root.ensureItemVisible(0);
+                });
+            }
+        }
+        function onSelectedIndexChanged() {
+            root.ensureItemVisible(LauncherService.selectedIndex);
+        }
+    }
+
     function wakeMedia() {
         if (MediaService.hasMedia && MediaService.title !== "") {
             root.forceClock = false;
@@ -98,6 +120,7 @@ Item {
     }
 
     function handleWheel() {
+        if (LauncherService.isOpen) return;
         if (root._wheelLocked) return;
         root._wheelLocked = true;
         wheelCooldown.restart();
@@ -118,13 +141,29 @@ Item {
         }
     }
 
-    implicitWidth: Math.round(isMediaActive ? mediaView.implicitWidth : clockView.implicitWidth)
-    implicitHeight: 26
+    // Dimensiones optimizadas: más angosto (330px total) y altura calibrada para múltiplos exactos de ítems
+    readonly property int launcherWidth: 330 - (6 * 2)
+    readonly property int launcherHeight: 323
+
+    implicitWidth: {
+        if (LauncherService.isOpen) {
+            return launcherWidth;
+        }
+        return Math.round(isMediaActive ? mediaView.implicitWidth : clockView.implicitWidth);
+    }
+
+    implicitHeight: {
+        if (LauncherService.isOpen) {
+            return launcherHeight;
+        }
+        return 26;
+    }
+
     width: implicitWidth
     height: implicitHeight
     clip: true
 
-    // Animar SOLO cuando se cambia de modo entre Reloj y Multimedia (Play / Pause / Recall).
+    // Animar SOLO cuando se cambia de modo entre Reloj, Multimedia y Lanzador.
     // Durante el hover dentro de MediaView, el propio MediaView anima su expansión en sincronía exacta.
     property bool _modeChanging: false
     Timer {
@@ -146,13 +185,45 @@ Item {
         }
     }
 
+    Behavior on implicitHeight {
+        enabled: root._modeChanging
+        NumberAnimation {
+            duration: Theme.animNormal
+            easing.type: Easing.OutCubic
+        }
+    }
+
+    function resolveAppIcon(iconName) {
+        if (!iconName) return Quickshell.iconPath("application-x-executable") || "";
+        if (iconName.startsWith("/") || iconName.startsWith("file://")) return iconName;
+        if (Quickshell.hasThemeIcon(iconName)) return Quickshell.iconPath(iconName);
+        let lower = iconName.toLowerCase();
+        if (Quickshell.hasThemeIcon(lower)) return Quickshell.iconPath(lower);
+        return Quickshell.iconPath("application-x-executable") || "";
+    }
+
+    function ensureItemVisible(idx) {
+        if (!appListView || appListView.count === 0) return;
+        let slotHeight = 44; // 40 item height + 4 spacing
+        let visibleCount = 6;
+        let topIndex = Math.round(appListView.contentY / slotHeight);
+        let bottomIndex = topIndex + visibleCount - 1;
+
+        if (idx < topIndex) {
+            appListView.positionViewAtIndex(idx, ListView.Beginning);
+        } else if (idx > bottomIndex) {
+            appListView.positionViewAtIndex(idx, ListView.End);
+        }
+    }
+
     // 1. Vista de Reloj (Reposo / En Pausa tras gracia)
     ClockView {
         id: clockView
-        anchors.centerIn: parent
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
         width: implicitWidth
-        height: implicitHeight
-        opacity: root.isMediaActive ? 0.0 : 1.0
+        height: 26
+        opacity: LauncherService.isOpen ? 0.0 : (root.isMediaActive ? 0.0 : 1.0)
         visible: opacity > 0.01
 
         onWakeMediaRequested: root.wakeMedia()
@@ -169,10 +240,11 @@ Item {
     // 2. Vista de Reproductor Multimedia (Dynamic Island)
     MediaView {
         id: mediaView
-        anchors.centerIn: parent
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
         width: implicitWidth
-        height: implicitHeight
-        opacity: root.isMediaActive ? 1.0 : 0.0
+        height: 26
+        opacity: LauncherService.isOpen ? 0.0 : (root.isMediaActive ? 1.0 : 0.0)
         visible: opacity > 0.01
 
         onDismissToClockRequested: root.dismissToClock()
@@ -182,6 +254,283 @@ Item {
             NumberAnimation {
                 duration: Theme.animFast
                 easing.type: Easing.OutQuad
+            }
+        }
+    }
+
+    // 3. Vista Unificada del Lanzador de Aplicaciones (Isla Metamorfoseada)
+    Item {
+        id: launcherView
+        anchors.fill: parent
+        opacity: LauncherService.isOpen ? 1.0 : 0.0
+        visible: opacity > 0.01
+
+        // Absorbe clics dentro de la isla del lanzador para evitar que se propaguen a dismissArea
+        MouseArea {
+            anchors.fill: parent
+            z: -1
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+            onPressed: mouse => mouse.accepted = true
+        }
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Theme.animFast
+                easing.type: Easing.OutQuad
+            }
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.topMargin: 10
+            anchors.bottomMargin: 8
+            anchors.leftMargin: 2
+            anchors.rightMargin: 2
+            spacing: 6
+
+            // --- Barra de Búsqueda Superior Integrada (Compacta, con margen superior y sin bordes azules) ---
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 32
+                radius: 7
+                color: searchField.activeFocus ? "#242424" : "#1c1c1c"
+                border.width: 1
+                border.color: searchField.activeFocus ? "#383838" : "#262626"
+
+                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 8
+                    anchors.rightMargin: 6
+                    spacing: 8
+
+                    Text {
+                        text: "󰍉"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 13
+                        color: searchField.activeFocus ? Theme.text : Theme.textMuted
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+
+                    TextInput {
+                        id: searchField
+                        Layout.fillWidth: true
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        font.weight: Font.Normal
+                        color: "#ffffff"
+                        selectionColor: "#454545"
+                        selectedTextColor: "#ffffff"
+                        verticalAlignment: TextInput.AlignVCenter
+                        clip: true
+                        selectByMouse: true
+                        mouseSelectionMode: TextInput.SelectCharacters
+
+                        onTextChanged: {
+                            LauncherService.searchQuery = text;
+                        }
+
+                        Text {
+                            text: "Buscar aplicaciones..."
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 12
+                            color: Theme.textMuted
+                            visible: !searchField.text
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Keys.onPressed: event => {
+                            if (event.key === Qt.Key_Escape) {
+                                event.accepted = true;
+                                LauncherService.close();
+                                return;
+                            }
+                            if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
+                                event.accepted = true;
+                                LauncherService.nextItem();
+                                return;
+                            }
+                            if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab) {
+                                event.accepted = true;
+                                LauncherService.prevItem();
+                                return;
+                            }
+                            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                event.accepted = true;
+                                LauncherService.launchCurrent();
+                                return;
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        implicitWidth: escBadgeText.implicitWidth + 8
+                        implicitHeight: 18
+                        radius: 4
+                        color: Qt.rgba(1, 1, 1, 0.05)
+                        border.width: 1
+                        border.color: Qt.rgba(1, 1, 1, 0.08)
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Text {
+                            id: escBadgeText
+                            anchors.centerIn: parent
+                            text: "ESC"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 9
+                            font.weight: Font.Normal
+                            color: Qt.rgba(1, 1, 1, 0.35)
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: LauncherService.close()
+                        }
+                    }
+                }
+            }
+
+            // --- Línea Divisoria Sutil ---
+            Rectangle {
+                Layout.fillWidth: true
+                height: 1
+                color: Theme.dividerColor
+                visible: LauncherService.filteredApplications.length > 0
+            }
+
+            // --- Lista de Aplicaciones con Scroll por Hardware (Exactamente 6 ítems sin recorte de texto) ---
+            Item {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 260
+                clip: true
+
+                Text {
+                    anchors.centerIn: parent
+                    visible: LauncherService.filteredApplications.length === 0
+                    text: LauncherService.searchQuery !== ""
+                          ? `No se encontró "${LauncherService.searchQuery}"`
+                          : "Cargando aplicaciones..."
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 12
+                    color: Theme.textMuted
+                }
+
+                ListView {
+                    id: appListView
+                    anchors.fill: parent
+                    visible: LauncherService.filteredApplications.length > 0
+                    model: LauncherService.filteredApplications
+                    currentIndex: LauncherService.selectedIndex
+                    spacing: 4
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    snapMode: ListView.SnapToItem
+
+                    ScrollBar.vertical: ScrollBar {
+                        policy: ScrollBar.AsNeeded
+                        width: 4
+                        contentItem: Rectangle {
+                            implicitWidth: 4
+                            radius: 2
+                            color: parent.pressed ? "#555555" : (parent.hovered ? "#444444" : "#303030")
+                            Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                        }
+                    }
+
+                    delegate: Rectangle {
+                        id: appItem
+                        width: appListView.width
+                        height: 40
+                        radius: 7
+
+                        readonly property bool isSelected: index === LauncherService.selectedIndex
+
+                        // Señalización elegante mediante fondo tonal neutro suave (cero bordes o líneas azules)
+                        color: isSelected ? "#2e2e2e" : (itemMouse.containsMouse ? "#222222" : "transparent")
+                        border.width: 0
+
+                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 8
+                            anchors.rightMargin: 8
+                            spacing: 8
+
+                            IconImage {
+                                implicitWidth: 24
+                                implicitHeight: 24
+                                source: root.resolveAppIcon(modelData.icon)
+                                Layout.alignment: Qt.AlignVCenter
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 0
+                                Layout.alignment: Qt.AlignVCenter
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: modelData.name || "Aplicación"
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 12
+                                    font.weight: isSelected ? Font.DemiBold : Font.Normal
+                                    color: isSelected ? "#ffffff" : Theme.text
+                                    elide: Text.ElideRight
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    visible: text !== ""
+                                    text: modelData.genericName || modelData.comment || ""
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 10
+                                    color: isSelected ? Qt.rgba(1, 1, 1, 0.70) : Theme.textSecondary
+                                    elide: Text.ElideRight
+                                }
+                            }
+
+                            // Badge sutil y discreto de ejecución rápida (no compite con el nombre de la app)
+                            RowLayout {
+                                spacing: 4
+                                visible: isSelected
+                                Layout.alignment: Qt.AlignVCenter
+
+                                Rectangle {
+                                    implicitWidth: enterBadgeText.implicitWidth + 8
+                                    implicitHeight: 18
+                                    radius: 4
+                                    color: Qt.rgba(1, 1, 1, 0.05)
+                                    border.width: 1
+                                    border.color: Qt.rgba(1, 1, 1, 0.08)
+
+                                    Text {
+                                        id: enterBadgeText
+                                        anchors.centerIn: parent
+                                        text: "↵ abrir"
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: 9
+                                        font.weight: Font.Normal
+                                        color: Qt.rgba(1, 1, 1, 0.35)
+                                    }
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            id: itemMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                LauncherService.launchApp(modelData);
+                            }
+                        }
+                    }
+                }
             }
         }
     }

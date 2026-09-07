@@ -45,6 +45,28 @@ ShellRoot {
         }
     }
 
+    IpcHandler {
+        target: "launcher"
+        function toggle(): void {
+            LauncherService.toggle();
+        }
+        function open(): void {
+            LauncherService.open();
+        }
+        function close(): void {
+            LauncherService.close();
+        }
+        function next(): void {
+            LauncherService.nextItem();
+        }
+        function prev(): void {
+            LauncherService.prevItem();
+        }
+        function launch(): void {
+            LauncherService.launchCurrent();
+        }
+    }
+
     Variants {
         model: Quickshell.screens
         Bar {}

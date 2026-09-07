@@ -56,21 +56,16 @@ Item {
             font.pixelSize: Theme.fontSize
             font.weight: Font.ExtraBold
 
-            color: mouseArea.containsMouse ? Qt.lighter(Theme.highlight, 1.15) : Theme.highlight
+            color: Theme.highlight
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: Text.AlignHCenter
 
-            Behavior on color {
-                ColorAnimation { duration: Theme.animFast }
-            }
-
-            scale: mouseArea.pressed ? 0.92 : (mouseArea.containsMouse ? 1.04 : 1.0)
+            scale: mouseArea.pressed ? 0.96 : 1.0
 
             Behavior on scale {
                 NumberAnimation {
                     duration: Theme.animFast
-                    easing.type: Easing.OutBack
-                    easing.overshoot: 1.3
+                    easing.type: Easing.OutQuad
                 }
             }
         }

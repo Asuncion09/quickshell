@@ -6,23 +6,19 @@ import Quickshell.Io
 import "../../theme"
 import "../../services"
 
-PopupWindow {
+Item {
     id: root
-
-    property alias targetItem: root.anchor.item
-
-    anchor.edges: Edges.Bottom | Edges.Right
-    anchor.gravity: Edges.Bottom | Edges.Left
-    anchor.margins.top: 2
-    anchor.margins.right: -6
-    color: "transparent"
-    visible: false
-    grabFocus: true
 
     property bool _isOpen: false
     property int currentView: 0 // 0 = Principal, 1 = Wi-Fi, 2 = Bluetooth
     property int focusedIndex: 0 // 0..7 para los elementos del panel principal
     property bool isKeyNavActive: false // Solo se activa al presionar flechas o teclado
+
+    implicitWidth: 300 + 8
+    implicitHeight: mainCard.implicitHeight + 14
+    width: implicitWidth
+    height: implicitHeight
+    visible: root._isOpen || animContainer.opacity > 0.01
 
     function triggerSpaceAction(idx) {
         switch (idx) {
@@ -64,10 +60,9 @@ PopupWindow {
 
     Timer {
         id: closeTimer
-        interval: Theme.animNormal
+        interval: 220
         onTriggered: {
             if (!root._isOpen) {
-                root.visible = false;
                 root.currentView = 0;
             }
         }
@@ -83,10 +78,12 @@ PopupWindow {
 
     function open() {
         closeTimer.stop();
-        root.visible = true;
         root._isOpen = true;
         root.focusedIndex = 0;
         root.isKeyNavActive = false;
+        if (!ControlCenterService.isOpen) {
+            ControlCenterService.open();
+        }
         Qt.callLater(() => mainCard.forceActiveFocus());
     }
 
@@ -94,26 +91,8 @@ PopupWindow {
         root._isOpen = false;
         root.isKeyNavActive = false;
         closeTimer.restart();
-        if (ControlCenterService.isOpen) ControlCenterService.close();
-    }
-
-    onVisibleChanged: {
-        if (!visible) {
-            root._isOpen = false;
-            root.isKeyNavActive = false;
-            root.currentView = 0;
-            if (ControlCenterService.isOpen) ControlCenterService.close();
-        } else {
-            root._isOpen = true;
-            root.focusedIndex = 0;
-            root.isKeyNavActive = false;
-            Qt.callLater(() => mainCard.forceActiveFocus());
-            if (ControlCenterService.hasPasskeyPrompt) {
-                root.currentView = 2;
-            }
-            if (!ControlCenterService.isOpen) {
-                ControlCenterService.open();
-            }
+        if (ControlCenterService.isOpen) {
+            ControlCenterService.close();
         }
     }
 
@@ -134,10 +113,6 @@ PopupWindow {
         }
     }
 
-    // Dimensiones totales incluyendo margen para el difuminado de sombra
-    implicitWidth: 300 + 8
-    implicitHeight: mainCard.implicitHeight + 14
-
     Item {
         id: animContainer
         anchors.left: parent.left
@@ -150,19 +125,30 @@ PopupWindow {
         anchors.bottomMargin: 10
         transformOrigin: Item.TopRight
 
-        scale: root._isOpen ? 1.0 : 0.94
+        // Animaciones dinámicas de despliegue: escala elástica, traslación vertical y desvanecimiento
+        scale: root._isOpen ? 1.0 : 0.90
+        y: root._isOpen ? 0 : -16
         opacity: root._isOpen ? 1.0 : 0.0
 
         Behavior on scale {
             NumberAnimation {
-                duration: Theme.animNormal
-                easing.type: Easing.OutCubic
+                duration: root._isOpen ? 240 : 180
+                easing.type: root._isOpen ? Easing.OutBack : Easing.InCubic
+                easing.overshoot: root._isOpen ? 1.08 : 1.0
+            }
+        }
+
+        Behavior on y {
+            NumberAnimation {
+                duration: root._isOpen ? 240 : 180
+                easing.type: root._isOpen ? Easing.OutCubic : Easing.InCubic
             }
         }
 
         Behavior on opacity {
             NumberAnimation {
-                duration: Theme.animFast
+                duration: root._isOpen ? 200 : 160
+                easing.type: root._isOpen ? Easing.OutQuad : Easing.InQuad
             }
         }
 
@@ -194,6 +180,14 @@ PopupWindow {
                 if (root.currentView === 1) return wifiView.implicitHeight + 22;
                 if (root.currentView === 2) return btView.implicitHeight + 22;
                 return contentColumn.implicitHeight + 22;
+            }
+
+            // Absorbe clics dentro de la tarjeta para que no traspasen a dismissArea
+            MouseArea {
+                anchors.fill: parent
+                z: -1
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                onPressed: mouse => mouse.accepted = true
             }
 
             Behavior on implicitHeight {
