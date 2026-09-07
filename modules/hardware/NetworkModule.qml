@@ -13,7 +13,7 @@ BarButton {
     hoverTextColor: Theme.highlight
     hoverBgColor: "transparent"
     tooltipText: NetworkService.tooltipText
-    implicitWidth: 18
+    implicitWidth: 20
 
     Process {
         id: netProc

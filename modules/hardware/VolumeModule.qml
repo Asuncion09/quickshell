@@ -6,7 +6,7 @@ import "../../services"
 Item {
     id: root
 
-    implicitWidth: 18
+    implicitWidth: 20
     implicitHeight: 26
     width: implicitWidth
     height: implicitHeight

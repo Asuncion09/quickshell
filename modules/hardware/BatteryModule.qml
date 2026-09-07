@@ -12,7 +12,7 @@ BarButton {
     hoverTextColor: Theme.highlight
     hoverBgColor: "transparent"
     tooltipText: BatteryService.tooltipText
-    implicitWidth: 18
+    implicitWidth: 20
 
     // Animación suave de pulsación solo en estado crítico (<15%)
     SequentialAnimation on opacity {
