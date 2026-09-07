@@ -15,7 +15,6 @@ Item {
     Layout.fillWidth: true
 
     signal backRequested()
-    signal openAdvancedRequested()
 
     // 1. Dispositivos resueltos nativamente por Quickshell.Bluetooth
     readonly property var nativeDevices: {
@@ -27,15 +26,6 @@ Item {
         }
 
         let list = raw.filter(d => d && (d.paired || d.connected || (d.name && d.name.trim() !== "")));
-
-        list.sort((a, b) => {
-            if (a.connected && !b.connected) return -1;
-            if (!a.connected && b.connected) return 1;
-            let nameA = (a.name || a.deviceName || "").toLowerCase();
-            let nameB = (b.name || b.deviceName || "").toLowerCase();
-            return nameA.localeCompare(nameB);
-        });
-
         return list;
     }
 
@@ -44,9 +34,22 @@ Item {
     property var _accumulatedLines: []
     property bool isScanning: false
 
+    // Proceso para activar escaneo en vivo de nuevos dispositivos (Discovery)
+    Process {
+        id: scanCtlProc
+        command: ["bluetoothctl", "--timeout", "15", "scan", "on"]
+        onStarted: root.isScanning = true
+        onExited: {
+            root.isScanning = false;
+            if (btScanProc.running) btScanProc.running = false;
+            btScanProc.running = true;
+        }
+    }
+
+    // Proceso de inspección de dispositivos (Conectados, Emparejados y Disponibles)
     Process {
         id: btScanProc
-        command: ["sh", "-c", "conn=$(bluetoothctl devices Connected 2>/dev/null | awk '{print $2}'); bluetoothctl devices 2>/dev/null | while read -r tag mac name; do [ \"$tag\" = \"Device\" ] || continue; is_conn=$(echo \"$conn\" | grep -Fq \"$mac\" && echo 'yes' || echo 'no'); echo \"$is_conn:$mac:$name\"; done"]
+        command: ["sh", "-c", "conn=$(bluetoothctl devices Connected 2>/dev/null | awk '{print $2}'); paired=$(bluetoothctl devices Paired 2>/dev/null | awk '{print $2}'); bluetoothctl devices 2>/dev/null | while read -r tag mac name; do [ \"$tag\" = \"Device\" ] || continue; is_conn=$(echo \"$conn\" | grep -Fq \"$mac\" && echo 'yes' || echo 'no'); is_paired=$(echo \"$paired\" | grep -Fq \"$mac\" && echo 'yes' || echo 'no'); echo \"$is_conn|$is_paired|$mac|$name\"; done"]
         onStarted: {
             root._accumulatedLines = [];
         }
@@ -63,8 +66,8 @@ Item {
             }
         }
         onExited: {
-            root.isScanning = false;
             root.parseCliLines(root._accumulatedLines);
+            ControlCenterService.refreshBluetoothBatteries();
         }
     }
 
@@ -73,35 +76,45 @@ Item {
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
             if (!line) continue;
-            let parts = line.split(":");
-            if (parts.length >= 3) {
+            let parts = line.split("|");
+            if (parts.length >= 4) {
                 let isConn = parts[0] === "yes";
-                let mac = parts[1];
-                let name = parts.slice(2).join(":");
-                list.push({
-                    name: name,
-                    deviceName: name,
-                    address: mac,
-                    connected: isConn,
-                    paired: true
-                });
+                let isPaired = parts[1] === "yes";
+                let mac = parts[2].trim();
+                let name = parts.slice(3).join("|").trim();
+                if (mac) {
+                    list.push({
+                        name: name || mac,
+                        deviceName: name || mac,
+                        address: mac,
+                        connected: isConn,
+                        paired: isPaired
+                    });
+                }
             }
         }
-        list.sort((a, b) => {
-            if (a.connected && !b.connected) return -1;
-            if (!a.connected && b.connected) return 1;
-            return a.name.localeCompare(b.name);
-        });
         root.cliDevices = list;
     }
 
     function refreshBtScan() {
+        if (!BluetoothService.isEnabled) return;
         root.isScanning = true;
         if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) {
             Bluetooth.defaultAdapter.discovering = true;
         }
+        if (scanCtlProc.running) scanCtlProc.running = false;
+        scanCtlProc.running = true;
+
         if (btScanProc.running) btScanProc.running = false;
         btScanProc.running = true;
+    }
+
+    function stopBtScan() {
+        root.isScanning = false;
+        if (scanCtlProc.running) scanCtlProc.running = false;
+        if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) {
+            Bluetooth.defaultAdapter.discovering = false;
+        }
     }
 
     Component.onCompleted: refreshBtScan()
@@ -109,11 +122,13 @@ Item {
     onVisibleChanged: {
         if (visible) {
             refreshBtScan();
+            ControlCenterService.refreshBluetoothBatteries();
             if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) {
                 Bluetooth.defaultAdapter.discoverable = true;
                 Bluetooth.defaultAdapter.discovering = true;
             }
         } else {
+            stopBtScan();
             if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) {
                 Bluetooth.defaultAdapter.discoverable = false;
                 Bluetooth.defaultAdapter.discovering = false;
@@ -122,29 +137,55 @@ Item {
     }
 
     // Fusión de dispositivos de ambas fuentes
-    readonly property var displayDevices: {
+    readonly property var allDevices: {
         let map = new Map();
 
         // 1. Dispositivos CLI
         for (let i = 0; i < cliDevices.length; i++) {
             let c = cliDevices[i];
             if (c && (c.name || c.address)) {
-                map.set(c.address || c.name, c);
+                let key = (c.address || c.name).toLowerCase();
+                map.set(key, c);
             }
         }
 
-        // 2. Dispositivos nativos (enriquecen y dan control nativo)
+        // 2. Dispositivos nativos (enriquecen)
         for (let i = 0; i < nativeDevices.length; i++) {
             let n = nativeDevices[i];
             if (n && (n.name || n.address)) {
-                map.set(n.address || n.name, n);
+                let key = (n.address || n.name).toLowerCase();
+                let existing = map.get(key);
+                map.set(key, {
+                    name: n.name || (existing ? existing.name : "") || n.deviceName || n.address,
+                    deviceName: n.deviceName || n.name || (existing ? existing.deviceName : ""),
+                    address: n.address || (existing ? existing.address : ""),
+                    connected: n.connected !== undefined ? (n.connected || (existing ? existing.connected : false)) : (existing ? existing.connected : false),
+                    paired: n.paired !== undefined ? (n.paired || (existing ? existing.paired : false)) : (existing ? existing.paired : false),
+                    nativeObj: n
+                });
             }
         }
 
-        let list = Array.from(map.values());
+        return Array.from(map.values());
+    }
+
+    // 1. Mis Dispositivos (Emparejados previamente o actualmente conectados)
+    readonly property var pairedDevices: {
+        let list = allDevices.filter(d => d && (d.paired || d.connected));
         list.sort((a, b) => {
             if (a.connected && !b.connected) return -1;
             if (!a.connected && b.connected) return 1;
+            let nameA = (a.name || a.deviceName || "").toLowerCase();
+            let nameB = (b.name || b.deviceName || "").toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+        return list;
+    }
+
+    // 2. Dispositivos Disponibles (Descubiertos en el aire sin emparejar ni conectar)
+    readonly property var availableDevices: {
+        let list = allDevices.filter(d => d && !d.paired && !d.connected && d.name && d.name.trim() !== "" && !d.name.includes("-") && d.name !== d.address);
+        list.sort((a, b) => {
             let nameA = (a.name || a.deviceName || "").toLowerCase();
             let nameB = (b.name || b.deviceName || "").toLowerCase();
             return nameA.localeCompare(nameB);
@@ -158,7 +199,7 @@ Item {
         if (name.includes("speaker") || name.includes("parlante") || name.includes("sound") || name.includes("boom") || name.includes("jbl")) return "󰓃";
         if (name.includes("mouse") || name.includes("ratón") || name.includes("trackball")) return "󰍽";
         if (name.includes("keyboard") || name.includes("teclado")) return "󰌌";
-        if (name.includes("phone") || name.includes("móvil") || name.includes("galaxy") || name.includes("iphone") || name.includes("pixel") || name.includes("redmi")) return "󰏲";
+        if (name.includes("phone") || name.includes("móvil") || name.includes("galaxy") || name.includes("iphone") || name.includes("pixel") || name.includes("redmi") || name.includes("poco")) return "󰏲";
         if (name.includes("gamepad") || name.includes("controller") || name.includes("joystick") || name.includes("xbox") || name.includes("dualshock")) return "󰊴";
         return "󰂱";
     }
@@ -184,7 +225,7 @@ Item {
                 implicitWidth: 32
                 implicitHeight: 32
                 radius: 8
-                color: backMouse.containsMouse ? "#262626" : "#1e1e1e"
+                color: backMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
                 border.width: 0
 
                 scale: backMouse.pressed ? 0.92 : 1.0
@@ -197,7 +238,7 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 18
                     font.weight: Font.Bold
-                    color: backMouse.containsMouse ? Theme.highlight : Theme.textSecondary
+                    color: backMouse.containsMouse ? Theme.wsActiveColor : Theme.textSecondary
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
                 }
@@ -226,12 +267,12 @@ Item {
                 Layout.fillWidth: true
             }
 
-            // Botón Recargar / Re-escanear
+            // Botón Recargar / Pausar escaneo
             Rectangle {
                 implicitWidth: 28
                 implicitHeight: 28
                 radius: 6
-                color: refreshMouse.containsMouse ? "#2a2a2a" : "transparent"
+                color: refreshMouse.containsMouse ? Theme.surfaceHover : "transparent"
                 border.width: 0
 
                 scale: refreshMouse.pressed ? 0.90 : 1.0
@@ -240,15 +281,16 @@ Item {
 
                 Text {
                     anchors.centerIn: parent
-                    text: "󰑐"
+                    text: root.isScanning ? "󰏤" : "󰑐"
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
-                    color: refreshMouse.containsMouse ? Theme.highlight : Theme.textMuted
-                    rotation: root.isScanning ? 360 : 0
-
-                    Behavior on rotation {
-                        NumberAnimation { duration: 600; easing.type: Easing.Linear }
+                    color: {
+                        if (root.isScanning) {
+                            return refreshMouse.containsMouse ? Theme.critical : Theme.wsActiveColor;
+                        }
+                        return refreshMouse.containsMouse ? Theme.wsActiveColor : Theme.textMuted;
                     }
+
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
                 }
 
@@ -257,7 +299,13 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.refreshBtScan()
+                    onClicked: {
+                        if (root.isScanning) {
+                            root.stopBtScan();
+                        } else {
+                            root.refreshBtScan();
+                        }
+                    }
                 }
             }
 
@@ -267,7 +315,7 @@ Item {
                 implicitWidth: 38
                 implicitHeight: 22
                 radius: 11
-                color: BluetoothService.isEnabled ? Theme.highlight : "#2e2e2e"
+                color: BluetoothService.isEnabled ? Theme.wsActiveColor : Theme.surfaceBase
                 border.width: 0
 
                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
@@ -311,7 +359,7 @@ Item {
             visible: ControlCenterService.hasPasskeyPrompt
             implicitHeight: passkeyCol.implicitHeight + 20
             radius: 10
-            color: "#1e1e1e"
+            color: Theme.surfaceBase
             border.width: 0
 
             ColumnLayout {
@@ -322,7 +370,6 @@ Item {
                 anchors.margins: 12
                 spacing: 10
 
-                // Cabecera: Icono directo + Nombre del Dispositivo + Subtítulo
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 10
@@ -331,7 +378,7 @@ Item {
                         text: "󰂱"
                         font.family: Theme.fontFamily
                         font.pixelSize: 18
-                        color: Theme.highlight
+                        color: Theme.wsActiveColor
                         Layout.alignment: Qt.AlignVCenter
                     }
 
@@ -359,7 +406,7 @@ Item {
                     }
                 }
 
-                // Bloque visual de 6 dígitos estilo PIN/OTP
+                // Bloque visual de dígitos
                 RowLayout {
                     Layout.alignment: Qt.AlignHCenter
                     spacing: 5
@@ -374,7 +421,7 @@ Item {
                             implicitWidth: 32
                             implicitHeight: 36
                             radius: 6
-                            color: "#161616"
+                            color: Theme.bgDark
                             border.width: 0
 
                             Text {
@@ -383,13 +430,12 @@ Item {
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 17
                                 font.weight: Font.Bold
-                                color: Theme.highlight
+                                color: Theme.wsActiveColor
                             }
                         }
                     }
                 }
 
-                // Texto orientativo sutil
                 Text {
                     Layout.fillWidth: true
                     text: (ControlCenterService.promptType === "display_pin" || ControlCenterService.promptType === "display_passkey")
@@ -401,23 +447,17 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                 }
 
-                // Botones de acción (32px de alto, estándar del sistema)
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 8
 
-                    // Botón Rechazar
                     Rectangle {
                         id: rejectBtn
                         Layout.fillWidth: true
                         implicitHeight: 32
                         radius: 8
-                        color: rejectMouse.containsMouse ? "#262626" : "#161616"
+                        color: rejectMouse.containsMouse ? Theme.surfaceHover : Theme.bgDark
                         border.width: 0
-
-                        scale: rejectMouse.pressed ? 0.94 : 1.0
-                        Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                         Text {
                             anchors.centerIn: parent
@@ -426,8 +466,6 @@ Item {
                             font.pixelSize: 11
                             font.weight: Font.Medium
                             color: rejectMouse.containsMouse ? Theme.critical : Theme.textSecondary
-
-                            Behavior on color { ColorAnimation { duration: Theme.animFast } }
                         }
 
                         MouseArea {
@@ -439,18 +477,13 @@ Item {
                         }
                     }
 
-                    // Botón Confirmar
                     Rectangle {
                         id: confirmBtn
                         Layout.fillWidth: true
                         implicitHeight: 32
                         radius: 8
-                        color: confirmMouse.containsMouse ? Qt.lighter(Theme.highlight, 1.08) : Theme.highlight
+                        color: Theme.wsActiveColor
                         border.width: 0
-
-                        scale: confirmMouse.pressed ? 0.94 : 1.0
-                        Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                         Text {
                             anchors.centerIn: parent
@@ -474,14 +507,14 @@ Item {
         }
 
         // ==========================================
-        // CUERPO: Lista de Dispositivos o Estados Vacíos
+        // CUERPO: Lista de Dispositivos (Doble Sección)
         // ==========================================
         Item {
             Layout.fillWidth: true
             implicitHeight: {
                 if (!BluetoothService.isEnabled) return 70;
-                if (root.displayDevices.length === 0) return 70;
-                return Math.min(ControlCenterService.hasPasskeyPrompt ? 110 : 220, devRepeater.contentHeight);
+                if (root.pairedDevices.length === 0 && root.availableDevices.length === 0) return 70;
+                return Math.min(ControlCenterService.hasPasskeyPrompt ? 140 : 270, scrollCol.implicitHeight);
             }
             clip: true
 
@@ -507,117 +540,297 @@ Item {
                 }
             }
 
-            // Estado 2: Sin dispositivos vinculados
-            ColumnLayout {
-                anchors.centerIn: parent
-                spacing: 4
-                visible: BluetoothService.isEnabled && root.displayDevices.length === 0
-
-                Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: "󰂯"
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 22
-                    color: Theme.highlight
-                }
-                Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: root.isScanning ? "Buscando dispositivos..." : "Sin dispositivos vinculados"
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 11
-                    color: Theme.textSecondary
-                }
-            }
-
-            // Estado 3: Lista interactiva de dispositivos
+            // Estado 2: Lista interactiva de dispositivos
             ScrollView {
                 id: devScroll
                 anchors.fill: parent
-                visible: BluetoothService.isEnabled && root.displayDevices.length > 0
+                visible: BluetoothService.isEnabled
                 ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
                 ScrollBar.vertical.policy: ScrollBar.AsNeeded
                 contentWidth: availableWidth
 
                 ColumnLayout {
-                    id: devRepeater
+                    id: scrollCol
                     width: parent.width
-                    spacing: 3
-                    property real contentHeight: implicitHeight
+                    spacing: 8
 
-                    Repeater {
-                        model: root.displayDevices
+                    // -------------------------------------------------------------
+                    // SECCIÓN 1: MIS DISPOSITIVOS (Vinculados)
+                    // -------------------------------------------------------------
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+                        visible: root.pairedDevices.length > 0
 
-                        delegate: Rectangle {
-                            id: devItem
-                            Layout.fillWidth: true
-                            implicitHeight: 34
-                            radius: 8
-                            color: {
-                                if (modelData.connected) return rowMouse.containsMouse ? "#2d3545" : "#242a38";
-                                return rowMouse.containsMouse ? "#282828" : "transparent";
-                            }
-                            border.width: 0
+                        Text {
+                            text: "MIS DISPOSITIVOS"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 10
+                            font.weight: Font.DemiBold
+                            color: Theme.textMuted
+                            Layout.leftMargin: 4
+                        }
 
-                            scale: rowMouse.pressed ? 0.98 : 1.0
-                            Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                            Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                        Repeater {
+                            model: root.pairedDevices
 
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.leftMargin: 8
-                                anchors.rightMargin: 8
-                                spacing: 8
-
-                                // Icono del dispositivo
-                                Text {
-                                    text: root.deviceIcon(modelData)
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: 14
-                                    color: modelData.connected ? Theme.highlight : (rowMouse.containsMouse ? Theme.text : Theme.textSecondary)
-
-                                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                            delegate: Rectangle {
+                                id: devItem
+                                Layout.fillWidth: true
+                                implicitHeight: 34
+                                radius: 8
+                                color: {
+                                    if (modelData.connected) return rowMouse.containsMouse ? Theme.surfaceActiveHover : Theme.surfaceActive;
+                                    return rowMouse.containsMouse ? Theme.surfaceHover : "transparent";
                                 }
+                                border.width: 0
 
-                                // Nombre del dispositivo
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: modelData.name || modelData.deviceName || modelData.address || "Dispositivo"
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: 11
-                                    font.weight: modelData.connected ? Font.DemiBold : Font.Normal
-                                    color: modelData.connected ? Theme.highlight : Theme.text
-                                    elide: Text.ElideRight
-                                }
+                                scale: rowMouse.pressed ? 0.98 : 1.0
+                                Behavior on scale { NumberAnimation { duration: Theme.animFast } }
+                                Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
-                                // Estado de conexión (solo visible si está conectado)
-                                Text {
-                                    text: modelData.connected ? "Conectado" : ""
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: 10
-                                    font.weight: Font.DemiBold
-                                    color: Theme.success
-                                    Layout.alignment: Qt.AlignVCenter
-                                }
-                            }
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 8
+                                    anchors.rightMargin: 8
+                                    spacing: 8
 
-                            MouseArea {
-                                id: rowMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    if (modelData.connected) {
-                                        if (modelData.disconnect) {
-                                            modelData.disconnect();
-                                        } else if (modelData.address) {
-                                            ControlCenterService.disconnectBluetooth(modelData.address);
+                                    Text {
+                                        text: root.deviceIcon(modelData)
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: 14
+                                        color: modelData.connected ? Theme.wsActiveColor : (rowMouse.containsMouse ? Theme.text : Theme.textSecondary)
+                                    }
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 1
+
+                                        Text {
+                                            Layout.fillWidth: true
+                                            text: modelData.name || modelData.deviceName || modelData.address || "Dispositivo"
+                                            font.family: Theme.fontFamily
+                                            font.pixelSize: 11
+                                            font.weight: modelData.connected ? Font.DemiBold : Font.Normal
+                                            color: modelData.connected ? Theme.wsActiveColor : Theme.text
+                                            elide: Text.ElideRight
                                         }
-                                    } else {
-                                        if (modelData.connect) {
-                                            modelData.connect();
-                                        } else if (modelData.address) {
+
+                                        // Subtítulo condicional de estado "Conectando..."
+                                        Text {
+                                            Layout.fillWidth: true
+                                            visible: ControlCenterService.connectingMac === modelData.address
+                                            text: "Conectando..."
+                                            font.family: Theme.fontFamily
+                                            font.pixelSize: 9
+                                            color: Theme.wsActiveColor
+                                        }
+                                    }
+
+                                    // Indicador de Batería (SOLO SI EL DISPOSITIVO ENVÍA EL NIVEL)
+                                    Item {
+                                        id: batBadge
+                                        readonly property int batLevel: ControlCenterService.getDeviceBattery(modelData.address)
+                                        visible: modelData.connected && batLevel >= 0
+                                        implicitWidth: visible ? batRow.implicitWidth : 0
+                                        implicitHeight: visible ? 18 : 0
+                                        Layout.alignment: Qt.AlignVCenter
+
+                                        RowLayout {
+                                            id: batRow
+                                            anchors.centerIn: parent
+                                            spacing: 3
+
+                                            Text {
+                                                text: "󰁹"
+                                                font.family: Theme.fontFamily
+                                                font.pixelSize: 11
+                                                color: batBadge.batLevel <= 20 ? Theme.critical : (batBadge.batLevel <= 40 ? Theme.warning : Theme.success)
+                                            }
+
+                                            Text {
+                                                text: `${batBadge.batLevel}%`
+                                                font.family: Theme.fontFamily
+                                                font.pixelSize: 10
+                                                font.weight: Font.DemiBold
+                                                color: Theme.textSecondary
+                                            }
+                                        }
+                                    }
+
+                                    // Estado de conexión
+                                    Text {
+                                        visible: modelData.connected && ControlCenterService.connectingMac !== modelData.address
+                                        text: "Conectado"
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: 10
+                                        font.weight: Font.DemiBold
+                                        color: Theme.success
+                                        Layout.alignment: Qt.AlignVCenter
+                                    }
+
+                                    // Botón discreto de "Olvidar / Desvincular"
+                                    Rectangle {
+                                        id: forgetBtn
+                                        implicitWidth: 22
+                                        implicitHeight: 22
+                                        radius: 5
+                                        color: forgetMouse.containsMouse ? Theme.surfaceHover : "transparent"
+                                        visible: rowMouse.containsMouse || forgetMouse.containsMouse
+                                        Layout.alignment: Qt.AlignVCenter
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: "󰆴"
+                                            font.family: Theme.fontFamily
+                                            font.pixelSize: 12
+                                            color: forgetMouse.containsMouse ? Theme.critical : Theme.textMuted
+                                        }
+
+                                        MouseArea {
+                                            id: forgetMouse
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: ControlCenterService.removeBluetooth(modelData.address)
+                                        }
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: rowMouse
+                                    anchors.fill: parent
+                                    anchors.rightMargin: forgetBtn.visible ? 24 : 0
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (modelData.connected) {
+                                            if (modelData.nativeObj && modelData.nativeObj.disconnect) {
+                                                modelData.nativeObj.disconnect();
+                                            } else {
+                                                ControlCenterService.disconnectBluetooth(modelData.address);
+                                            }
+                                        } else {
                                             ControlCenterService.connectBluetooth(modelData.address);
                                         }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // -------------------------------------------------------------
+                    // SECCIÓN 2: DISPOSITIVOS DISPONIBLES (Cercanos en el aire)
+                    // -------------------------------------------------------------
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+                        visible: BluetoothService.isEnabled
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Text {
+                                text: "DISPOSITIVOS DISPONIBLES"
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 10
+                                font.weight: Font.DemiBold
+                                color: Theme.textMuted
+                                Layout.leftMargin: 4
+                            }
+                            Item { Layout.fillWidth: true }
+                            Text {
+                                visible: root.isScanning
+                                text: "Buscando..."
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 9
+                                color: Theme.wsActiveColor
+                                Layout.rightMargin: 4
+                            }
+                        }
+
+                        // Placeholder si no hay dispositivos disponibles
+                        Item {
+                            visible: root.availableDevices.length === 0
+                            Layout.fillWidth: true
+                            implicitHeight: 28
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: root.isScanning ? "Buscando dispositivos..." : "Sin dispositivos cerca"
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 10
+                                color: Theme.textSecondary
+                            }
+                        }
+
+                        Repeater {
+                            model: root.availableDevices
+
+                            delegate: Rectangle {
+                                id: availItem
+                                Layout.fillWidth: true
+                                implicitHeight: 34
+                                radius: 8
+                                color: availMouse.containsMouse ? Theme.surfaceHover : "transparent"
+                                border.width: 0
+
+                                scale: availMouse.pressed ? 0.98 : 1.0
+                                Behavior on scale { NumberAnimation { duration: Theme.animFast } }
+                                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 8
+                                    anchors.rightMargin: 8
+                                    spacing: 8
+
+                                    Text {
+                                        text: root.deviceIcon(modelData)
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: 14
+                                        color: availMouse.containsMouse ? Theme.text : Theme.textSecondary
+                                    }
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 1
+
+                                        Text {
+                                            Layout.fillWidth: true
+                                            text: modelData.name || modelData.deviceName || modelData.address || "Dispositivo"
+                                            font.family: Theme.fontFamily
+                                            font.pixelSize: 11
+                                            color: Theme.text
+                                            elide: Text.ElideRight
+                                        }
+
+                                        Text {
+                                            Layout.fillWidth: true
+                                            visible: ControlCenterService.connectingMac === modelData.address
+                                            text: "Vinculando..."
+                                            font.family: Theme.fontFamily
+                                            font.pixelSize: 9
+                                            color: Theme.wsActiveColor
+                                        }
+                                    }
+
+                                    Text {
+                                        text: ControlCenterService.connectingMac === modelData.address ? "..." : "Vincular"
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: 10
+                                        font.weight: Font.DemiBold
+                                        color: Theme.wsActiveColor
+                                        Layout.alignment: Qt.AlignVCenter
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: availMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        ControlCenterService.pairAndTrustBluetooth(modelData.address);
                                     }
                                 }
                             }
@@ -627,60 +840,5 @@ Item {
             }
         }
 
-        // Separador fino
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: Theme.dividerColor
-        }
-
-        // ==========================================
-        // PIE: Enlace a Configuración Avanzada / Bluetui
-        // ==========================================
-        Rectangle {
-            id: advBtn
-            Layout.fillWidth: true
-            implicitHeight: 28
-            radius: 6
-            color: advMouse.containsMouse ? "#262626" : "transparent"
-            border.width: 0
-
-            scale: advMouse.pressed ? 0.97 : 1.0
-            Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-            Behavior on color { ColorAnimation { duration: Theme.animFast } }
-
-            RowLayout {
-                anchors.centerIn: parent
-                spacing: 6
-
-                Text {
-                    text: "󰂯"
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 12
-                    color: advMouse.containsMouse ? Theme.highlight : Theme.textMuted
-
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
-                }
-
-                Text {
-                    text: "Emparejar nuevo dispositivo (Bluetui)..."
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 10
-                    font.weight: Font.Medium
-                    color: advMouse.containsMouse ? Theme.text : Theme.textSecondary
-
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
-                }
-            }
-
-            MouseArea {
-                id: advMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.openAdvancedRequested()
-            }
-        }
     }
 }
-

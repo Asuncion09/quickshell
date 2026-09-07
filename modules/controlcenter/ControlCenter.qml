@@ -97,11 +97,6 @@ PopupWindow {
         command: ["nmrs-gui"]
     }
 
-    Process {
-        id: btGuiProc
-        command: ["ghostty", "--class=com.floating.medium", "-e", "bluetui"]
-    }
-
     Item {
         id: animContainer
         anchors.left: parent.left
@@ -344,9 +339,6 @@ PopupWindow {
                     visible: opacity > 0.01
 
                     onBackRequested: root.currentView = 0
-                    onOpenAdvancedRequested: {
-                        if (!btGuiProc.running) btGuiProc.running = true;
-                    }
 
                     Behavior on opacity {
                         NumberAnimation { duration: Theme.animFast }

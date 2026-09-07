@@ -55,6 +55,14 @@ Item {
     }
 
     // --- Control de Bluetooth ---
+    property string connectingMac: ""
+    Timer {
+        id: connectingTimer
+        interval: 10000
+        repeat: false
+        onTriggered: root.connectingMac = ""
+    }
+
     Process {
         id: btToggleProc
         command: ["sh", "-c", "if bluetoothctl show | grep -q 'Powered: yes'; then bluetoothctl power off; else bluetoothctl power on; fi"]
@@ -62,6 +70,63 @@ Item {
 
     Process {
         id: btConnProc
+        onExited: {
+            root.connectingMac = "";
+            root.refreshBluetoothBatteries();
+        }
+    }
+
+    Process {
+        id: btRemoveProc
+    }
+
+    property var deviceBatteries: ({})
+
+    Timer {
+        id: btBatteryTimer
+        interval: 12000
+        running: root.isOpen && BluetoothService.isEnabled && BluetoothService.isConnected
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: root.refreshBluetoothBatteries()
+    }
+
+    Connections {
+        target: BluetoothService
+        function onIsConnectedChanged() {
+            if (BluetoothService.isConnected) {
+                root.refreshBluetoothBatteries();
+            } else {
+                root.deviceBatteries = {};
+            }
+        }
+    }
+
+    Process {
+        id: btBatteryProc
+        command: ["sh", "-c", "for mac in $(bluetoothctl devices Connected 2>/dev/null | awk '{print $2}'); do bat=$(bluetoothctl info \"$mac\" 2>/dev/null | awk '/[Bb]attery [Pp]ercentage/ { if (match($0, /\\([0-9]+\\)/)) print substr($0, RSTART+1, RLENGTH-2); else if (match($0, /[0-9]+%/)) print substr($0, RSTART, RLENGTH-1); else if (match($0, /[0-9]+/)) print substr($0, RSTART, RLENGTH) }' | head -n 1); [ -n \"$bat\" ] && echo \"$mac|$bat\"; done"]
+        stdout: SplitParser {
+            onRead: data => {
+                let text = data.trim();
+                if (!text) {
+                    root.deviceBatteries = {};
+                    return;
+                }
+                let lines = text.split("\n");
+                let updated = {};
+                for (let i = 0; i < lines.length; i++) {
+                    let parts = lines[i].trim().split("|");
+                    if (parts.length === 2) {
+                        let mac = parts[0].trim().toLowerCase();
+                        let pct = parseInt(parts[1].trim(), 10);
+                        if (!isNaN(pct) && pct >= 0 && pct <= 100) {
+                            updated[mac] = pct;
+                        }
+                    }
+                }
+                root.deviceBatteries = updated;
+            }
+        }
     }
 
     function toggleBluetooth() {
@@ -70,15 +135,46 @@ Item {
     }
 
     function connectBluetooth(mac) {
+        root.connectingMac = mac;
+        connectingTimer.restart();
         if (btConnProc.running) btConnProc.running = false;
-        btConnProc.command = ["bluetoothctl", "connect", mac];
+        btConnProc.command = ["sh", "-c", `bluetoothctl trust ${mac} && bluetoothctl connect ${mac}`];
+        btConnProc.running = true;
+    }
+
+    function pairAndTrustBluetooth(mac) {
+        root.connectingMac = mac;
+        connectingTimer.restart();
+        if (btConnProc.running) btConnProc.running = false;
+        btConnProc.command = ["sh", "-c", `bluetoothctl pair ${mac} && bluetoothctl trust ${mac} && bluetoothctl connect ${mac}`];
         btConnProc.running = true;
     }
 
     function disconnectBluetooth(mac) {
+        if (root.connectingMac === mac) root.connectingMac = "";
         if (btConnProc.running) btConnProc.running = false;
         btConnProc.command = ["bluetoothctl", "disconnect", mac];
         btConnProc.running = true;
+    }
+
+    function removeBluetooth(mac) {
+        if (root.connectingMac === mac) root.connectingMac = "";
+        if (btRemoveProc.running) btRemoveProc.running = false;
+        btRemoveProc.command = ["bluetoothctl", "remove", mac];
+        btRemoveProc.running = true;
+    }
+
+    function refreshBluetoothBatteries() {
+        if (!btBatteryProc.running) btBatteryProc.running = true;
+    }
+
+    function getDeviceBattery(mac) {
+        if (!mac) return -1;
+        let key = mac.toLowerCase();
+        if (root.deviceBatteries && root.deviceBatteries[key] !== undefined) {
+            return root.deviceBatteries[key];
+        }
+        return -1;
     }
 
     // --- Agente BlueZ para Emparejamiento / Passkey ---
