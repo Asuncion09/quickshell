@@ -32,12 +32,13 @@ Item {
     Rectangle {
         id: cardBg
         anchors.fill: parent
-        radius: 10
+        radius: 12
         border.width: 0
+        border.color: "transparent"
 
         color: root.active
-               ? (root.isHovered ? "#2e333d" : "#252830")
-               : (root.isHovered ? "#272727" : "#1e1e1e")
+               ? (root.isHovered ? Theme.surfaceActiveHover : Theme.surfaceActive)
+               : (root.isHovered ? Theme.surfaceHover : Theme.surfaceBase)
 
         Behavior on color {
             ColorAnimation { duration: Theme.animFast }
@@ -54,7 +55,7 @@ Item {
                 text: root.icon
                 font.family: Theme.fontFamily
                 font.pixelSize: 18
-                color: root.active ? Theme.highlight : Theme.textSecondary
+                color: root.active ? Theme.wsActiveColor : Theme.textSecondary
                 Layout.alignment: Qt.AlignVCenter
 
                 Behavior on color {
@@ -82,7 +83,7 @@ Item {
                     text: root.subtitle
                     font.family: Theme.fontFamily
                     font.pixelSize: 10
-                    color: root.active ? "#9bbdff" : Theme.textMuted
+                    color: root.active ? Theme.wsActiveColor : Theme.textMuted
                     elide: Text.ElideRight
 
                     Behavior on color {
@@ -102,8 +103,8 @@ Item {
 
                 Rectangle {
                     anchors.fill: parent
-                    radius: 6
-                    color: root.active ? "#414d61" : "#353535"
+                    radius: 8
+                    color: root.active ? Theme.surfaceActiveHover : Theme.surfaceHover
                     opacity: mainMouse.isOverArrow ? 1.0 : 0.0
 
                     Behavior on opacity {
@@ -120,7 +121,7 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 17
                     font.weight: Font.Bold
-                    color: mainMouse.isOverArrow ? Theme.highlight : (root.active ? "#9bbdff" : Theme.textMuted)
+                    color: mainMouse.isOverArrow ? Theme.wsActiveColor : (root.active ? Theme.wsActiveColor : Theme.textMuted)
                     opacity: root.active ? 0.95 : 0.55
 
                     Behavior on color {

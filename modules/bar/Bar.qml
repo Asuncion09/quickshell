@@ -125,6 +125,10 @@ PanelWindow {
                     id: network
                 }
 
+                VolumeModule {
+                    id: volume
+                }
+
                 BatteryModule {
                     id: battery
                 }

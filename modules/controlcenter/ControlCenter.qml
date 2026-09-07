@@ -134,7 +134,7 @@ PopupWindow {
         Rectangle {
             id: shadowShape
             anchors.fill: mainCard
-            radius: 14
+            radius: 16
             color: "#000000"
             visible: false
         }
@@ -167,9 +167,9 @@ PopupWindow {
                 }
             }
 
-            radius: 14
+            radius: 16
             color: Theme.bgDark
-            border.color: "#383838"
+            border.color: "#2e2e2e"
             border.width: 1
 
             Item {
@@ -261,7 +261,7 @@ PopupWindow {
                         Rectangle {
                             Layout.fillWidth: true
                             height: 1
-                            color: "#282828"
+                            color: Theme.dividerColor
                         }
 
                         // 2. Controles Deslizantes (Volumen y Brillo)
@@ -273,9 +273,8 @@ PopupWindow {
                             SliderControl {
                                 icon: AudioService.icon
                                 value: AudioService.currentPercent
-                                title: "Volumen"
                                 isMuted: AudioService.isMuted
-                                accentColor: Theme.highlight
+                                accentColor: Theme.wsActiveColor
                                 onValueChangedByUser: pct => AudioService.setVolume(pct)
                                 onIconClicked: AudioService.toggleMute()
                             }
@@ -284,9 +283,8 @@ PopupWindow {
                             SliderControl {
                                 icon: BrightnessService.icon
                                 value: BrightnessService.brightnessPercent
-                                title: "Brillo"
                                 isMuted: false
-                                accentColor: Theme.warning
+                                accentColor: Theme.wsActiveColor
                                 onValueChangedByUser: pct => BrightnessService.setBrightness(pct)
                                 onIconClicked: BrightnessService.setBrightness(BrightnessService.brightnessPercent > 10 ? 10 : 100)
                             }
@@ -296,7 +294,7 @@ PopupWindow {
                         Rectangle {
                             Layout.fillWidth: true
                             height: 1
-                            color: "#282828"
+                            color: Theme.dividerColor
                         }
 
                         // 3. Fila de Utilidades (Batería compacta y Bloqueo de 32px)

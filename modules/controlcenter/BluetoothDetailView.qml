@@ -299,7 +299,7 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             height: 1
-            color: "#282828"
+            color: Theme.dividerColor
         }
 
         // ==========================================
@@ -631,7 +631,7 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             height: 1
-            color: "#282828"
+            color: Theme.dividerColor
         }
 
         // ==========================================

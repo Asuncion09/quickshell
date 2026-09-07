@@ -5,17 +5,16 @@ import "../../services"
 Item {
     id: root
 
-    visible: BluetoothService.isConnected
-    implicitWidth: visible ? 20 : 0
+    implicitWidth: 20
     implicitHeight: 26
 
     Text {
         id: iconLabel
         anchors.centerIn: parent
-        text: BluetoothService.icon
+        text: AudioService.icon
         font.family: Theme.fontFamily
-        font.pixelSize: Theme.fontSize
-        color: BluetoothService.color
+        font.pixelSize: 14
+        color: AudioService.isMuted ? Theme.critical : Theme.text
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: Text.AlignHCenter
 

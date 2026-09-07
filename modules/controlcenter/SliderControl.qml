@@ -9,7 +9,6 @@ Item {
     property int value: 50
     property color accentColor: Theme.highlight
     property bool isMuted: false
-    property string title: ""
 
     signal valueChangedByUser(int newValue)
     signal iconClicked()
@@ -18,28 +17,29 @@ Item {
     implicitHeight: 40
     Layout.fillWidth: true
 
-    // Pista de fondo sólida y estática (sin alteración geométrica ni de escala)
+    // Pista de fondo con bordes redondeados armónicos (radius: 12)
     Rectangle {
         id: trackBg
         anchors.fill: parent
-        radius: 10
-        color: mouseArea.containsMouse ? "#262626" : "#1e1e1e"
+        radius: 12
+        color: mouseArea.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
         border.width: 0
+        clip: true
 
         Behavior on color {
             ColorAnimation { duration: Theme.animFast }
         }
 
-        // Relleno de progreso
+        // Relleno de progreso visual limpio sin texto encima
         Rectangle {
             id: fillRect
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             width: Math.max(0, Math.min(trackBg.width, Math.round(trackBg.width * (root.value / 100.0))))
-            radius: 9
+            radius: 12
             color: root.isMuted ? Theme.critical : root.accentColor
-            opacity: root.isMuted ? 0.6 : (mouseArea.containsMouse ? 0.95 : 0.85)
+            opacity: root.isMuted ? 0.65 : 1.0
 
             Behavior on width {
                 enabled: !mouseArea.pressed
@@ -58,17 +58,17 @@ Item {
             }
         }
 
-        // Contenido superpuesto: Icono, Título y Porcentaje
+        // Elementos superpuestos: Solo Icono interactivo a la izquierda e Indicador a la derecha
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 12
+            anchors.leftMargin: 8
             anchors.rightMargin: 12
-            spacing: 8
+            spacing: 0
 
             // Botón interactivo para el icono
             Item {
-                implicitWidth: 24
-                implicitHeight: 24
+                implicitWidth: 32
+                implicitHeight: 40
                 Layout.alignment: Qt.AlignVCenter
 
                 Text {
@@ -98,32 +98,20 @@ Item {
                 }
             }
 
-            // Título opcional
-            Text {
-                text: root.title
-                font.family: Theme.fontFamily
-                font.pixelSize: 12
-                font.weight: Font.Medium
-                color: "#ffffff"
-                opacity: 0.9
-                visible: root.title !== ""
-                Layout.fillWidth: true
-                elide: Text.ElideRight
-            }
-
+            // Espaciador central limpio: la barra de progreso fluye sin interferencias
             Item {
                 Layout.fillWidth: true
-                visible: root.title === ""
             }
 
-            // Indicador de Porcentaje
+            // Indicador de Porcentaje nítido a la derecha
             Text {
                 text: root.isMuted ? "MUTED" : `${root.value}%`
                 font.family: Theme.fontFamily
-                font.pixelSize: 12
+                font.pixelSize: 11
                 font.weight: Font.DemiBold
                 color: "#ffffff"
                 verticalAlignment: Text.AlignVCenter
+                opacity: 0.95
             }
         }
 
@@ -131,7 +119,7 @@ Item {
         MouseArea {
             id: mouseArea
             anchors.fill: parent
-            anchors.leftMargin: 36 // Permite al icono recibir sus propios clics
+            anchors.leftMargin: 40 // Permite al icono recibir sus propios clics sin conflicto
             hoverEnabled: true
             cursorShape: pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
 

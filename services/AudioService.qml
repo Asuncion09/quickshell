@@ -17,11 +17,10 @@ Item {
     readonly property bool isMuted: (defaultSink && defaultSink.audio) ? defaultSink.audio.muted : false
     readonly property string sinkName: defaultSink ? (defaultSink.description || defaultSink.name || "Altavoz") : "Sin salida"
 
-    // Icono dinámico según el nivel y estado de silencio
+    // Icono estable según el estado de silencio.
+    // Usamos el glifo completo de altavoz con ondas (󰕾) para garantizar simetría y peso visual estable en la barra y sliders
     readonly property string icon: {
         if (isMuted || volumePercent === 0) return "󰝟";
-        if (volumePercent < 33) return "󰕿";
-        if (volumePercent < 66) return "󰖀";
         return "󰕾";
     }
 

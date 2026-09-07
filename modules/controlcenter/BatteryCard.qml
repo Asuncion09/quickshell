@@ -33,7 +33,7 @@ Item {
                 implicitHeight: 32
                 implicitWidth: batLayout.implicitWidth + 18
                 radius: 8
-                color: batMouse.containsMouse ? "#262626" : "#1e1e1e"
+                color: batMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
                 border.width: 0
 
                 scale: batMouse.pressed ? 0.95 : 1.0
@@ -89,7 +89,7 @@ Item {
                 implicitWidth: 32
                 implicitHeight: 32
                 radius: 8
-                color: lockMouse.containsMouse ? "#2e3440" : "#1e1e1e"
+                color: lockMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
                 border.width: 0
 
                 scale: lockMouse.pressed ? 0.92 : 1.0
@@ -127,7 +127,7 @@ Item {
                 implicitWidth: 32
                 implicitHeight: 32
                 radius: 8
-                color: powerMouse.containsMouse ? "#351f24" : "#1e1e1e"
+                color: powerMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
                 border.width: 0
 
                 scale: powerMouse.pressed ? 0.92 : 1.0
@@ -184,7 +184,7 @@ Item {
                 implicitWidth: 32
                 implicitHeight: 32
                 radius: 8
-                color: backMouse.containsMouse ? "#2e3440" : "#1e1e1e"
+                color: backMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
                 border.width: 0
 
                 scale: backMouse.pressed ? 0.92 : 1.0
@@ -248,7 +248,7 @@ Item {
                     implicitWidth: 32
                     implicitHeight: 32
                     radius: 8
-                    color: suspMouse.containsMouse ? "#252e3d" : "#1e1e1e"
+                    color: suspMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
                     border.width: 0
                     scale: suspMouse.pressed ? 0.92 : 1.0
 
@@ -279,7 +279,7 @@ Item {
                     implicitWidth: 32
                     implicitHeight: 32
                     radius: 8
-                    color: exitMouse.containsMouse ? "#352b1e" : "#1e1e1e"
+                    color: exitMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
                     border.width: 0
                     scale: exitMouse.pressed ? 0.92 : 1.0
 
@@ -310,7 +310,7 @@ Item {
                     implicitWidth: 32
                     implicitHeight: 32
                     radius: 8
-                    color: rebootMouse.containsMouse ? "#352b1e" : "#1e1e1e"
+                    color: rebootMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
                     border.width: 0
                     scale: rebootMouse.pressed ? 0.92 : 1.0
 
@@ -341,7 +341,7 @@ Item {
                     implicitWidth: 32
                     implicitHeight: 32
                     radius: 8
-                    color: shutMouse.containsMouse ? "#381e22" : "#1e1e1e"
+                    color: shutMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
                     border.width: 0
                     scale: shutMouse.pressed ? 0.92 : 1.0
 

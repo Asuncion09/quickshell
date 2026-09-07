@@ -20,6 +20,13 @@ QtObject {
     readonly property color warning: "#f1c40f"            // Amarillo (batería warning)
     readonly property color critical: "#ee5396"           // Rosa/Rojo (urgent, error, batería crítica)
 
+    // --- Superficies y Capas del Centro de Control (Sistema Tonal Limpio) ---
+    readonly property color surfaceBase: "#202020"                                                 // Superficie uniforme inactiva (toggles, sliders, chips)
+    readonly property color surfaceHover: "#282828"                                                // Hover uniforme para cualquier superficie inactiva
+    readonly property color surfaceActive: Qt.rgba(wsActiveColor.r, wsActiveColor.g, wsActiveColor.b, 0.20)      // Superficie activa derivada del azul del workspace activo
+    readonly property color surfaceActiveHover: Qt.rgba(wsActiveColor.r, wsActiveColor.g, wsActiveColor.b, 0.28) // Hover uniforme para elementos activos
+    readonly property color dividerColor: "#262626"                                                // Divisores ultra-sutiles
+
     // --- Métricas y Dimensiones de la Barra ---
     readonly property int barHeight: 32
     readonly property int barMarginTop: 6
