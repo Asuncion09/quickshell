@@ -37,7 +37,7 @@ Item {
         border.color: "transparent"
 
         color: root.active
-               ? (root.isHovered ? Theme.surfaceActiveHover : Theme.surfaceActive)
+               ? (root.isHovered ? Qt.lighter(Theme.wsActiveColor, 1.08) : Theme.wsActiveColor)
                : (root.isHovered ? Theme.surfaceHover : Theme.surfaceBase)
 
         Behavior on color {
@@ -55,7 +55,7 @@ Item {
                 text: root.icon
                 font.family: Theme.fontFamily
                 font.pixelSize: 18
-                color: root.active ? Theme.wsActiveColor : Theme.textSecondary
+                color: root.active ? "#161616" : Theme.textSecondary
                 Layout.alignment: Qt.AlignVCenter
 
                 Behavior on color {
@@ -74,8 +74,12 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 12
                     font.weight: Font.DemiBold
-                    color: Theme.text
+                    color: root.active ? "#161616" : Theme.text
                     elide: Text.ElideRight
+
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.animFast }
+                    }
                 }
 
                 Text {
@@ -83,7 +87,8 @@ Item {
                     text: root.subtitle
                     font.family: Theme.fontFamily
                     font.pixelSize: 10
-                    color: root.active ? Theme.wsActiveColor : Theme.textMuted
+                    font.weight: root.active ? Font.Medium : Font.Normal
+                    color: root.active ? Qt.rgba(0.09, 0.09, 0.09, 0.75) : Theme.textMuted
                     elide: Text.ElideRight
 
                     Behavior on color {
@@ -104,7 +109,7 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     radius: 8
-                    color: root.active ? Theme.surfaceActiveHover : Theme.surfaceHover
+                    color: root.active ? Qt.rgba(0, 0, 0, 0.12) : Theme.surfaceHover
                     opacity: mainMouse.isOverArrow ? 1.0 : 0.0
 
                     Behavior on opacity {
@@ -121,8 +126,8 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 17
                     font.weight: Font.Bold
-                    color: mainMouse.isOverArrow ? Theme.wsActiveColor : (root.active ? Theme.wsActiveColor : Theme.textMuted)
-                    opacity: root.active ? 0.95 : 0.55
+                    color: root.active ? "#161616" : (mainMouse.isOverArrow ? Theme.wsActiveColor : Theme.textMuted)
+                    opacity: root.active ? 0.90 : (mainMouse.isOverArrow ? 1.0 : 0.55)
 
                     Behavior on color {
                         ColorAnimation { duration: Theme.animFast }

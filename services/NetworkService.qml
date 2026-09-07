@@ -109,8 +109,18 @@ Item {
         return Theme.text;                       // #dde1e7
     }
 
+    function refresh() {
+        if (netReader.running) netReader.running = false;
+        netReader.running = true;
+    }
+
     readonly property string connectionName: {
-        // 1. Intentar obtener el SSID a través de Quickshell.Networking nativo
+        // 1. Respaldo directo y preciso de nmcli / NetworkManager
+        if (root._sysConnectionName && root._sysConnectionName !== "") {
+            return root._sysConnectionName;
+        }
+
+        // 2. Intentar obtener el SSID a través de Quickshell.Networking nativo
         if (Networking.devices && Networking.devices.values) {
             let devs = Networking.devices.values;
             for (let i = 0; i < devs.length; i++) {
@@ -129,11 +139,6 @@ Item {
                     }
                 }
             }
-        }
-
-        // 2. Respaldo de nmcli / sysfs
-        if (root._sysConnectionName && root._sysConnectionName !== "") {
-            return root._sysConnectionName;
         }
 
         if (!isConnected) return "Desconectado";

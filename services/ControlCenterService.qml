@@ -28,13 +28,116 @@ Item {
     }
 
     // --- Control de Wi-Fi ---
+    property string connectingWifiSsid: ""
+    property string wifiErrorMessage: ""
+    property var savedWifiConnections: []
+
+    Timer {
+        id: connectingWifiTimer
+        interval: 15000
+        repeat: false
+        onTriggered: {
+            if (root.connectingWifiSsid !== "") {
+                root.connectingWifiSsid = "";
+            }
+        }
+    }
+
     Process {
         id: wifiToggleProc
         command: ["sh", "-c", "if nmcli radio wifi | grep -q 'enabled'; then nmcli radio wifi off; else nmcli radio wifi on; fi"]
     }
 
+    onIsOpenChanged: {
+        if (root.isOpen) {
+            root.refreshSavedWifiConnections();
+        }
+    }
+
+    property var _accumulatedSavedLines: []
+
+    Process {
+        id: wifiSavedProc
+        command: ["sh", "-c", "LC_ALL=C nmcli -t -f NAME,TYPE connection show 2>/dev/null | while IFS=: read -r name type; do [ \"$type\" = \"802-11-wireless\" ] || continue; echo \"$name\"; ssid=$(nmcli -s -g 802-11-wireless.ssid connection show \"$name\" 2>/dev/null); [ -n \"$ssid\" ] && echo \"$ssid\"; done | sort -u"]
+        onStarted: root._accumulatedSavedLines = []
+        stdout: SplitParser {
+            onRead: data => {
+                let text = data.trim();
+                if (text) {
+                    let lines = text.split("\n");
+                    for (let i = 0; i < lines.length; i++) {
+                        let s = lines[i].trim();
+                        if (s) root._accumulatedSavedLines.push(s);
+                    }
+                }
+            }
+        }
+        onExited: {
+            let list = [];
+            for (let i = 0; i < root._accumulatedSavedLines.length; i++) {
+                let item = root._accumulatedSavedLines[i];
+                if (item && !list.includes(item)) list.push(item);
+            }
+            root.savedWifiConnections = list;
+        }
+    }
+
     Process {
         id: wifiConnProc
+        stdout: SplitParser {
+            onRead: data => {
+                let text = data.trim();
+                if (text.toLowerCase().includes("error") || text.toLowerCase().includes("failed")) {
+                    root.wifiErrorMessage = text;
+                }
+            }
+        }
+        stderr: SplitParser {
+            onRead: data => {
+                let text = data.trim();
+                if (text) {
+                    root.wifiErrorMessage = text;
+                }
+            }
+        }
+        onExited: exitCode => {
+            root.connectingWifiSsid = "";
+            NetworkService.refresh();
+            if (exitCode === 0) {
+                root.wifiErrorMessage = "";
+                root.refreshSavedWifiConnections();
+            } else if (!root.wifiErrorMessage) {
+                root.wifiErrorMessage = "Error al conectar con la red.";
+            }
+            root.wifiConnectionFinished();
+        }
+    }
+
+    signal wifiConnectionFinished()
+
+    Process {
+        id: wifiDeleteProc
+        onExited: root.refreshSavedWifiConnections()
+    }
+
+    Component.onCompleted: {
+        root.refreshSavedWifiConnections();
+    }
+
+    function refreshSavedWifiConnections() {
+        if (wifiSavedProc.running) wifiSavedProc.running = false;
+        wifiSavedProc.running = true;
+    }
+
+    function isWifiSaved(ssid) {
+        if (!ssid) return false;
+        let s = ssid.toLowerCase();
+        let sTrim = s.trim();
+        for (let i = 0; i < root.savedWifiConnections.length; i++) {
+            let saved = (root.savedWifiConnections[i] || "").toLowerCase();
+            if (saved === s || saved.trim() === sTrim) return true;
+        }
+        return false;
     }
 
     function toggleWifi() {
@@ -43,15 +146,64 @@ Item {
     }
 
     function connectWifi(ssid) {
+        root.connectingWifiSsid = ssid;
+        root.wifiErrorMessage = "";
+        connectingWifiTimer.restart();
         if (wifiConnProc.running) wifiConnProc.running = false;
-        wifiConnProc.command = ["nmcli", "device", "wifi", "connect", ssid];
+        wifiConnProc.command = [
+            "sh", "-c",
+            'target="$1"; ' +
+            'conn=$(LC_ALL=C nmcli -t -f NAME,TYPE connection show 2>/dev/null | while IFS=: read -r name type; do [ "$type" = "802-11-wireless" ] || continue; trimmed=$(echo "$name" | xargs); if [ "$name" = "$target" ] || [ "$trimmed" = "$target" ] || [ "$trimmed" = "$(echo "$target" | xargs)" ]; then echo "$name"; break; fi; done); ' +
+            'if [ -n "$conn" ]; then nmcli connection up id "$conn" && exit 0; fi; ' +
+            'nmcli device wifi connect "$target" 2>/dev/null && exit 0; ' +
+            'air=$(LC_ALL=C nmcli -t -f SSID device wifi list 2>/dev/null | while read -r s; do trimmed=$(echo "$s" | xargs); if [ "$s" = "$target" ] || [ "$trimmed" = "$target" ] || [ "$trimmed" = "$(echo "$target" | xargs)" ]; then echo "$s"; break; fi; done); ' +
+            'if [ -n "$air" ]; then nmcli device wifi connect "$air" && exit 0; fi; ' +
+            'exit 1',
+            "sh", ssid
+        ];
+        wifiConnProc.running = true;
+    }
+
+    function connectWifiWithPassword(ssid, password) {
+        root.connectingWifiSsid = ssid;
+        root.wifiErrorMessage = "";
+        connectingWifiTimer.restart();
+        if (wifiConnProc.running) wifiConnProc.running = false;
+        wifiConnProc.command = [
+            "sh", "-c",
+            'target="$1"; pass="$2"; ' +
+            'nmcli device wifi connect "$target" password "$pass" 2>/dev/null && exit 0; ' +
+            'air=$(LC_ALL=C nmcli -t -f SSID device wifi list 2>/dev/null | while read -r s; do trimmed=$(echo "$s" | xargs); if [ "$s" = "$target" ] || [ "$trimmed" = "$target" ] || [ "$trimmed" = "$(echo "$target" | xargs)" ]; then echo "$s"; break; fi; done); ' +
+            'if [ -n "$air" ]; then nmcli device wifi connect "$air" password "$pass" && exit 0; fi; ' +
+            'exit 1',
+            "sh", ssid, password
+        ];
         wifiConnProc.running = true;
     }
 
     function disconnectWifi(ssid) {
+        if (root.connectingWifiSsid === ssid) root.connectingWifiSsid = "";
         if (wifiConnProc.running) wifiConnProc.running = false;
-        wifiConnProc.command = ["nmcli", "connection", "down", ssid];
+        wifiConnProc.command = [
+            "sh", "-c",
+            'target="$1"; ' +
+            'conn=$(LC_ALL=C nmcli -t -f NAME,TYPE connection show 2>/dev/null | while IFS=: read -r name type; do [ "$type" = "802-11-wireless" ] || continue; trimmed=$(echo "$name" | xargs); if [ "$name" = "$target" ] || [ "$trimmed" = "$target" ] || [ "$trimmed" = "$(echo "$target" | xargs)" ]; then echo "$name"; break; fi; done); ' +
+            'if [ -n "$conn" ]; then nmcli connection down id "$conn"; else nmcli connection down id "$target"; fi',
+            "sh", ssid
+        ];
         wifiConnProc.running = true;
+    }
+
+    function deleteWifiConnection(ssid) {
+        if (wifiDeleteProc.running) wifiDeleteProc.running = false;
+        wifiDeleteProc.command = [
+            "sh", "-c",
+            'target="$1"; ' +
+            'conn=$(LC_ALL=C nmcli -t -f NAME,TYPE connection show 2>/dev/null | while IFS=: read -r name type; do [ "$type" = "802-11-wireless" ] || continue; trimmed=$(echo "$name" | xargs); if [ "$name" = "$target" ] || [ "$trimmed" = "$target" ] || [ "$trimmed" = "$(echo "$target" | xargs)" ]; then echo "$name"; break; fi; done); ' +
+            'if [ -n "$conn" ]; then nmcli connection delete id "$conn"; else nmcli connection delete id "$target"; fi',
+            "sh", ssid
+        ];
+        wifiDeleteProc.running = true;
     }
 
     // --- Control de Bluetooth ---

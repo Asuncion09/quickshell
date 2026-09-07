@@ -91,12 +91,6 @@ PopupWindow {
     implicitWidth: 300 + 8
     implicitHeight: mainCard.implicitHeight + 14
 
-    // Procesos auxiliares para submenús
-    Process {
-        id: netGuiProc
-        command: ["nmrs-gui"]
-    }
-
     Item {
         id: animContainer
         anchors.left: parent.left
@@ -313,9 +307,6 @@ PopupWindow {
                     visible: opacity > 0.01
 
                     onBackRequested: root.currentView = 0
-                    onOpenAdvancedRequested: {
-                        if (!netGuiProc.running) netGuiProc.running = true;
-                    }
 
                     Behavior on opacity {
                         NumberAnimation { duration: Theme.animFast }
