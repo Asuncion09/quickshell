@@ -76,6 +76,16 @@ Item {
         }
     }
 
+    Timer {
+        id: focusRetryTimer
+        interval: 40
+        onTriggered: {
+            if (root._isOpen) {
+                mainCard.forceActiveFocus();
+            }
+        }
+    }
+
     function open() {
         closeTimer.stop();
         root._isOpen = true;
@@ -84,7 +94,8 @@ Item {
         if (!ControlCenterService.isOpen) {
             ControlCenterService.open();
         }
-        Qt.callLater(() => mainCard.forceActiveFocus());
+        mainCard.forceActiveFocus();
+        focusRetryTimer.restart();
     }
 
     function close() {
@@ -187,12 +198,16 @@ Item {
                 anchors.fill: parent
                 z: -1
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
-                onPressed: mouse => mouse.accepted = true
+                onPressed: mouse => {
+                    mouse.accepted = true;
+                    root.isKeyNavActive = false;
+                    mainCard.forceActiveFocus();
+                }
             }
 
             Behavior on implicitHeight {
                 NumberAnimation {
-                    duration: Theme.animNormal
+                    duration: 220
                     easing.type: Easing.OutCubic
                 }
             }
@@ -202,15 +217,6 @@ Item {
             border.color: "#2e2e2e"
             border.width: 1
             focus: true
-
-            HoverHandler {
-                onPointChanged: {
-                    if (root.isKeyNavActive) {
-                        root.isKeyNavActive = false;
-                        root.focusedIndex = 0;
-                    }
-                }
-            }
 
             Keys.onPressed: event => {
                 if (event.key === Qt.Key_Escape) {
@@ -301,11 +307,11 @@ Item {
                 if (!root.isKeyNavActive) {
                     if (isNavKey) {
                         event.accepted = true;
-                        root.focusedIndex = 0;
-                        root.isKeyNavActive = true;
-                        return;
+                        root.focusedIndex = 0;      // Selecciona Wi-Fi como primer elemento predeterminado
+                        root.isKeyNavActive = true; // Hace visible la selección con estilo hover
+                        return;                     // Detiene aquí para que Wi-Fi quede seleccionado en la primera pulsación
                     }
-                    // Si se presiona Espacio o Enter sin haber seleccionado un elemento con las flechas, ignorar para evitar acciones accidentales (como apagar el Wi-Fi)
+                    // Si se presiona Espacio o Enter sin haber navegado, se ignora completamente para evitar misclick accidental
                     if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                         event.accepted = true;
                         return;
@@ -417,13 +423,17 @@ Item {
 
                     opacity: root.currentView === 0 ? 1.0 : 0.0
                     x: root.currentView === 0 ? 0 : -20
+                    scale: root.currentView === 0 ? 1.0 : 0.98
                     visible: opacity > 0.01
 
                     Behavior on opacity {
-                        NumberAnimation { duration: Theme.animFast }
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
                     }
                     Behavior on x {
-                        NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic }
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+                    }
+                    Behavior on scale {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
                     }
 
                     ColumnLayout {
@@ -562,6 +572,7 @@ Item {
 
                     opacity: root.currentView === 1 ? 1.0 : 0.0
                     x: root.currentView === 1 ? 0 : 20
+                    scale: root.currentView === 1 ? 1.0 : 0.98
                     visible: opacity > 0.01
 
                     onBackRequested: {
@@ -570,10 +581,13 @@ Item {
                     }
 
                     Behavior on opacity {
-                        NumberAnimation { duration: Theme.animFast }
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
                     }
                     Behavior on x {
-                        NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic }
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+                    }
+                    Behavior on scale {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
                     }
                 }
 
@@ -588,6 +602,7 @@ Item {
 
                     opacity: root.currentView === 2 ? 1.0 : 0.0
                     x: root.currentView === 2 ? 0 : 20
+                    scale: root.currentView === 2 ? 1.0 : 0.98
                     visible: opacity > 0.01
 
                     onBackRequested: {
@@ -596,10 +611,13 @@ Item {
                     }
 
                     Behavior on opacity {
-                        NumberAnimation { duration: Theme.animFast }
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
                     }
                     Behavior on x {
-                        NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutCubic }
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+                    }
+                    Behavior on scale {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
                     }
                 }
             }

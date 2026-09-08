@@ -38,11 +38,8 @@ Item {
         anchors.fill: parent
         radius: 12
         color: (mouseArea.containsMouse || root.focused) ? Theme.surfaceHover : Theme.surfaceBase
-        border.width: root.focused ? 2 : 0
-        border.color: Theme.wsActiveColor
+        border.width: 0
         clip: true
-
-        Behavior on border.width { NumberAnimation { duration: Theme.animFast } }
 
         Behavior on color {
             ColorAnimation { duration: Theme.animFast }

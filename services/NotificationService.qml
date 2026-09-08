@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
+import Quickshell.Hyprland
 
 Item {
     id: root
@@ -247,12 +248,114 @@ Item {
         root.dismissToast();
     }
 
+    Process {
+        id: hyprFocusProc
+    }
+
+    function focusAppWindow(appName, desktopEntry) {
+        let targetApp = (appName || "").toLowerCase();
+        let targetEntry = (desktopEntry || "").toLowerCase();
+
+        let foundAddr = "";
+        let foundTop = null;
+
+        if (Hyprland.toplevels && Hyprland.toplevels.values) {
+            for (let i = 0; i < Hyprland.toplevels.values.length; i++) {
+                let top = Hyprland.toplevels.values[i];
+                let ipc = top.lastIpcObject || {};
+                let cls = (ipc.class || (top.wayland ? top.wayland.appId : "") || "").toLowerCase();
+                let initialCls = (ipc.initialClass || "").toLowerCase();
+                let title = (top.title || ipc.title || "").toLowerCase();
+
+                let match = false;
+                if (targetEntry !== "" && (cls.includes(targetEntry) || initialCls.includes(targetEntry))) {
+                    match = true;
+                } else if (targetApp.includes("antigravity") && (cls.includes("antigravity") || initialCls.includes("antigravity") || title.includes("antigravity"))) {
+                    match = true;
+                } else if ((targetApp.includes("code") || targetApp.includes("vscode")) && (cls.includes("code") || initialCls.includes("code"))) {
+                    match = true;
+                } else if (targetApp.includes("ghostty") || targetApp.includes("term") || targetApp.includes("kitty") || targetApp.includes("alacritty")) {
+                    if (cls.includes("ghostty") || cls.includes("kitty") || cls.includes("alacritty") || cls.includes("terminal")) {
+                        match = true;
+                    }
+                } else if (targetApp !== "" && (cls.includes(targetApp) || initialCls.includes(targetApp) || targetApp.includes(cls))) {
+                    match = true;
+                }
+
+                if (match) {
+                    foundAddr = top.address || "";
+                    foundTop = top;
+                    break;
+                }
+            }
+        }
+
+        // 1. Activar vía protocolo Wayland si está soportado
+        if (foundTop && foundTop.wayland && typeof foundTop.wayland.activate === "function") {
+            foundTop.wayland.activate();
+        }
+
+        // 2. Enfocar y cambiar de workspace de forma nativa vía Hyprland IPC
+        let luaDispatcher = "";
+        if (foundAddr !== "") {
+            luaDispatcher = "hl.dsp.focus({ window = \"address:" + foundAddr + "\" })";
+        } else if (targetApp.includes("antigravity")) {
+            luaDispatcher = "hl.dsp.focus({ window = \"class:antigravity-ide\" })";
+        } else if (targetEntry !== "") {
+            luaDispatcher = "hl.dsp.focus({ window = \"class:" + targetEntry + "\" })";
+        } else if (targetApp !== "") {
+            luaDispatcher = "hl.dsp.focus({ window = \"class:" + targetApp + "\" })";
+        }
+
+        if (luaDispatcher !== "") {
+            if (hyprFocusProc.running) hyprFocusProc.running = false;
+            hyprFocusProc.command = ["hyprctl", "dispatch", luaDispatcher];
+            hyprFocusProc.running = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    function activateNotification(id) {
+        let notif = root.notifications.find(n => n.id === id);
+        if (!notif) return;
+
+        let appName = notif.appName || "";
+        let desktopEntry = (notif.ref && notif.ref.desktopEntry) ? notif.ref.desktopEntry : "";
+
+        // 1. Invocar la acción predeterminada ("default") si la app la registró
+        try {
+            if (notif.ref && typeof notif.ref.invokeAction === "function") {
+                notif.ref.invokeAction("default");
+            }
+        } catch (e) {
+            console.log("[NotificationService] Error al invocar acción default:", e);
+        }
+
+        // 2. Enfocar la ventana de la app en Hyprland y cambiar a su workspace
+        if (appName !== "" || desktopEntry !== "") {
+            root.focusAppWindow(appName, desktopEntry);
+        }
+
+        // 3. Cerrar el centro de notificaciones si estaba abierto
+        if (root.isCenterOpen) {
+            root.closeCenter();
+        }
+
+        // 4. Descartar la notificación
+        root.dismiss(id);
+    }
+
     function invokeAction(id, action) {
+        let notif = root.notifications.find(n => n.id === id);
+        let appName = notif ? (notif.appName || "") : "";
+        let desktopEntry = (notif && notif.ref && notif.ref.desktopEntry) ? notif.ref.desktopEntry : "";
+
         try {
             if (action && typeof action.invoke === "function") {
                 action.invoke();
             } else {
-                let notif = root.notifications.find(n => n.id === id);
                 let actionId = (action && typeof action === "object" && action.id) ? action.id : action;
                 if (notif && notif.ref && typeof notif.ref.invokeAction === "function") {
                     notif.ref.invokeAction(actionId);
@@ -261,6 +364,17 @@ Item {
         } catch (e) {
             console.log("[NotificationService] Error al invocar acción:", e);
         }
+
+        // Enfocar la ventana de la aplicación que emitió la notificación
+        if (appName !== "" || desktopEntry !== "") {
+            root.focusAppWindow(appName, desktopEntry);
+        }
+
+        // Cerrar el centro de notificaciones para mostrar directamente la ventana enfocada
+        if (root.isCenterOpen) {
+            root.closeCenter();
+        }
+
         root.dismiss(id);
     }
 

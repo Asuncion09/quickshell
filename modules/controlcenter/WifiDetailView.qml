@@ -527,27 +527,26 @@ Item {
             implicitHeight: 32
             spacing: 8
 
-            // Botón Volver (‹)
+            // Botón Volver (circular, transparente en reposo, chevron vector)
             Rectangle {
                 id: backBtn
-                implicitWidth: 32
-                implicitHeight: 32
-                radius: 8
-                color: backMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
-                border.width: (root.isKeyNavActive && root.navIndex === 0) ? 2 : 0
-                border.color: Theme.wsActiveColor
+                implicitWidth: 28
+                implicitHeight: 28
+                radius: 14
+                color: (backMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 0)) ? Theme.surfaceHover : "transparent"
+                border.width: 0
 
-                scale: backMouse.pressed ? 0.92 : 1.0
+                scale: backMouse.pressed ? 0.90 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                 Text {
                     anchors.centerIn: parent
-                    text: "‹"
+                    text: "󰅁"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 18
-                    font.weight: Font.Bold
-                    color: (backMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 0)) ? Theme.wsActiveColor : Theme.textSecondary
+                    font.pixelSize: 15
+                    font.weight: Font.DemiBold
+                    color: (backMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 0)) ? Theme.text : Theme.textSecondary
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
                 }
@@ -579,14 +578,13 @@ Item {
                 Layout.fillWidth: true
             }
 
-            // Botón Recargar / Pausar escaneo (unificado como en Bluetooth)
+            // Botón Recargar / Pausar escaneo (circular, sin borde agresivo en teclado)
             Rectangle {
                 implicitWidth: 28
                 implicitHeight: 28
-                radius: 6
-                color: refreshMouse.containsMouse ? Theme.surfaceHover : "transparent"
-                border.width: (root.isKeyNavActive && root.navIndex === 1) ? 2 : 0
-                border.color: Theme.wsActiveColor
+                radius: 14
+                color: (refreshMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 1)) ? Theme.surfaceHover : "transparent"
+                border.width: 0
 
                 scale: refreshMouse.pressed ? 0.90 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -629,7 +627,7 @@ Item {
                 implicitHeight: 22
                 radius: 11
                 color: (Networking.wifiEnabled || NetworkService.isConnected) ? Theme.wsActiveColor : Theme.surfaceBase
-                border.width: (root.isKeyNavActive && root.navIndex === 2) ? 2 : 0
+                border.width: 0
                 border.color: (Networking.wifiEnabled || NetworkService.isConnected) ? "#ffffff" : Theme.wsActiveColor
 
                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
@@ -961,11 +959,11 @@ Item {
                         visible: root.savedNetworks.length > 0
 
                         Text {
-                            text: "MIS REDES"
+                            text: "Mis redes"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 10
+                            font.pixelSize: 11
                             font.weight: Font.DemiBold
-                            color: Theme.textMuted
+                            color: Theme.textSecondary
                             Layout.leftMargin: 4
                         }
 
@@ -978,11 +976,14 @@ Item {
                                 implicitHeight: 34
                                 radius: 8
                                 color: {
-                                    if (modelData.connected) return savedRowMouse.containsMouse ? Theme.surfaceActiveHover : Theme.surfaceActive;
-                                    return savedRowMouse.containsMouse ? Theme.surfaceHover : "transparent";
+                                    let isHovered = savedRowMouse.containsMouse || (root.isKeyNavActive && root.navIndex === (3 + index));
+                                    if (modelData.connected) {
+                                        return isHovered ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.05);
+                                    }
+                                    return isHovered ? Theme.surfaceHover : "transparent";
                                 }
-                                border.width: (root.isKeyNavActive && root.navIndex === (3 + index)) ? 2 : 0
-                                border.color: Theme.wsActiveColor
+                                border.width: modelData.connected ? 1 : 0
+                                border.color: Qt.rgba(1, 1, 1, 0.08)
 
                                 scale: savedRowMouse.pressed ? 0.98 : 1.0
                                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -1013,7 +1014,7 @@ Item {
                                             font.family: Theme.fontFamily
                                             font.pixelSize: 11
                                             font.weight: modelData.connected ? Font.DemiBold : Font.Normal
-                                            color: modelData.connected ? Theme.wsActiveColor : Theme.text
+                                            color: Theme.text
                                             elide: Text.ElideRight
                                         }
 
@@ -1027,15 +1028,26 @@ Item {
                                         }
                                     }
 
-                                    // Estado de conexión
-                                    Text {
+                                    // Estado de conexión (badge con punto esmeralda sutil)
+                                    RowLayout {
                                         visible: modelData.connected && !root.isConnectingNet(modelData.name)
-                                        text: "Conectado"
-                                        font.family: Theme.fontFamily
-                                        font.pixelSize: 10
-                                        font.weight: Font.DemiBold
-                                        color: Theme.success
+                                        spacing: 5
                                         Layout.alignment: Qt.AlignVCenter
+
+                                        Rectangle {
+                                            width: 6
+                                            height: 6
+                                            radius: 3
+                                            color: Theme.success
+                                        }
+
+                                        Text {
+                                            text: "Conectado"
+                                            font.family: Theme.fontFamily
+                                            font.pixelSize: 10
+                                            font.weight: Font.Medium
+                                            color: Theme.textSecondary
+                                        }
                                     }
 
                                     // Botón para olvidar / borrar red guardada (󰆴)
@@ -1100,11 +1112,11 @@ Item {
                         RowLayout {
                             Layout.fillWidth: true
                             Text {
-                                text: "REDES DISPONIBLES"
+                                text: "Redes disponibles"
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 10
+                                font.pixelSize: 11
                                 font.weight: Font.DemiBold
-                                color: Theme.textMuted
+                                color: Theme.textSecondary
                                 Layout.leftMargin: 4
                             }
                             Item { Layout.fillWidth: true }
@@ -1141,8 +1153,8 @@ Item {
                                 Layout.fillWidth: true
                                 implicitHeight: 34
                                 radius: 8
-                                color: availNetMouse.containsMouse ? Theme.surfaceHover : "transparent"
-                                border.width: (root.isKeyNavActive && root.navIndex === (3 + root.savedNetworks.length + index)) ? 2 : 0
+                                color: (availNetMouse.containsMouse || (root.isKeyNavActive && root.navIndex === (3 + root.savedNetworks.length + index))) ? Theme.surfaceHover : "transparent"
+                                border.width: 0
                                 border.color: Theme.wsActiveColor
 
                                 scale: availNetMouse.pressed ? 0.98 : 1.0
@@ -1199,8 +1211,8 @@ Item {
                                         text: root.isConnectingNet(modelData.name) ? "..." : "Conectar"
                                         font.family: Theme.fontFamily
                                         font.pixelSize: 10
-                                        font.weight: Font.DemiBold
-                                        color: Theme.wsActiveColor
+                                        font.weight: Font.Medium
+                                        color: availNetMouse.containsMouse ? Theme.wsActiveColor : Theme.textMuted
                                         Layout.alignment: Qt.AlignVCenter
                                     }
                                 }

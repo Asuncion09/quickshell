@@ -42,8 +42,11 @@ Item {
             if (mouse.button === Qt.RightButton) {
                 NotificationService.dismissToast();
             } else {
-                // Al hacer clic se abre el Centro de Notificaciones completo
-                NotificationService.openCenter();
+                if (root.currentToast) {
+                    NotificationService.activateNotification(root.currentToast.id);
+                } else {
+                    NotificationService.openCenter();
+                }
             }
         }
     }

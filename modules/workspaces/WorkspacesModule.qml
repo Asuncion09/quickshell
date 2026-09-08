@@ -12,7 +12,7 @@ RowLayout {
     // Proceso auxiliar para garantizar el cambio de workspace mediante hyprctl en cualquier circunstancia
     Process {
         id: wsProcess
-        command: ["hyprctl", "dispatch", "workspace", "1"]
+        command: ["hyprctl", "dispatch", "hl.dsp.focus({ workspace = 1 })"]
     }
 
     // Función robusta para cambiar de workspace
@@ -28,10 +28,9 @@ RowLayout {
         }
 
         // 2. Ejecutar hyprctl dispatch para garantizar el cambio al 100%
-        wsProcess.command = ["hyprctl", "dispatch", "workspace", id.toString()];
-        if (!wsProcess.running) {
-            wsProcess.running = true;
-        }
+        if (wsProcess.running) wsProcess.running = false;
+        wsProcess.command = ["hyprctl", "dispatch", "hl.dsp.focus({ workspace = " + id + " })"];
+        wsProcess.running = true;
     }
 
     // Contador reactivo para forzar reevaluación inmediata ante eventos de ventanas en Hyprland

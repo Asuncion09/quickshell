@@ -35,12 +35,8 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 12
-        border.width: root.focused ? 2 : 0
-        border.color: root.active ? "#ffffff" : Theme.wsActiveColor
+        border.width: 0
         clip: true
-
-        Behavior on border.width { NumberAnimation { duration: Theme.animFast } }
-        Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
 
         color: root.active
                ? ((root.isAnyHovered || root.focused) ? Qt.lighter(Theme.wsActiveColor, 1.08) : Theme.wsActiveColor)
@@ -74,7 +70,7 @@ Item {
                     text: root.icon
                     font.family: Theme.fontFamily
                     font.pixelSize: 16
-                    color: root.active ? "#161616" : Theme.textSecondary
+                    color: root.active ? "#161616" : ((root.isAnyHovered || root.focused) ? Theme.text : Theme.textSecondary)
                     anchors.verticalCenter: parent.verticalCenter
 
                     Behavior on color {
@@ -142,22 +138,26 @@ Item {
             Text {
                 id: arrowText
                 anchors.centerIn: parent
-                text: "›"
+                anchors.horizontalCenterOffset: (rightMouse.containsMouse || root.focused) ? 1.5 : 0
+                text: "󰅂"
                 font.family: Theme.fontFamily
-                font.pixelSize: 16
-                font.weight: Font.Bold
+                font.pixelSize: 15
+                font.weight: Font.DemiBold
 
-                // Translación horizontal sutil al hacer hover sobre la zona derecha
-                x: rightMouse.containsMouse ? 1 : 0
-                Behavior on x {
+                Behavior on anchors.horizontalCenterOffset {
                     NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuad }
+                }
+
+                scale: rightMouse.pressed ? 0.88 : 1.0
+                Behavior on scale {
+                    NumberAnimation { duration: Theme.animFast }
                 }
 
                 color: {
                     if (root.active) return "#161616";
-                    return root.isAnyHovered ? Theme.text : Theme.textMuted;
+                    return (root.isAnyHovered || root.focused) ? Theme.text : Theme.textMuted;
                 }
-                opacity: root.active ? 0.85 : (root.isAnyHovered ? 0.90 : 0.45)
+                opacity: root.active ? 0.85 : ((root.isAnyHovered || root.focused) ? 0.90 : 0.45)
 
                 Behavior on color {
                     ColorAnimation { duration: Theme.animFast }

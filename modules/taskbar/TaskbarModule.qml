@@ -29,30 +29,23 @@ Item {
     // Procesos auxiliares de respaldo si Hyprland.dispatch no estuviera disponible
     Process {
         id: focusProc
-        command: ["hyprctl", "dispatch", "focuswindow", "address:0x0"]
+        command: ["hyprctl", "dispatch", "hl.dsp.focus({ window = \"address:0x0\" })"]
     }
 
     Process {
         id: closeProc
-        command: ["hyprctl", "dispatch", "closewindow", "address:0x0"]
+        command: ["hyprctl", "dispatch", "hl.dsp.window.close({ window = \"address:0x0\" })"]
     }
 
     function focusWindow(address, workspaceId, toplevel) {
-        // 1. Si la ventana está en otro workspace, cambiar primero al workspace correspondiente
-        if (workspaceId > 0 && workspaceId !== root.currentWorkspaceId) {
-            if (focusProc.running) focusProc.running = false;
-            focusProc.command = ["hyprctl", "dispatch", "workspace", workspaceId.toString()];
-            focusProc.running = true;
-        }
-
-        // 2. Intentar el método nativo Wayland si está presente
+        // 1. Intentar el método nativo Wayland si está presente
         if (toplevel && toplevel.wayland && typeof toplevel.wayland.activate === "function") {
             toplevel.wayland.activate();
         }
 
-        // 3. Dispatch vía hyprctl para garantizar foco inmediato
+        // 2. Dispatch vía hyprctl Lua (cambia de workspace y enfoca la ventana automáticamente)
         if (focusProc.running) focusProc.running = false;
-        focusProc.command = ["hyprctl", "dispatch", "focuswindow", "address:" + address];
+        focusProc.command = ["hyprctl", "dispatch", "hl.dsp.focus({ window = \"address:" + address + "\" })"];
         focusProc.running = true;
     }
 
@@ -62,7 +55,7 @@ Item {
         }
 
         if (closeProc.running) closeProc.running = false;
-        closeProc.command = ["hyprctl", "dispatch", "closewindow", "address:" + address];
+        closeProc.command = ["hyprctl", "dispatch", "hl.dsp.window.close({ window = \"address:" + address + "\" })"];
         closeProc.running = true;
     }
 

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Widgets
 import "../../theme"
@@ -90,20 +91,20 @@ Item {
                 }
             }
 
-            // Botón de Modo No Molestar (DND)
+            // Botón de Modo No Molestar (DND) (Píldora circular borderless)
             Rectangle {
                 implicitWidth: 26
-                implicitHeight: 24
-                radius: 6
+                implicitHeight: 26
+                radius: 13
                 color: NotificationService.dnd 
-                       ? Qt.rgba(241/255, 196/255, 15/255, 0.20) 
-                       : (dndMouse.containsMouse ? "#282828" : "#1c1c1c")
-                border.width: 1
-                border.color: NotificationService.dnd ? Qt.rgba(241/255, 196/255, 15/255, 0.40) : "#262626"
+                       ? (dndMouse.containsMouse ? Qt.rgba(241/255, 196/255, 15/255, 0.28) : Qt.rgba(241/255, 196/255, 15/255, 0.18))
+                       : (dndMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                border.width: 0
                 Layout.alignment: Qt.AlignVCenter
 
+                scale: dndMouse.pressed ? 0.90 : 1.0
+                Behavior on scale { NumberAnimation { duration: Theme.animFast } }
                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
-                Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
 
                 Text {
                     anchors.centerIn: parent
@@ -122,17 +123,18 @@ Item {
                 }
             }
 
-            // Botón de Limpiar todas (solo visible cuando hay notificaciones)
+            // Botón de Limpiar todas (Píldora circular borderless)
             Rectangle {
                 implicitWidth: 26
-                implicitHeight: 24
-                radius: 6
+                implicitHeight: 26
+                radius: 13
                 visible: NotificationService.count > 0
-                color: clearMouse.containsMouse ? "#282828" : "#1c1c1c"
-                border.width: 1
-                border.color: clearMouse.containsMouse ? "#3a3a3a" : "#262626"
+                color: clearMouse.containsMouse ? Theme.surfaceHover : "transparent"
+                border.width: 0
                 Layout.alignment: Qt.AlignVCenter
 
+                scale: clearMouse.pressed ? 0.90 : 1.0
+                Behavior on scale { NumberAnimation { duration: Theme.animFast } }
                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                 Text {
@@ -140,7 +142,7 @@ Item {
                     text: "󰎟"
                     font.family: Theme.fontFamily
                     font.pixelSize: 12
-                    color: clearMouse.containsMouse ? "#ffffff" : Theme.textSecondary
+                    color: clearMouse.containsMouse ? Theme.critical : Theme.textSecondary
                 }
 
                 MouseArea {
@@ -175,17 +177,17 @@ Item {
                 Text {
                     text: "󰂚"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 32
-                    color: Qt.rgba(1, 1, 1, 0.15)
+                    font.pixelSize: 28
+                    color: Qt.rgba(1, 1, 1, 0.12)
                     Layout.alignment: Qt.AlignHCenter
                 }
 
                 Text {
                     text: "Sin notificaciones pendientes"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 12
+                    font.pixelSize: 11
                     font.weight: Font.DemiBold
-                    color: Theme.textMuted
+                    color: Theme.textSecondary
                     Layout.alignment: Qt.AlignHCenter
                 }
 
@@ -193,7 +195,7 @@ Item {
                     text: "Todo está al día"
                     font.family: Theme.fontFamily
                     font.pixelSize: 10
-                    color: Theme.textDisabled
+                    color: Theme.textMuted
                     Layout.alignment: Qt.AlignHCenter
                 }
             }
@@ -204,237 +206,297 @@ Item {
                 anchors.fill: parent
                 visible: NotificationService.count > 0
                 model: NotificationService.notifications
-                spacing: 4
+                spacing: 6
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
 
                 ScrollBar.vertical: ScrollBar {
                     policy: ScrollBar.AsNeeded
-                    width: 4
+                    width: 3
                     contentItem: Rectangle {
-                        implicitWidth: 4
-                        radius: 2
-                        color: parent.pressed ? "#555555" : (parent.hovered ? "#444444" : "#303030")
+                        implicitWidth: 3
+                        radius: 1.5
+                        color: parent.pressed ? "#555555" : (parent.hovered ? "#444444" : "#2e2e2e")
                         Behavior on color { ColorAnimation { duration: Theme.animFast } }
                     }
                 }
 
-                delegate: Rectangle {
-                    id: cardItem
+                delegate: Item {
+                    id: cardWrapper
                     readonly property var notifItem: modelData
                     width: notifListView.width
-                    implicitHeight: cardContent.implicitHeight + 10
-                    radius: 6
-                    color: cardMouse.containsMouse ? "#222222" : "#1a1a1a"
-                    border.width: 1
-                    border.color: cardMouse.containsMouse ? "#303030" : "#222222"
+                    implicitHeight: cardBg.height + 8
+                    height: implicitHeight
 
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
-                    Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
-
-                    MouseArea {
-                        id: cardMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
+                    // 1. Silueta exacta para la sombra volumétrica
+                    Rectangle {
+                        id: cardShadowSource
+                        anchors.fill: cardBg
+                        radius: cardBg.radius
+                        color: "#000000"
+                        visible: false
                     }
 
-                    ColumnLayout {
-                        id: cardContent
-                        anchors.fill: parent
-                        anchors.leftMargin: 8
-                        anchors.rightMargin: 8
-                        anchors.topMargin: 5
-                        anchors.bottomMargin: 5
-                        spacing: 2
+                    // 2. Sombra volumétrica realista por hardware (MultiEffect)
+                    MultiEffect {
+                        source: cardShadowSource
+                        anchors.fill: cardShadowSource
+                        visible: Theme.pillShadowEnabled
+                        shadowEnabled: true
+                        shadowColor: "#000000"
+                        shadowOpacity: cardHover.hovered ? 0.78 : 0.55
+                        shadowBlur: 0.50
+                        shadowVerticalOffset: cardHover.hovered ? 3.5 : 2.0
+                        shadowHorizontalOffset: 0
+                        autoPaddingEnabled: true
 
-                        // Fila superior: Icono de app + Nombre de app + Tiempo relativo + Botón de descarte
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 5
+                        Behavior on shadowOpacity {
+                            NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuad }
+                        }
+                        Behavior on shadowVerticalOffset {
+                            NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuad }
+                        }
+                    }
 
-                            Item {
-                                implicitWidth: 16
-                                implicitHeight: 16
-                                Layout.alignment: Qt.AlignVCenter
+                    // 3. Tarjeta visual elevada con estética consistente con el Centro de Control
+                    Rectangle {
+                        id: cardBg
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.leftMargin: 4
+                        anchors.rightMargin: 4
+                        anchors.topMargin: 2
+                        height: cardContent.implicitHeight + 16
+                        radius: 10
 
-                                IconImage {
-                                    id: cardIconImg
-                                    anchors.fill: parent
-                                    source: modelData.appIcon || ""
-                                    visible: source !== "" && status === Image.Ready
+                        // Superficie tonal táctil idéntica a los módulos del Centro de Control
+                        color: cardHover.hovered ? Theme.surfaceHover : Theme.surfaceBase
+                        border.width: 1
+                        border.color: cardHover.hovered ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.08)
+
+                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                        Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
+
+                        // Gestor de hover unificado directamente anclado a la geometría de la tarjeta
+                        HoverHandler {
+                            id: cardHover
+                        }
+
+                        // Clic en la tarjeta: activar notificación y enfocar ventana en Hyprland
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            z: -1
+                            onClicked: {
+                                if (cardWrapper.notifItem) {
+                                    NotificationService.activateNotification(cardWrapper.notifItem.id);
                                 }
+                            }
+                        }
 
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: {
-                                        let a = (modelData.appName || "").toLowerCase();
-                                        if (a.includes("antigravity") || a.includes("code") || a.includes("vscode")) return "󰅩";
-                                        if (a.includes("term") || a.includes("bash") || a.includes("shell") || a.includes("kitty") || a.includes("alacritty")) return "󰆍";
-                                        return "󰂚";
+                        ColumnLayout {
+                            id: cardContent
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            anchors.topMargin: 8
+                            spacing: 4
+
+                            // Fila superior: Icono de app + Nombre de app + Tiempo relativo + Botón de descarte
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 5
+
+                                Item {
+                                    implicitWidth: 16
+                                    implicitHeight: 16
+                                    Layout.alignment: Qt.AlignVCenter
+
+                                    IconImage {
+                                        id: cardIconImg
+                                        anchors.fill: parent
+                                        source: modelData.appIcon || ""
+                                        visible: source !== "" && status === Image.Ready
                                     }
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: 12
-                                    color: modelData.urgency === 2 ? Theme.critical : Theme.highlight
-                                    visible: !cardIconImg.visible
-                                }
-                            }
-
-                            Text {
-                                text: modelData.appName || "Sistema"
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 10
-                                font.weight: Font.DemiBold
-                                color: modelData.urgency === 2 ? Theme.critical : Theme.highlight
-                                Layout.alignment: Qt.AlignVCenter
-                            }
-
-                            Text {
-                                text: "•"
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 8
-                                color: Theme.textMuted
-                                Layout.alignment: Qt.AlignVCenter
-                            }
-
-                            Text {
-                                text: NotificationService.formatRelativeTime(modelData.timestamp)
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 9
-                                color: Theme.textMuted
-                                Layout.alignment: Qt.AlignVCenter
-                            }
-
-                            // Indicador de urgencia si es crítica
-                            Rectangle {
-                                implicitWidth: 5
-                                implicitHeight: 5
-                                radius: 2.5
-                                color: Theme.critical
-                                visible: modelData.urgency === 2
-                                Layout.alignment: Qt.AlignVCenter
-                            }
-
-                            Item { Layout.fillWidth: true }
-
-                            // Botón de descarte individual
-                            Rectangle {
-                                implicitWidth: 16
-                                implicitHeight: 16
-                                radius: 8
-                                color: itemDismissMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.15) : "transparent"
-                                Layout.alignment: Qt.AlignVCenter
-
-                                Behavior on color { ColorAnimation { duration: Theme.animFast } }
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "󰅖"
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: 9
-                                    color: itemDismissMouse.containsMouse ? "#ffffff" : Theme.textMuted
-                                }
-
-                                MouseArea {
-                                    id: itemDismissMouse
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        NotificationService.dismiss(modelData.id);
-                                    }
-                                }
-                            }
-                        }
-
-                        // Título de la notificación (Summary)
-                        Text {
-                            Layout.fillWidth: true
-                            visible: modelData.summary && modelData.summary !== "" && modelData.summary.toLowerCase() !== (modelData.appName || "").toLowerCase()
-                            text: (modelData.summary || "").trim().replace(/\r?\n|\r/g, " ").replace(/\s+/g, " ")
-                            font.family: Theme.fontFamily
-                            font.pixelSize: 11
-                            font.weight: Font.DemiBold
-                            color: "#ffffff"
-                            wrapMode: Text.Wrap
-                            maximumLineCount: 2
-                            elide: Text.ElideRight
-                        }
-
-                        // Cuerpo del mensaje (Body) - Formateo limpio con chip completo si es comando de terminal
-                        Rectangle {
-                            id: bodyBox
-                            Layout.fillWidth: true
-                            implicitHeight: bodyText.implicitHeight + (isCmd ? 8 : 0)
-                            radius: 4
-                            color: isCmd ? Qt.rgba(0, 0, 0, 0.35) : "transparent"
-                            border.width: isCmd ? 1 : 0
-                            border.color: isCmd ? Qt.rgba(255, 255, 255, 0.08) : "transparent"
-                            visible: modelData.body && modelData.body !== ""
-
-                            readonly property bool isCmd: {
-                                let b = (modelData.body || "");
-                                return b.indexOf("Command:") !== -1 || b.indexOf("bash -c") !== -1 || b.indexOf("sh ") !== -1 || b.indexOf("python") !== -1;
-                            }
-
-                            Text {
-                                id: bodyText
-                                anchors.fill: parent
-                                anchors.leftMargin: bodyBox.isCmd ? 6 : 0
-                                anchors.rightMargin: bodyBox.isCmd ? 6 : 0
-                                anchors.topMargin: bodyBox.isCmd ? 4 : 0
-                                anchors.bottomMargin: bodyBox.isCmd ? 4 : 0
-                                text: {
-                                    let b = (modelData.body || "").trim();
-                                    return b.replace(/\r?\n|\r/g, " ").replace(/\s+/g, " ");
-                                }
-                                font.family: bodyBox.isCmd ? "monospace" : Theme.fontFamily
-                                font.pixelSize: 10
-                                font.weight: Font.Normal
-                                color: bodyBox.isCmd ? Qt.rgba(1, 1, 1, 0.88) : Theme.textSecondary
-                                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-                                maximumLineCount: 3
-                                elide: Text.ElideRight
-                            }
-                        }
-
-                        // Botones de acción interactiva (alineados a la derecha de forma prolija)
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 5
-                            visible: modelData.actions && modelData.actions.length > 0
-
-                            Item { Layout.fillWidth: true }
-
-                            Repeater {
-                                model: modelData.actions || []
-                                delegate: Rectangle {
-                                    implicitWidth: actionLabel.implicitWidth + 14
-                                    implicitHeight: 20
-                                    radius: 4
-                                    color: actionMouse.containsMouse ? Theme.highlight : Qt.rgba(1, 1, 1, 0.08)
-                                    border.width: 1
-                                    border.color: actionMouse.containsMouse ? Theme.highlight : Qt.rgba(1, 1, 1, 0.12)
-
-                                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
-                                    Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
 
                                     Text {
-                                        id: actionLabel
                                         anchors.centerIn: parent
-                                        text: modelData.text || "Acción"
+                                        text: {
+                                            let a = (modelData.appName || "").toLowerCase();
+                                            if (a.includes("antigravity") || a.includes("code") || a.includes("vscode")) return "󰅩";
+                                            if (a.includes("term") || a.includes("bash") || a.includes("shell") || a.includes("kitty") || a.includes("alacritty")) return "󰆍";
+                                            return "󰂚";
+                                        }
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: 12
+                                        color: modelData.urgency === 2 ? Theme.critical : Theme.wsActiveColor
+                                        visible: !cardIconImg.visible
+                                    }
+                                }
+
+                                Text {
+                                    text: modelData.appName || "Sistema"
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 10
+                                    font.weight: Font.DemiBold
+                                    color: modelData.urgency === 2 ? Theme.critical : Theme.wsActiveColor
+                                    Layout.alignment: Qt.AlignVCenter
+                                }
+
+                                Text {
+                                    text: "•"
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 8
+                                    color: Theme.textMuted
+                                    Layout.alignment: Qt.AlignVCenter
+                                }
+
+                                Text {
+                                    text: NotificationService.formatRelativeTime(modelData.timestamp)
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 9
+                                    color: Theme.textMuted
+                                    Layout.alignment: Qt.AlignVCenter
+                                }
+
+                                // Indicador de urgencia si es crítica
+                                Rectangle {
+                                    implicitWidth: 5
+                                    implicitHeight: 5
+                                    radius: 2.5
+                                    color: Theme.critical
+                                    visible: modelData.urgency === 2
+                                    Layout.alignment: Qt.AlignVCenter
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                // Botón de descarte individual (píldora circular borderless)
+                                Rectangle {
+                                    implicitWidth: 18
+                                    implicitHeight: 18
+                                    radius: 9
+                                    color: itemDismissMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.12) : "transparent"
+                                    border.width: 0
+                                    Layout.alignment: Qt.AlignVCenter
+
+                                    scale: itemDismissMouse.pressed ? 0.88 : 1.0
+                                    Behavior on scale { NumberAnimation { duration: Theme.animFast } }
+                                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "󰅖"
                                         font.family: Theme.fontFamily
                                         font.pixelSize: 10
-                                        font.weight: Font.DemiBold
-                                        color: actionMouse.containsMouse ? "#ffffff" : Theme.text
+                                        color: itemDismissMouse.containsMouse ? Theme.critical : Theme.textMuted
                                     }
 
                                     MouseArea {
-                                        id: actionMouse
+                                        id: itemDismissMouse
                                         anchors.fill: parent
                                         hoverEnabled: true
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
-                                            NotificationService.invokeAction(cardItem.notifItem ? cardItem.notifItem.id : 0, modelData);
+                                            NotificationService.dismiss(modelData.id);
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Título de la notificación (Summary)
+                            Text {
+                                Layout.fillWidth: true
+                                visible: modelData.summary && modelData.summary !== "" && modelData.summary.toLowerCase() !== (modelData.appName || "").toLowerCase()
+                                text: (modelData.summary || "").trim().replace(/\r?\n|\r/g, " ").replace(/\s+/g, " ")
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 11
+                                font.weight: Font.DemiBold
+                                color: Theme.text
+                                wrapMode: Text.Wrap
+                                maximumLineCount: 2
+                                elide: Text.ElideRight
+                            }
+
+                            // Cuerpo del mensaje (Body) - Formateo limpio sin bordes duros
+                            Rectangle {
+                                id: bodyBox
+                                Layout.fillWidth: true
+                                implicitHeight: bodyText.implicitHeight + (isCmd ? 10 : 0)
+                                radius: 6
+                                color: isCmd ? Qt.rgba(0, 0, 0, 0.35) : "transparent"
+                                border.width: 0
+                                visible: modelData.body && modelData.body !== ""
+
+                                readonly property bool isCmd: {
+                                    let b = (modelData.body || "");
+                                    return b.indexOf("Command:") !== -1 || b.indexOf("bash -c") !== -1 || b.indexOf("sh ") !== -1 || b.indexOf("python") !== -1;
+                                }
+
+                                Text {
+                                    id: bodyText
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    anchors.top: parent.top
+                                    anchors.leftMargin: bodyBox.isCmd ? 8 : 0
+                                    anchors.rightMargin: bodyBox.isCmd ? 8 : 0
+                                    anchors.topMargin: bodyBox.isCmd ? 5 : 0
+                                    text: {
+                                        let b = (modelData.body || "").trim();
+                                        return b.replace(/\r?\n|\r/g, " ").replace(/\s+/g, " ");
+                                    }
+                                    font.family: bodyBox.isCmd ? "JetBrainsMono Nerd Font Propo" : Theme.fontFamily
+                                    font.pixelSize: 10
+                                    font.weight: Font.Normal
+                                    color: bodyBox.isCmd ? Qt.rgba(1, 1, 1, 0.88) : Theme.textSecondary
+                                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                                    maximumLineCount: 3
+                                    elide: Text.ElideRight
+                                }
+                            }
+
+                            // Botones de acción interactiva (píldoras suaves sin borde)
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 6
+                                visible: modelData.actions && modelData.actions.length > 0
+
+                                Item { Layout.fillWidth: true }
+
+                                Repeater {
+                                    model: modelData.actions || []
+                                    delegate: Rectangle {
+                                        implicitWidth: actionLabel.implicitWidth + 16
+                                        implicitHeight: 22
+                                        radius: 11
+                                        color: actionMouse.containsMouse ? Theme.wsActiveColor : Qt.rgba(1, 1, 1, 0.08)
+                                        border.width: 0
+
+                                        scale: actionMouse.pressed ? 0.92 : 1.0
+                                        Behavior on scale { NumberAnimation { duration: Theme.animFast } }
+                                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+
+                                        Text {
+                                            id: actionLabel
+                                            anchors.centerIn: parent
+                                            text: modelData.text || "Acción"
+                                            font.family: Theme.fontFamily
+                                            font.pixelSize: 10
+                                            font.weight: Font.Medium
+                                            color: actionMouse.containsMouse ? "#161616" : Theme.text
+                                        }
+
+                                        MouseArea {
+                                            id: actionMouse
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                NotificationService.invokeAction(cardWrapper.notifItem ? cardWrapper.notifItem.id : 0, modelData);
+                                            }
                                         }
                                     }
                                 }
