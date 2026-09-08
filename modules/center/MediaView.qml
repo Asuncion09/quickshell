@@ -7,7 +7,8 @@ import "../../services"
 Item {
     id: root
 
-    readonly property bool isHovered: hoverArea.containsMouse || prevMouse.containsMouse || playMouse.containsMouse || nextMouse.containsMouse
+    property bool isContainerHovered: false
+    readonly property bool isHovered: MediaService.forceControls || isContainerHovered || hoverArea.containsMouse || prevMouse.containsMouse || playMouse.containsMouse || nextMouse.containsMouse
 
     // Progreso único de animación de ancho (0.0 = reposo, 1.0 = expandido en hover)
     property real expandProgress: isHovered ? 1.0 : 0.0
@@ -37,10 +38,14 @@ Item {
     signal dismissToClockRequested()
     signal wheelRequested()
 
-    // 1. Detección de hover y clics en el fondo (z: 0)
+    // 1. Detección de hover y clics en el fondo (z: 0) extendida a toda la cápsula
     MouseArea {
         id: hoverArea
         anchors.fill: parent
+        anchors.leftMargin: -Theme.centerPillPaddingHorizontal
+        anchors.rightMargin: -Theme.centerPillPaddingHorizontal
+        anchors.topMargin: -2
+        anchors.bottomMargin: -2
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -83,17 +88,100 @@ Item {
             }
         }
 
-        // Título de la pista / video
-        Text {
-            id: titleLabel
+        // Título de la pista / video con desplazamiento continuo infinito (Ticker Seamless Loop)
+        Item {
+            id: titleContainer
             Layout.alignment: Qt.AlignVCenter
-            text: MediaService.title
-            font.family: Theme.fontFamily
-            font.pixelSize: 11
-            font.weight: Font.DemiBold
-            color: Theme.text
-            elide: Text.ElideRight
-            Layout.preferredWidth: Math.min(implicitWidth, 130)
+            readonly property int maxVisibleWidth: 130
+            readonly property int textWidth: Math.round(primaryText.implicitWidth)
+            readonly property int gap: 38 // Separación limpia entre el final del título y su repetición
+            readonly property int cycleWidth: textWidth + gap
+            readonly property bool needsScroll: textWidth > maxVisibleWidth
+
+            // Tiempo de reposo en calma cuando el título está en el inicio
+            readonly property int initialPauseDuration: 6500
+
+            // Velocidad de desplazamiento en ms por píxel (55ms/px = ritmo pausado y fácil de leer)
+            readonly property int msPerPixel: 55
+
+            Layout.preferredWidth: Math.min(textWidth, maxVisibleWidth)
+            Layout.preferredHeight: primaryText.implicitHeight
+            clip: true
+
+            property real scrollOffset: 0.0
+
+            // Primer texto (título principal)
+            Text {
+                id: primaryText
+                anchors.verticalCenter: parent.verticalCenter
+                text: MediaService.title
+                font.family: Theme.fontFamily
+                font.pixelSize: 11
+                font.weight: Font.DemiBold
+                color: Theme.text
+                x: -Math.round(titleContainer.scrollOffset)
+
+                // Reiniciar animación al cambiar de canción
+                onTextChanged: {
+                    marqueeAnim.stop();
+                    titleContainer.scrollOffset = 0.0;
+                    if (titleContainer.needsScroll && MediaService.isPlaying) {
+                        marqueeAnim.restart();
+                    }
+                }
+            }
+
+            // Segundo texto (entra por la derecha de forma continua mientras el primero sale)
+            Text {
+                id: secondaryText
+                anchors.verticalCenter: parent.verticalCenter
+                text: MediaService.title
+                font.family: Theme.fontFamily
+                font.pixelSize: 11
+                font.weight: Font.DemiBold
+                color: Theme.text
+                visible: titleContainer.needsScroll
+                x: Math.round(titleContainer.cycleWidth - titleContainer.scrollOffset)
+            }
+
+            SequentialAnimation {
+                id: marqueeAnim
+                running: titleContainer.needsScroll && MediaService.isPlaying
+                loops: Animation.Infinite
+
+                // 1. Pausa prolongada en reposo (6.5s) con el texto alineado al inicio
+                PauseAnimation { duration: titleContainer.initialPauseDuration }
+
+                // 2. Desplazamiento continuo a ritmo pausado hasta que la segunda copia llega exactamente a x = 0
+                NumberAnimation {
+                    target: titleContainer
+                    property: "scrollOffset"
+                    to: titleContainer.cycleWidth
+                    duration: Math.max(2500, Math.round(titleContainer.cycleWidth * titleContainer.msPerPixel))
+                    easing.type: Easing.Linear
+                }
+
+                // 3. Sincronización instantánea e imperceptible:
+                // Como secondaryText estaba en x = 0, reiniciar scrollOffset a 0
+                // coloca a primaryText en x = 0 sin que haya ningún salto ni parpadeo visual.
+                PropertyAction {
+                    target: titleContainer
+                    property: "scrollOffset"
+                    value: 0.0
+                }
+            }
+
+            Connections {
+                target: MediaService
+                function onIsPlayingChanged() {
+                    if (MediaService.isPlaying && titleContainer.needsScroll) {
+                        marqueeAnim.restart();
+                    } else if (!MediaService.isPlaying) {
+                        marqueeAnim.stop();
+                        titleContainer.scrollOffset = 0.0;
+                    }
+                }
+            }
         }
 
         // Nombre del Artista / Canal

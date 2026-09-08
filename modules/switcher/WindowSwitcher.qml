@@ -137,7 +137,7 @@ PanelWindow {
         readonly property int calculatedListWidth: (cardCount * cardItemWidth) + Math.max(0, cardCount - 1) * cardItemSpacing
         readonly property int maxAllowedWidth: (root.screen ? root.screen.width : 1920) - 80
 
-        width: Math.min(maxAllowedWidth, Math.max(220, calculatedListWidth + 28))
+        width: Math.min(maxAllowedWidth, Math.max(cardItemWidth + 28, calculatedListWidth + 28))
         height: 156
 
         scale: SwitcherService.isOpen ? 1.0 : 0.94

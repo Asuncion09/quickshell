@@ -10,7 +10,8 @@ import "../../services"
 Item {
     id: root
 
-    readonly property bool isMediaHovered: mediaView.isHovered
+    property bool isPillHovered: false
+    readonly property bool isMediaHovered: (!LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible) && (isPillHovered || mediaView.isHovered)
 
     // Estados para control manual y temporizador de gracia
     property bool forceClock: false
@@ -283,6 +284,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         width: implicitWidth
         height: 28
+        isContainerHovered: root.isPillHovered
         opacity: (LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastActive || OsdService.isVisible) ? 0.0 : (root.isMediaActive ? 1.0 : 0.0)
         visible: opacity > 0.01
 

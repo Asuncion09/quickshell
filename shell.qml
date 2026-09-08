@@ -51,6 +51,22 @@ ShellRoot {
     }
 
     IpcHandler {
+        target: "media"
+        function hover(enabled: bool): void {
+            MediaService.forceControls = enabled;
+        }
+        function playPause(): void {
+            MediaService.playPause();
+        }
+        function next(): void {
+            MediaService.next();
+        }
+        function prev(): void {
+            MediaService.previous();
+        }
+    }
+
+    IpcHandler {
         target: "controlcenter"
         function toggle(): void {
             ControlCenterService.toggle();

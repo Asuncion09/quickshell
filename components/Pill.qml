@@ -125,6 +125,12 @@ Item {
         }
     }
 
+    // Detección universal de hover sobre el 100% de la cápsula física (incluye padding)
+    HoverHandler {
+        id: pillHoverHandler
+    }
+    readonly property bool containsMouse: pillHoverHandler.hovered
+
     // Área interactiva de nivel superior para Pills clickables (sin alterar RowLayout)
     MouseArea {
         id: pillMouse

@@ -144,6 +144,7 @@ PanelWindow {
 
                 CenterIslandModule {
                     id: centerIsland
+                    isPillHovered: centerPill.containsMouse
                 }
             }
         }

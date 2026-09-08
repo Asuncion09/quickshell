@@ -5,6 +5,8 @@ import Quickshell.Services.Mpris
 Item {
     id: root
 
+    property bool forceControls: false
+
     // Resolver el reproductor activo (prioridad: estado Playing, luego el primero disponible con metadatos)
     readonly property var activePlayer: {
         if (!Mpris.players || !Mpris.players.values) return null;
