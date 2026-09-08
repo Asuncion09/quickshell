@@ -217,9 +217,15 @@ Item {
 
     function resolveAppIcon(iconName) {
         if (!iconName) return Quickshell.iconPath("application-x-executable") || "";
+        let lower = iconName.toLowerCase().trim();
+        if (lower === "btop" || lower.includes("btop")) {
+            return Qt.resolvedUrl("../../assets/icons/btop.svg");
+        }
+        if (lower === "htop" || lower.includes("htop")) {
+            return Qt.resolvedUrl("../../assets/icons/htop.svg");
+        }
         if (iconName.startsWith("/") || iconName.startsWith("file://")) return iconName;
         if (Quickshell.hasThemeIcon(iconName)) return Quickshell.iconPath(iconName);
-        let lower = iconName.toLowerCase();
         if (Quickshell.hasThemeIcon(lower)) return Quickshell.iconPath(lower);
         return Quickshell.iconPath("application-x-executable") || "";
     }

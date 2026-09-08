@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="128px" viewBox="0 0 128 128" width="128px" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="frameShadow" gradientUnits="userSpaceOnUse" x1="12" x2="116" y1="64" y2="64">
+      <stop offset="0" stop-color="#3d3846"/>
+      <stop offset="0.05" stop-color="#77767b"/>
+      <stop offset="0.1" stop-color="#5e5c64"/>
+      <stop offset="0.9" stop-color="#504e56"/>
+      <stop offset="0.95" stop-color="#77767b"/>
+      <stop offset="1" stop-color="#3d3846"/>
+    </linearGradient>
+    <linearGradient id="frameBorder" gradientUnits="userSpaceOnUse" x1="12" x2="112" y1="60" y2="81">
+      <stop offset="0" stop-color="#77767b"/>
+      <stop offset="0.384" stop-color="#9a9996"/>
+      <stop offset="0.721" stop-color="#77767b"/>
+      <stop offset="1" stop-color="#68666f"/>
+    </linearGradient>
+  </defs>
+  <!-- Sombra exterior MoreWaita -->
+  <path d="m 20 22 h 88 c 4.42 0 8 3.58 8 8 v 78 c 0 4.42 -3.58 8 -8 8 h -88 c -4.42 0 -8 -3.58 -8 -8 v -78 c 0 -4.42 3.58 -8 8 -8 z" fill="url(#frameShadow)"/>
+  <!-- Marco biselado MoreWaita -->
+  <path d="m 20 12 h 88 c 4.42 0 8 3.58 8 8 v 80 c 0 4.42 -3.58 8 -8 8 h -88 c -4.42 0 -8 -3.58 -8 -8 v -80 c 0 -4.42 3.58 -8 8 -8 z" fill="url(#frameBorder)"/>
+  <!-- Pantalla terminal oscura MoreWaita -->
+  <path d="m 20 14 h 88 c 3.31 0 6 2.69 6 6 v 80 c 0 3.31 -2.69 6 -6 6 h -88 c -3.31 0 -6 -2.69 -6 -6 v -80 c 0 -3.31 2.69 -6 6 -6 z" fill="#241f31"/>
+
+  <!-- Fila 1: CPU 1 -->
+  <path d="M 32 38 h -4 v 16 h 4" fill="none" stroke="#77767b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 96 38 h 4 v 16 h -4" fill="none" stroke="#77767b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Barras verdes (user) -->
+  <rect x="34" y="40" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="37" y="40" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="40" y="40" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="43" y="40" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="46" y="40" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="49" y="40" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="52" y="40" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="55" y="40" width="2" height="12" rx="1" fill="#44cc44"/>
+  <!-- Barras azules (sys) -->
+  <rect x="58" y="40" width="2" height="12" rx="1" fill="#3399ff"/>
+  <rect x="61" y="40" width="2" height="12" rx="1" fill="#3399ff"/>
+  <rect x="64" y="40" width="2" height="12" rx="1" fill="#3399ff"/>
+  <rect x="67" y="40" width="2" height="12" rx="1" fill="#3399ff"/>
+  <!-- Barras rojas (hi/si) -->
+  <rect x="70" y="40" width="2" height="12" rx="1" fill="#ff4444"/>
+  <rect x="73" y="40" width="2" height="12" rx="1" fill="#ff4444"/>
+  <rect x="76" y="40" width="2" height="12" rx="1" fill="#ff4444"/>
+  <!-- Barras libres (fondo oscuro) -->
+  <rect x="79" y="40" width="2" height="12" rx="1" fill="#383542"/>
+  <rect x="82" y="40" width="2" height="12" rx="1" fill="#383542"/>
+  <rect x="85" y="40" width="2" height="12" rx="1" fill="#383542"/>
+  <rect x="88" y="40" width="2" height="12" rx="1" fill="#383542"/>
+  <rect x="91" y="40" width="2" height="12" rx="1" fill="#383542"/>
+
+  <!-- Fila 2: CPU 2 -->
+  <path d="M 32 56 h -4 v 16 h 4" fill="none" stroke="#77767b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 96 56 h 4 v 16 h -4" fill="none" stroke="#77767b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Barras verdes -->
+  <rect x="34" y="58" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="37" y="58" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="40" y="58" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="43" y="58" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="46" y="58" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="49" y="58" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="52" y="58" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="55" y="58" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="58" y="58" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="61" y="58" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="64" y="58" width="2" height="12" rx="1" fill="#44cc44"/>
+  <!-- Barras azules -->
+  <rect x="67" y="58" width="2" height="12" rx="1" fill="#3399ff"/>
+  <rect x="70" y="58" width="2" height="12" rx="1" fill="#3399ff"/>
+  <rect x="73" y="58" width="2" height="12" rx="1" fill="#3399ff"/>
+  <!-- Barras libres -->
+  <rect x="76" y="58" width="2" height="12" rx="1" fill="#383542"/>
+  <rect x="79" y="58" width="2" height="12" rx="1" fill="#383542"/>
+  <rect x="82" y="58" width="2" height="12" rx="1" fill="#383542"/>
+  <rect x="85" y="58" width="2" height="12" rx="1" fill="#383542"/>
+  <rect x="88" y="58" width="2" height="12" rx="1" fill="#383542"/>
+  <rect x="91" y="58" width="2" height="12" rx="1" fill="#383542"/>
+
+  <!-- Fila 3: Memoria RAM -->
+  <path d="M 32 74 h -4 v 16 h 4" fill="none" stroke="#77767b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 96 74 h 4 v 16 h -4" fill="none" stroke="#77767b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Barras verdes (used) -->
+  <rect x="34" y="76" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="37" y="76" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="40" y="76" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="43" y="76" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="46" y="76" width="2" height="12" rx="1" fill="#44cc44"/>
+  <rect x="49" y="76" width="2" height="12" rx="1" fill="#44cc44"/>
+  <!-- Barras cyan (buffers) -->
+  <rect x="52" y="76" width="2" height="12" rx="1" fill="#22d3ee"/>
+  <rect x="55" y="76" width="2" height="12" rx="1" fill="#22d3ee"/>
+  <rect x="58" y="76" width="2" height="12" rx="1" fill="#22d3ee"/>
+  <rect x="61" y="76" width="2" height="12" rx="1" fill="#22d3ee"/>
+  <rect x="64" y="76" width="2" height="12" rx="1" fill="#22d3ee"/>
+  <!-- Barras amarillas (cache) -->
+  <rect x="67" y="76" width="2" height="12" rx="1" fill="#f59e0b"/>
+  <rect x="70" y="76" width="2" height="12" rx="1" fill="#f59e0b"/>
+  <rect x="73" y="76" width="2" height="12" rx="1" fill="#f59e0b"/>
+  <rect x="76" y="76" width="2" height="12" rx="1" fill="#f59e0b"/>
+  <!-- Barras libres -->
+  <rect x="79" y="76" width="2" height="12" rx="1" fill="#383542"/>
+  <rect x="82" y="76" width="2" height="12" rx="1" fill="#383542"/>
+  <rect x="85" y="76" width="2" height="12" rx="1" fill="#383542"/>
+  <rect x="88" y="76" width="2" height="12" rx="1" fill="#383542"/>
+  <rect x="91" y="76" width="2" height="12" rx="1" fill="#383542"/>
+</svg>

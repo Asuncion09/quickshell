@@ -277,7 +277,7 @@ Item {
 
                 footer: Item {
                     width: notifListView.width
-                    height: (notifListView.contentHeight > notifListView.height) ? 22 : 0
+                    height: 22
                 }
 
                 delegate: Item {

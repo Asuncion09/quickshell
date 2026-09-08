@@ -212,6 +212,10 @@ Item {
             candidates.push("code", "vscode", "visual-studio-code", "com.visualstudio.code", "/home/daniel/Downloads/Antigravity IDE/resources/app/resources/linux/code.png");
         } else if (lower.includes("ghostty")) {
             candidates.push("com.mitchellh.ghostty", "ghostty");
+        } else if (lower.includes("btop")) {
+            candidates.push(Qt.resolvedUrl("../assets/icons/btop.svg"));
+        } else if (lower.includes("htop")) {
+            candidates.push(Qt.resolvedUrl("../assets/icons/htop.svg"));
         } else if (lower.includes("spotify")) {
             candidates.push("com.spotify.Client", "spotify");
         } else if (lower.includes("steam")) {

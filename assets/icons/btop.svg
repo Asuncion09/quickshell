@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="128px" viewBox="0 0 128 128" width="128px" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="frameShadow" gradientUnits="userSpaceOnUse" x1="12" x2="116" y1="64" y2="64">
+      <stop offset="0" stop-color="#3d3846"/>
+      <stop offset="0.05" stop-color="#77767b"/>
+      <stop offset="0.1" stop-color="#5e5c64"/>
+      <stop offset="0.9" stop-color="#504e56"/>
+      <stop offset="0.95" stop-color="#77767b"/>
+      <stop offset="1" stop-color="#3d3846"/>
+    </linearGradient>
+    <linearGradient id="frameBorder" gradientUnits="userSpaceOnUse" x1="12" x2="112" y1="60" y2="81">
+      <stop offset="0" stop-color="#77767b"/>
+      <stop offset="0.384" stop-color="#9a9996"/>
+      <stop offset="0.721" stop-color="#77767b"/>
+      <stop offset="1" stop-color="#68666f"/>
+    </linearGradient>
+    <linearGradient id="redStripes" x1="0" y1="25" x2="0" y2="95" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff2a4b"/>
+      <stop offset="0.199" stop-color="#ff2a4b"/>
+      <stop offset="0.20" stop-color="#d70000"/>
+      <stop offset="0.399" stop-color="#d70000"/>
+      <stop offset="0.40" stop-color="#af0000"/>
+      <stop offset="0.599" stop-color="#af0000"/>
+      <stop offset="0.60" stop-color="#870000"/>
+      <stop offset="0.799" stop-color="#870000"/>
+      <stop offset="0.80" stop-color="#5f0000"/>
+      <stop offset="1.0" stop-color="#5f0000"/>
+    </linearGradient>
+  </defs>
+  <!-- Sombra exterior MoreWaita -->
+  <path d="m 20 22 h 88 c 4.42 0 8 3.58 8 8 v 78 c 0 4.42 -3.58 8 -8 8 h -88 c -4.42 0 -8 -3.58 -8 -8 v -78 c 0 -4.42 3.58 -8 8 -8 z" fill="url(#frameShadow)"/>
+  <!-- Marco biselado MoreWaita -->
+  <path d="m 20 12 h 88 c 4.42 0 8 3.58 8 8 v 80 c 0 4.42 -3.58 8 -8 8 h -88 c -4.42 0 -8 -3.58 -8 -8 v -80 c 0 -4.42 3.58 -8 8 -8 z" fill="url(#frameBorder)"/>
+  <!-- Fondo de pantalla terminal oscuro MoreWaita -->
+  <path d="m 20 14 h 88 c 3.31 0 6 2.69 6 6 v 80 c 0 3.31 -2.69 6 -6 6 h -88 c -3.31 0 -6 -2.69 -6 -6 v -80 c 0 -3.31 2.69 -6 6 -6 z" fill="#241f31"/>
+  <!-- Logo oficial btop con franjas degradadas limpias compatibles con QtSvg -->
+  <path d="m 42.5625,25 v 70 h 36.75 V 81 h 6.125 V 67 h -6.125 V 53 h 6.125 V 39 h -6.125 v -14 z m 12.25,14 h 18.375 V 53 H 54.8125 Z M 54.8125,67 h 18.375 v 14 h -18.375 z" fill="url(#redStripes)"/>
+</svg>
