@@ -11,6 +11,8 @@ Item {
     property alias spacing: contentLayout.spacing
     property int paddingHorizontal: Theme.pillPaddingHorizontal
     property int paddingVertical: Theme.pillPaddingVertical
+    property alias borderColor: pillBackground.border.color
+    property alias borderWidth: pillBackground.border.width
     property int radius: Theme.pillRadius
     property bool clickable: false
     property string tooltipText: ""
@@ -39,9 +41,11 @@ Item {
     }
 
     // Detección de elevación para isla expandida (Centro de Notificaciones o Lanzador)
+    readonly property bool isExpanded: pillBackground.height > 60
 
     // 1. Elemento fuente para la sombra (invisible, define la forma redondeada exacta)
     Rectangle {
+        id: shadowSource
         anchors.fill: pillBackground
         radius: root.radius
         color: "#000000"
@@ -73,6 +77,7 @@ Item {
 
     // 3. Cápsula visual principal
     Rectangle {
+        id: pillBackground
 
         anchors.fill: parent
         implicitWidth: contentLayout.implicitWidth + (root.paddingHorizontal * 2)
@@ -110,6 +115,7 @@ Item {
         }
 
         RowLayout {
+            id: contentLayout
             anchors.fill: parent
             anchors.leftMargin: root.paddingHorizontal
             anchors.rightMargin: root.paddingHorizontal
@@ -121,6 +127,7 @@ Item {
 
     // Área interactiva de nivel superior para Pills clickables (sin alterar RowLayout)
     MouseArea {
+        id: pillMouse
         anchors.fill: parent
         enabled: root.clickable
         visible: root.clickable

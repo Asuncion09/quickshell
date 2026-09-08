@@ -12,6 +12,7 @@ Item {
         return "󰃠";
     }
 
+    signal brightnessChangedTriggered(int percent)
 
     property bool _readyForOsd: false
     property int _lastReportedPercent: -1
@@ -36,6 +37,7 @@ Item {
     }
 
     Process {
+        id: readProc
         command: ["brightnessctl", "-m"]
         stdout: SplitParser {
             onRead: data => {
@@ -54,6 +56,7 @@ Item {
     }
 
     Process {
+        id: setProc
         command: ["brightnessctl", "set", "50%"]
     }
 
@@ -95,4 +98,3 @@ Item {
         onTriggered: root.refresh()
     }
 }
-

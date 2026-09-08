@@ -12,6 +12,7 @@ Item {
     property bool hasSubmenu: false
 
     signal clicked()
+    signal submenuClicked()
 
     implicitWidth: 135
     implicitHeight: 44

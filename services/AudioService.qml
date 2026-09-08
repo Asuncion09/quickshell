@@ -11,8 +11,11 @@ Item {
         objects: [Pipewire.defaultAudioSink, Pipewire.defaultAudioSource]
     }
 
+    readonly property PwNode defaultSink: Pipewire.defaultAudioSink
     readonly property real volume: (defaultSink && defaultSink.audio) ? defaultSink.audio.volume : 0.0
+    readonly property int volumePercent: Math.round(volume * 100)
     readonly property bool isMuted: (defaultSink && defaultSink.audio) ? defaultSink.audio.muted : false
+    readonly property string sinkName: defaultSink ? (defaultSink.description || defaultSink.name || "Altavoz") : "Sin salida"
 
     // Icono estable según el estado de silencio.
     // Usamos el glifo completo de altavoz con ondas (󰕾) para garantizar simetría y peso visual estable en la barra y sliders
@@ -35,6 +38,7 @@ Item {
 
     property int currentPercent: 50
     property int _lastReportedPercent: -1
+    property bool _lastReportedMuted: false
 
     onVolumePercentChanged: {
         root.currentPercent = root.volumePercent;
@@ -60,6 +64,7 @@ Item {
     }
 
     Process {
+        id: wpctlProc
         command: ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "0.5"]
     }
 
@@ -123,9 +128,11 @@ Item {
     }
 
     // --- Control de Micrófono ---
+    readonly property PwNode defaultSource: Pipewire.defaultAudioSource
     readonly property bool isMicMuted: (defaultSource && defaultSource.audio) ? defaultSource.audio.muted : false
 
     Process {
+        id: micWpctlProc
         command: ["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"]
     }
 

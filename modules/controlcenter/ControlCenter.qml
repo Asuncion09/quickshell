@@ -9,6 +9,9 @@ import "../../services"
 Item {
     id: root
 
+    property bool _isOpen: false
+    property int currentView: 0 // 0 = Principal, 1 = Wi-Fi, 2 = Bluetooth
+    property int focusedIndex: 0 // 0..7 para los elementos del panel principal
     property bool isKeyNavActive: false // Solo se activa al presionar flechas o teclado
 
     implicitWidth: 318 + 8
@@ -17,6 +20,7 @@ Item {
     height: implicitHeight
     visible: root._isOpen || animContainer.opacity > 0.01
 
+    function triggerSpaceAction(idx) {
         switch (idx) {
             case 0: ControlCenterService.toggleWifi(); break;
             case 1: ControlCenterService.toggleBluetooth(); break;
@@ -35,6 +39,7 @@ Item {
         }
     }
 
+    function triggerEnterAction(idx) {
         switch (idx) {
             case 0: root.currentView = 1; break;
             case 1: root.currentView = 2; break;
@@ -54,6 +59,7 @@ Item {
     }
 
     Timer {
+        id: closeTimer
         interval: 220
         onTriggered: {
             if (!root._isOpen) {
@@ -99,6 +105,7 @@ Item {
                 root.close();
             }
         }
+        function onHasPasskeyPromptChanged() {
             if (ControlCenterService.hasPasskeyPrompt) {
                 root.currentView = 2;
                 root.open();
@@ -107,6 +114,7 @@ Item {
     }
 
     Item {
+        id: animContainer
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
@@ -166,6 +174,7 @@ Item {
 
         // Tarjeta principal del Centro de Control
         Rectangle {
+            id: mainCard
             anchors.fill: parent
             implicitHeight: {
                 if (root.currentView === 1) return wifiView.implicitHeight + 22;
@@ -390,6 +399,7 @@ Item {
             }
 
             Item {
+                id: viewsContainer
                 anchors.fill: parent
                 anchors.margins: 11
                 clip: true
@@ -398,6 +408,7 @@ Item {
                 // VISTA 0: Panel Principal (Toggles 2x2, Sliders, Batería)
                 // ==========================================
                 Item {
+                    id: mainView
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.top: parent.top
@@ -416,6 +427,7 @@ Item {
                     }
 
                     ColumnLayout {
+                        id: contentColumn
                         anchors.left: parent.left
                         anchors.right: parent.right
                         anchors.top: parent.top
@@ -434,6 +446,7 @@ Item {
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 0
                                 icon: NetworkService.icon
                                 title: "Wi-Fi"
+                                subtitle: NetworkService.connectionName
                                 active: NetworkService.isConnected
                                 hasSubmenu: true
                                 onClicked: ControlCenterService.toggleWifi()
@@ -442,9 +455,11 @@ Item {
 
                             // Toggle Bluetooth
                             QuickToggle {
+                                id: toggleBt
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 1
                                 icon: BluetoothService.icon
                                 title: "Bluetooth"
+                                subtitle: BluetoothService.deviceName
                                 active: BluetoothService.isEnabled
                                 hasSubmenu: true
                                 onClicked: ControlCenterService.toggleBluetooth()
@@ -457,6 +472,7 @@ Item {
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 2
                                 icon: NotificationService.dnd ? "󰂛" : "󰂚"
                                 title: "No Molestar"
+                                subtitle: NotificationService.dnd ? "Silenciado" : "Desactivado"
                                 active: NotificationService.dnd
                                 hasSubmenu: false
                                 onClicked: NotificationService.toggleDnd()
@@ -468,6 +484,7 @@ Item {
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 3
                                 icon: ControlCenterService.isMicMuted ? "󰍭" : "󰍬"
                                 title: "Micrófono"
+                                subtitle: ControlCenterService.isMicMuted ? "Silenciado" : "Activo"
                                 active: !ControlCenterService.isMicMuted
                                 hasSubmenu: false
                                 onClicked: ControlCenterService.toggleMicMute()
@@ -488,6 +505,7 @@ Item {
 
                             // Slider de Volumen
                             SliderControl {
+                                id: sliderVol
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 4
                                 icon: AudioService.icon
                                 value: AudioService.currentPercent
@@ -502,6 +520,7 @@ Item {
 
                             // Slider de Brillo
                             SliderControl {
+                                id: sliderBri
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 5
                                 icon: BrightnessService.icon
                                 value: BrightnessService.brightnessPercent
@@ -524,6 +543,7 @@ Item {
 
                         // 3. Fila de Utilidades (Batería compacta y Bloqueo de 32px)
                         BatteryCard {
+                            id: batCard
                             Layout.fillWidth: true
                             lockFocused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 6
                             powerFocused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 7
@@ -535,6 +555,7 @@ Item {
                 // VISTA 1: Detalle de Wi-Fi
                 // ==========================================
                 WifiDetailView {
+                    id: wifiView
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.top: parent.top
@@ -560,6 +581,7 @@ Item {
                 // VISTA 2: Detalle de Bluetooth
                 // ==========================================
                 BluetoothDetailView {
+                    id: btView
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.top: parent.top
