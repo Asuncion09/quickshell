@@ -8,4 +8,5 @@ singleton ControlCenterService 1.0 ControlCenterService.qml
 singleton LauncherService 1.0 LauncherService.qml
 singleton NotificationService 1.0 NotificationService.qml
 singleton OsdService 1.0 OsdService.qml
+singleton SwitcherService 1.0 SwitcherService.qml
 

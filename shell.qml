@@ -8,6 +8,7 @@ import Quickshell.Services.Notifications
 import "services"
 import "modules/bar"
 import "modules/osd"
+import "modules/switcher"
 
 ShellRoot {
     NotificationServer {
@@ -116,6 +117,35 @@ ShellRoot {
         }
     }
 
+    IpcHandler {
+        target: "switcher"
+        function next(): void {
+            SwitcherService.next();
+        }
+        function prev(): void {
+            SwitcherService.prev();
+        }
+        function open(): void {
+            SwitcherService.open();
+        }
+        function close(): void {
+            SwitcherService.close();
+        }
+        function select(): void {
+            SwitcherService.select();
+        }
+        function cancel(): void {
+            SwitcherService.cancel();
+        }
+        function toggle(): void {
+            if (SwitcherService.isOpen) {
+                SwitcherService.close();
+            } else {
+                SwitcherService.open();
+            }
+        }
+    }
+
     Variants {
         model: Quickshell.screens
         Bar {}
@@ -124,6 +154,11 @@ ShellRoot {
     Variants {
         model: Quickshell.screens
         CriticalBatteryAlert {}
+    }
+
+    Variants {
+        model: Quickshell.screens
+        WindowSwitcher {}
     }
 }
 

@@ -39,7 +39,7 @@ PanelWindow {
     implicitHeight: root.screen ? root.screen.height : 1080
     color: "transparent"
 
-    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusiveZone: Theme.barHeight
     WlrLayershell.keyboardFocus: (LauncherService.isOpen || ControlCenterService.isOpen) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 

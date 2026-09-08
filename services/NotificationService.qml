@@ -16,17 +16,30 @@ Item {
     property bool soundEnabled: true
     property string defaultSoundPath: "/usr/share/sounds/freedesktop/stereo/message-new-instant.oga"
 
+    // Procesos alternados para evitar colisiones o bloqueos cuando llegan notificaciones continuas
+    property int _soundProcTurn: 0
     Process {
-        id: soundProc
-        command: ["paplay", root.defaultSoundPath]
+        id: soundProc1
+    }
+    Process {
+        id: soundProc2
     }
 
     function playSound(customPath) {
         if (!root.soundEnabled) return;
         let file = (customPath && customPath !== "") ? customPath : root.defaultSoundPath;
-        if (soundProc.running) soundProc.running = false;
-        soundProc.command = ["paplay", file];
-        soundProc.running = true;
+
+        let proc = (root._soundProcTurn === 0) ? soundProc1 : soundProc2;
+        root._soundProcTurn = (root._soundProcTurn + 1) % 2;
+
+        if (proc.running) proc.running = false;
+        // Reproducir como flujo de evento (media.role=event) para que se mezcle con la música sin cortes
+        if (customPath && customPath !== "") {
+            proc.command = ["sh", "-c", "canberra-gtk-play -f \"" + file + "\" 2>/dev/null || paplay --property=media.role=event \"" + file + "\""];
+        } else {
+            proc.command = ["sh", "-c", "canberra-gtk-play -i message-new-instant 2>/dev/null || paplay --property=media.role=event \"" + root.defaultSoundPath + "\""];
+        }
+        proc.running = true;
     }
 
     // Estado de la interfaz
@@ -166,7 +179,9 @@ Item {
         }
 
         // Reproducir sonido si está habilitado y no está en DND (o si es urgente/crítica)
-        if (root.soundEnabled && (!root.dnd || notif.urgency === 2)) {
+        // Omitir sonido en avisos de cambio de pista musical de Spotify/reproductores para no interrumpir la música
+        let isMusicPlayer = notif.appName && (notif.appName.toLowerCase() === "spotify" || notif.appName.toLowerCase() === "playerctl");
+        if (root.soundEnabled && (!root.dnd || notif.urgency === 2) && !isMusicPlayer) {
             root.playSound();
         }
     }
@@ -258,34 +273,85 @@ Item {
 
         let foundAddr = "";
         let foundTop = null;
+        let foundWs = 0;
 
         if (Hyprland.toplevels && Hyprland.toplevels.values) {
-            for (let i = 0; i < Hyprland.toplevels.values.length; i++) {
-                let top = Hyprland.toplevels.values[i];
+            let toplevels = Hyprland.toplevels.values;
+
+            // FASE 1: Coincidencia estricta por clase / appId de la aplicación real (NUNCA por título)
+            for (let i = 0; i < toplevels.length; i++) {
+                let top = toplevels[i];
                 let ipc = top.lastIpcObject || {};
                 let cls = (ipc.class || (top.wayland ? top.wayland.appId : "") || "").toLowerCase();
                 let initialCls = (ipc.initialClass || "").toLowerCase();
-                let title = (top.title || ipc.title || "").toLowerCase();
 
                 let match = false;
-                if (targetEntry !== "" && (cls.includes(targetEntry) || initialCls.includes(targetEntry))) {
+                if (targetEntry !== "" && (cls === targetEntry || initialCls === targetEntry || cls.includes(targetEntry))) {
                     match = true;
-                } else if (targetApp.includes("antigravity") && (cls.includes("antigravity") || initialCls.includes("antigravity") || title.includes("antigravity"))) {
-                    match = true;
-                } else if ((targetApp.includes("code") || targetApp.includes("vscode")) && (cls.includes("code") || initialCls.includes("code"))) {
-                    match = true;
-                } else if (targetApp.includes("ghostty") || targetApp.includes("term") || targetApp.includes("kitty") || targetApp.includes("alacritty")) {
-                    if (cls.includes("ghostty") || cls.includes("kitty") || cls.includes("alacritty") || cls.includes("terminal")) {
+                } else if (targetApp.includes("antigravity")) {
+                    if (cls.includes("antigravity") || initialCls.includes("antigravity")) {
                         match = true;
                     }
-                } else if (targetApp !== "" && (cls.includes(targetApp) || initialCls.includes(targetApp) || targetApp.includes(cls))) {
+                } else if (targetApp.includes("code") || targetApp.includes("vscode")) {
+                    if (cls.includes("code") || initialCls.includes("code") || cls.includes("vscode")) {
+                        match = true;
+                    }
+                } else if (targetApp.includes("ghostty")) {
+                    if (cls.includes("ghostty") || initialCls.includes("ghostty")) {
+                        match = true;
+                    }
+                } else if (targetApp.includes("spotify")) {
+                    if (cls.includes("spotify") || initialCls.includes("spotify")) {
+                        match = true;
+                    }
+                } else if (targetApp.includes("zen")) {
+                    if (cls.includes("zen") || initialCls.includes("zen")) {
+                        match = true;
+                    }
+                } else if (targetApp.includes("firefox")) {
+                    if (cls.includes("firefox") || initialCls.includes("firefox")) {
+                        match = true;
+                    }
+                } else if (targetApp.includes("nautilus") || targetApp.includes("files")) {
+                    if (cls.includes("nautilus") || cls.includes("files")) {
+                        match = true;
+                    }
+                } else if (targetApp.includes("chrome") || targetApp.includes("chromium")) {
+                    if (cls.includes("chrome") || cls.includes("chromium")) {
+                        match = true;
+                    }
+                } else if (targetApp !== "" && (cls === targetApp || initialCls === targetApp || cls.includes(targetApp))) {
                     match = true;
                 }
 
                 if (match) {
                     foundAddr = top.address || "";
                     foundTop = top;
+                    foundWs = top.workspace ? top.workspace.id : (ipc.workspace ? ipc.workspace.id : 0);
                     break;
+                }
+            }
+
+            // FASE 2: Solo si ninguna clase coincidió, buscar por título EXCLUYENDO emuladores de terminal
+            if (!foundTop) {
+                for (let i = 0; i < toplevels.length; i++) {
+                    let top = toplevels[i];
+                    let ipc = top.lastIpcObject || {};
+                    let cls = (ipc.class || (top.wayland ? top.wayland.appId : "") || "").toLowerCase();
+                    let title = (top.title || ipc.title || "").toLowerCase();
+
+                    // Ignorar terminales (ej. Ghostty con ruta ~/Downloads/Antigravity IDE)
+                    let isTerminal = cls.includes("ghostty") || cls.includes("kitty") || cls.includes("alacritty") || cls.includes("foot") || cls.includes("terminal");
+                    if (isTerminal && !targetApp.includes("ghostty") && !targetApp.includes("term") && !targetApp.includes("kitty")) {
+                        continue;
+                    }
+
+                    if (targetApp !== "" && title.includes(targetApp)) {
+                        foundAddr = top.address || "";
+                        foundTop = top;
+                        foundWs = top.workspace ? top.workspace.id : (ipc.workspace ? ipc.workspace.id : 0);
+                        break;
+                    }
                 }
             }
         }
@@ -295,21 +361,10 @@ Item {
             foundTop.wayland.activate();
         }
 
-        // 2. Enfocar y cambiar de workspace de forma nativa vía Hyprland IPC
-        let luaDispatcher = "";
+        // 2. Enfocar ventana y asegurar el cambio al espacio de trabajo correspondiente
         if (foundAddr !== "") {
-            luaDispatcher = "hl.dsp.focus({ window = \"address:" + foundAddr + "\" })";
-        } else if (targetApp.includes("antigravity")) {
-            luaDispatcher = "hl.dsp.focus({ window = \"class:antigravity-ide\" })";
-        } else if (targetEntry !== "") {
-            luaDispatcher = "hl.dsp.focus({ window = \"class:" + targetEntry + "\" })";
-        } else if (targetApp !== "") {
-            luaDispatcher = "hl.dsp.focus({ window = \"class:" + targetApp + "\" })";
-        }
-
-        if (luaDispatcher !== "") {
             if (hyprFocusProc.running) hyprFocusProc.running = false;
-            hyprFocusProc.command = ["hyprctl", "dispatch", luaDispatcher];
+            hyprFocusProc.command = ["hyprctl", "repl", "hl.dispatch(hl.dsp.focus({ window = \"address:" + foundAddr + "\" }))"];
             hyprFocusProc.running = true;
             return true;
         }
