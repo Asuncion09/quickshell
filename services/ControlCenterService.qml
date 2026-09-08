@@ -430,7 +430,25 @@ Item {
     }
 
     Process {
+        id: lockProc
+        command: ["hyprlock"]
+    }
+
+    Process {
         id: sysActionProc
+        stderr: SplitParser {
+            onRead: data => {
+                let text = data.trim();
+                if (text) {
+                    console.warn("ControlCenterService: sysActionProc error:", text);
+                }
+            }
+        }
+        onExited: exitCode => {
+            if (exitCode !== 0) {
+                console.warn("ControlCenterService: sysActionProc exited with code:", exitCode);
+            }
+        }
     }
 
     function runSysCommand(cmd) {
@@ -442,7 +460,11 @@ Item {
     }
 
     function lockScreen() {
-        runSysCommand(["hyprlock"]);
+        root.close();
+        root.isPowerMenuOpen = false;
+        if (!lockProc.running) {
+            lockProc.running = true;
+        }
     }
 
     function suspend() {
@@ -458,7 +480,19 @@ Item {
     }
 
     function logout() {
-        runSysCommand(["hyprctl", "dispatch", "exit"]);
+        runSysCommand([
+            "sh",
+            "-c",
+            "if command -v uwsm >/dev/null 2>&1 && uwsm check is-active 2>/dev/null; then " +
+            "uwsm stop; " +
+            "elif command -v hyprctl >/dev/null 2>&1; then " +
+            "hyprctl dispatch 'hl.dsp.exit()' 2>/dev/null || hyprctl dispatch exit; " +
+            "elif [ -n \"$XDG_SESSION_ID\" ]; then " +
+            "loginctl terminate-session \"$XDG_SESSION_ID\"; " +
+            "else " +
+            "loginctl terminate-user \"$USER\"; " +
+            "fi"
+        ]);
     }
 }
 
