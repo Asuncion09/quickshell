@@ -49,13 +49,31 @@ Item {
         id: closeProc
     }
 
+    property bool testHold: false
+
+    Timer {
+        id: testHoldTimer
+        interval: 1800
+        repeat: false
+        onTriggered: {
+            root.testHold = false;
+            if (root.isOpen) root.close();
+        }
+    }
+
+    function preview() {
+        root.testHold = true;
+        root.open();
+        testHoldTimer.restart();
+    }
+
     Process {
         id: altStateProc
         command: ["hyprctl", "repl", "print(hl.is_key_down(\"Alt_L\") or hl.is_key_down(\"Alt_R\"))"]
         stdout: SplitParser {
             onRead: data => {
                 let trimmed = data.trim();
-                if (trimmed === "false" && root.isOpen) {
+                if (trimmed === "false" && root.isOpen && !root.testHold) {
                     root.select();
                 }
             }

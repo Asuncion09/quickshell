@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
@@ -34,13 +35,13 @@ PanelWindow {
     implicitHeight: modelData ? modelData.height : 1080
 
     color: "transparent"
-    visible: SwitcherService.isOpen || mainCard.opacity > 0.01
+    visible: SwitcherService.isOpen || cardWrapper.opacity > 0.01
 
     // Fondo oscurecido con clic para cancelar
     Rectangle {
         id: backdrop
         anchors.fill: parent
-        color: Qt.rgba(0, 0, 0, 0.50)
+        color: Qt.rgba(0, 0, 0, 0.45)
         opacity: SwitcherService.isOpen ? 1.0 : 0.0
 
         Behavior on opacity {
@@ -125,65 +126,68 @@ PanelWindow {
         }
     }
 
-    // Tarjeta central flotante estilo macOS / Windows
-    Rectangle {
-        id: mainCard
+    // Contenedor animado con elevación y sombra
+    Item {
+        id: cardWrapper
         anchors.centerIn: parent
 
-        // Ancho reactivo: se ajusta al número de elementos sin sobrepasar la pantalla
-        readonly property int cardItemWidth: 124
+        readonly property int cardItemWidth: 128
         readonly property int cardItemSpacing: 10
-        readonly property int calculatedListWidth: (SwitcherService.displayedWindows.length * cardItemWidth) + Math.max(0, SwitcherService.displayedWindows.length - 1) * cardItemSpacing
+        readonly property int cardCount: SwitcherService.displayedWindows.length
+        readonly property int calculatedListWidth: (cardCount * cardItemWidth) + Math.max(0, cardCount - 1) * cardItemSpacing
         readonly property int maxAllowedWidth: (root.screen ? root.screen.width : 1920) - 80
-        
-        width: Math.min(maxAllowedWidth, Math.max(460, calculatedListWidth + 48))
-        height: 188
 
-        color: Theme.bgDark
-        border.color: Theme.borderDark
-        border.width: 1
-        radius: 16
+        width: Math.min(maxAllowedWidth, Math.max(220, calculatedListWidth + 28))
+        height: 156
 
-        opacity: SwitcherService.isOpen ? 1.0 : 0.0
         scale: SwitcherService.isOpen ? 1.0 : 0.94
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 130
-                easing.type: Easing.OutQuad
-            }
-        }
+        opacity: SwitcherService.isOpen ? 1.0 : 0.0
 
         Behavior on scale {
-            NumberAnimation {
-                duration: 150
-                easing.type: Easing.OutQuad
-            }
+            NumberAnimation { duration: 140; easing.type: Easing.OutQuad }
+        }
+        Behavior on opacity {
+            NumberAnimation { duration: 120; easing.type: Easing.OutQuad }
         }
 
-        // Borde interior sutil (rim light)
+        // Sombra suave volumétrica por hardware (coherente con Centro de Control y OSD)
         Rectangle {
-            anchors.fill: parent
-            color: "transparent"
-            radius: parent.radius
-            border.color: Qt.rgba(1, 1, 1, 0.06)
-            border.width: 1
+            id: shadowShape
+            anchors.fill: mainCard
+            radius: mainCard.radius
+            color: "#000000"
+            visible: false
         }
 
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 14
-            spacing: 10
+        MultiEffect {
+            source: shadowShape
+            anchors.fill: shadowShape
+            visible: Theme.pillShadowEnabled
+            shadowEnabled: true
+            shadowColor: "#000000"
+            shadowOpacity: 0.60
+            shadowBlur: 0.55
+            shadowVerticalOffset: 4
+        }
 
-            // Lista horizontal de ventanas centrada
+        // Tarjeta principal (estilo Centro de Control)
+        Rectangle {
+            id: mainCard
+            anchors.fill: parent
+
+            radius: 16
+            color: Theme.bgDark
+            border.color: "#2e2e2e"
+            border.width: 1
+
+            // Lista horizontal de ventanas
             ListView {
                 id: windowListView
-                Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: Math.min(parent.width, mainCard.calculatedListWidth)
-                Layout.preferredHeight: 128
+                anchors.fill: parent
+                anchors.margins: 14
                 orientation: ListView.Horizontal
-                spacing: mainCard.cardItemSpacing
-                clip: false
+                spacing: cardWrapper.cardItemSpacing
+                clip: true
                 interactive: contentWidth > width
 
                 model: SwitcherService.displayedWindows
@@ -197,100 +201,61 @@ PanelWindow {
                     readonly property bool isCurrent: SwitcherService.selectedIndex === index
                     readonly property bool isHovered: cardMouseArea.containsMouse
 
-                    width: mainCard.cardItemWidth
-                    height: 128
+                    width: cardWrapper.cardItemWidth
+                    height: windowListView.height
 
                     Rectangle {
                         id: cardBg
                         anchors.fill: parent
                         radius: 12
 
-                        color: cardDelegate.isCurrent ? Theme.surfaceActive : (cardDelegate.isHovered ? Theme.surfaceHover : Theme.surfaceBase)
-                        border.color: cardDelegate.isCurrent ? Theme.highlight : (cardDelegate.isHovered ? Qt.rgba(1, 1, 1, 0.16) : Theme.dividerColor)
-                        border.width: cardDelegate.isCurrent ? 2 : 1
+                        // Tonalidad limpia idéntica a los QuickToggles
+                        color: cardDelegate.isCurrent
+                               ? Qt.rgba(Theme.wsActiveColor.r, Theme.wsActiveColor.g, Theme.wsActiveColor.b, 0.16)
+                               : (cardDelegate.isHovered ? Theme.surfaceHover : Theme.surfaceBase)
+                        border.color: cardDelegate.isCurrent
+                                      ? Qt.rgba(Theme.wsActiveColor.r, Theme.wsActiveColor.g, Theme.wsActiveColor.b, 0.45)
+                                      : "transparent"
+                        border.width: cardDelegate.isCurrent ? 1 : 0
 
                         Behavior on color {
-                            ColorAnimation { duration: 90 }
+                            ColorAnimation { duration: 100 }
                         }
                         Behavior on border.color {
-                            ColorAnimation { duration: 90 }
+                            ColorAnimation { duration: 100 }
                         }
 
-                        // Badge de Workspace en esquina superior derecha
-                        Rectangle {
-                            id: wsBadge
+                        // Indicador de Workspace (texto limpio y sutil, sin cajas)
+                        Text {
                             anchors.top: parent.top
-                            anchors.topMargin: 6
+                            anchors.topMargin: 8
                             anchors.right: parent.right
-                            anchors.rightMargin: 6
-                            width: wsText.implicitWidth + 10
-                            height: 17
-                            radius: 8.5
-
-                            color: cardDelegate.isCurrent ? Theme.highlight : Qt.rgba(255, 255, 255, 0.08)
-
-                            Text {
-                                id: wsText
-                                anchors.centerIn: parent
-                                text: "WS " + cardDelegate.modelData.workspaceId
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 9
-                                font.bold: true
-                                color: cardDelegate.isCurrent ? "#000000" : Theme.textSecondary
-                            }
+                            anchors.rightMargin: 10
+                            text: "WS " + cardDelegate.modelData.workspaceId
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 10
+                            font.weight: Font.DemiBold
+                            color: cardDelegate.isCurrent ? Theme.highlight : Theme.textMuted
                         }
 
-                        // Botón de cerrar (✕) en esquina superior izquierda
-                        Rectangle {
-                            id: closeBtn
-                            anchors.top: parent.top
-                            anchors.topMargin: 6
-                            anchors.left: parent.left
-                            anchors.leftMargin: 6
-                            width: 17
-                            height: 17
-                            radius: 8.5
-                            visible: cardDelegate.isHovered || cardDelegate.isCurrent
-                            opacity: visible ? 1.0 : 0.0
-
-                            color: closeBtnArea.containsMouse ? Theme.critical : Qt.rgba(255, 255, 255, 0.08)
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "✕"
-                                font.pixelSize: 9
-                                font.family: Theme.fontFamily
-                                color: closeBtnArea.containsMouse ? "#ffffff" : Theme.textMuted
-                            }
-
-                            MouseArea {
-                                id: closeBtnArea
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                onClicked: {
-                                    SwitcherService.closeWindow(cardDelegate.modelData.address, cardDelegate.modelData.toplevel);
-                                }
-                            }
-                        }
-
-                        // Contenido central: Icono grande
+                        // Icono centrado
                         Item {
                             id: iconContainer
                             anchors.top: parent.top
-                            anchors.topMargin: 20
+                            anchors.topMargin: 16
                             anchors.horizontalCenter: parent.horizontalCenter
-                            width: 46
-                            height: 46
+                            width: 44
+                            height: 44
 
-                            scale: cardDelegate.isCurrent ? 1.08 : (cardDelegate.isHovered ? 1.04 : 1.0)
+                            scale: cardDelegate.isCurrent ? 1.06 : (cardDelegate.isHovered ? 1.03 : 1.0)
                             Behavior on scale {
-                                NumberAnimation { duration: 100; easing.type: Easing.OutQuad }
+                                NumberAnimation { duration: 110; easing.type: Easing.OutQuad }
                             }
 
                             IconImage {
                                 anchors.centerIn: parent
-                                width: 44
-                                height: 44
+                                width: 42
+                                height: 42
                                 source: cardDelegate.modelData.iconSource
                                 visible: cardDelegate.modelData.iconSource !== ""
                             }
@@ -299,7 +264,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: ""
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 34
+                                font.pixelSize: 32
                                 color: cardDelegate.isCurrent ? Theme.highlight : Theme.textMuted
                                 visible: !cardDelegate.modelData.iconSource || cardDelegate.modelData.iconSource === ""
                             }
@@ -311,12 +276,12 @@ PanelWindow {
                             anchors.top: iconContainer.bottom
                             anchors.topMargin: 8
                             anchors.left: parent.left
-                            anchors.leftMargin: 6
+                            anchors.leftMargin: 8
                             anchors.right: parent.right
-                            anchors.rightMargin: 6
+                            anchors.rightMargin: 8
                             text: cardDelegate.modelData.appName
                             font.family: Theme.fontFamily
-                            font.bold: true
+                            font.weight: Font.DemiBold
                             font.pixelSize: 11
                             color: cardDelegate.isCurrent ? Theme.text : Theme.textSecondary
                             horizontalAlignment: Text.AlignHCenter
@@ -329,15 +294,34 @@ PanelWindow {
                             anchors.top: appNameLabel.bottom
                             anchors.topMargin: 2
                             anchors.left: parent.left
-                            anchors.leftMargin: 6
+                            anchors.leftMargin: 8
                             anchors.right: parent.right
-                            anchors.rightMargin: 6
+                            anchors.rightMargin: 8
                             text: cardDelegate.modelData.title
                             font.family: Theme.fontFamily
                             font.pixelSize: 10
-                            color: Theme.textMuted
+                            color: cardDelegate.isCurrent ? Qt.rgba(221/255, 225/255, 231/255, 0.60) : Theme.textMuted
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
+                        }
+
+                        // Píldora activa en la parte inferior (indicador de selección estilo workspace activo)
+                        Rectangle {
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: 5
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: cardDelegate.isCurrent ? 22 : 0
+                            height: 3
+                            radius: 1.5
+                            color: Theme.highlight
+                            opacity: cardDelegate.isCurrent ? 1.0 : 0.0
+
+                            Behavior on width {
+                                NumberAnimation { duration: 120; easing.type: Easing.OutQuad }
+                            }
+                            Behavior on opacity {
+                                NumberAnimation { duration: 120; easing.type: Easing.OutQuad }
+                            }
                         }
 
                         MouseArea {
@@ -348,30 +332,6 @@ PanelWindow {
                             onClicked: SwitcherService.selectIndex(cardDelegate.index)
                         }
                     }
-                }
-            }
-
-            // Divisor sutil
-            Rectangle {
-                Layout.fillWidth: true
-                height: 1
-                color: Theme.dividerColor
-            }
-
-            // Barra inferior con solo el título centrado
-            Item {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 18
-
-                Text {
-                    anchors.centerIn: parent
-                    width: Math.min(parent.width - 24, implicitWidth)
-                    text: SwitcherService.currentWindow ? (SwitcherService.currentWindow.appName + "  ›  " + SwitcherService.currentWindow.title) : ""
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 11
-                    color: Theme.textSecondary
-                    elide: Text.ElideMiddle
-                    horizontalAlignment: Text.AlignHCenter
                 }
             }
         }

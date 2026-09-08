@@ -144,6 +144,9 @@ ShellRoot {
                 SwitcherService.open();
             }
         }
+        function preview(): void {
+            SwitcherService.preview();
+        }
     }
 
     Variants {
