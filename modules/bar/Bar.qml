@@ -137,7 +137,7 @@ PanelWindow {
             Pill {
                 id: centerPill
                 animateSize: false
-                paddingHorizontal: (LauncherService.isOpen || NotificationService.isCenterOpen) ? 6 : (NotificationService.isToastActive ? 8 : Theme.centerPillPaddingHorizontal)
+                paddingHorizontal: (LauncherService.isOpen || NotificationService.isCenterOpen) ? 6 : ((NotificationService.isToastActive || OsdService.isVisible) ? 8 : Theme.centerPillPaddingHorizontal)
 
                 CenterIslandModule {
                 }

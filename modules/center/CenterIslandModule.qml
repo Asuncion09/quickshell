@@ -107,7 +107,8 @@ Item {
         graceTimer.stop();
     }
 
-        if (LauncherService.isOpen || NotificationService.isCenterOpen) return;
+    function handleWheel() {
+        if (LauncherService.isOpen || NotificationService.isCenterOpen || OsdService.isVisible) return;
         if (root._wheelLocked) return;
         root._wheelLocked = true;
         wheelCooldown.restart();
@@ -136,6 +137,9 @@ Item {
         }
         if (NotificationService.isCenterOpen) {
             return notificationCenterWidth;
+        }
+        if (OsdService.isVisible) {
+            return osdIslandView.implicitWidth;
         }
         if (NotificationService.isToastActive) {
             return notificationToastView.implicitWidth;
@@ -202,7 +206,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         width: implicitWidth
         height: 28
-        opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && root.height <= 36) ? (root.isMediaActive ? 0.0 : 1.0) : 0.0
+        opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible && root.height <= 36) ? (root.isMediaActive ? 0.0 : 1.0) : 0.0
         scale: opacity > 0.8 ? 1.0 : 0.94
         transformOrigin: Item.Center
         visible: opacity > 0.01
@@ -231,7 +235,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         width: implicitWidth
         height: 28
-        opacity: (LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastActive) ? 0.0 : (root.isMediaActive ? 1.0 : 0.0)
+        opacity: (LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastActive || OsdService.isVisible) ? 0.0 : (root.isMediaActive ? 1.0 : 0.0)
         visible: opacity > 0.01
 
         onDismissToClockRequested: root.dismissToClock()
@@ -248,10 +252,32 @@ Item {
     // 3. Vista de Notificación Emergente (Toast en la Dynamic Island)
     NotificationToastView {
         anchors.fill: parent
-        opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && NotificationService.isToastActive) ? 1.0 : 0.0
+        opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && NotificationService.isToastActive && !OsdService.isVisible) ? 1.0 : 0.0
         visible: opacity > 0.01
 
         Behavior on opacity {
+            NumberAnimation {
+                duration: Theme.animFast
+                easing.type: Easing.OutQuad
+            }
+        }
+    }
+
+    // 3.5. Vista de OSD (Volumen / Brillo / Micrófono en la Dynamic Island)
+    OsdIslandView {
+        id: osdIslandView
+        anchors.centerIn: parent
+        opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && OsdService.isVisible) ? 1.0 : 0.0
+        scale: opacity > 0.5 ? 1.0 : 0.94
+        visible: opacity > 0.01
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Theme.animFast
+                easing.type: Easing.OutQuad
+            }
+        }
+        Behavior on scale {
             NumberAnimation {
                 duration: Theme.animFast
                 easing.type: Easing.OutQuad

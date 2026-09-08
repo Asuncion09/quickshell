@@ -3,3 +3,4 @@ ClockView 1.0 ClockView.qml
 MediaView 1.0 MediaView.qml
 NotificationToastView 1.0 NotificationToastView.qml
 NotificationCenterView 1.0 NotificationCenterView.qml
+OsdIslandView 1.0 OsdIslandView.qml

@@ -34,6 +34,9 @@ ShellRoot {
         function mute(): void {
             AudioService.toggleMute();
         }
+        function micMute(): void {
+            AudioService.toggleMicMute();
+        }
     }
 
     IpcHandler {
@@ -98,8 +101,6 @@ ShellRoot {
         function dnd(): void {
             NotificationService.toggleDnd();
         }
-            console.warn("[DUMP_NOTIF]", JSON.stringify(NotificationService.notifications[0]));
-        }
     }
 
     IpcHandler {
@@ -118,11 +119,6 @@ ShellRoot {
     Variants {
         model: Quickshell.screens
         Bar {}
-    }
-
-    Variants {
-        model: Quickshell.screens
-        VolumeOsd {}
     }
 
     Variants {

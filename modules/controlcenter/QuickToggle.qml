@@ -14,15 +14,16 @@ Item {
     signal clicked()
 
     implicitWidth: 135
-    implicitHeight: 48
+    implicitHeight: 44
     Layout.fillWidth: true
 
     property bool focused: false
 
-    readonly property bool isHovered: mainMouse.containsMouse
+    // Hover unificado: cualquier zona activa hace que ambas partes reaccionen
+    readonly property bool isAnyHovered: leftMouse.containsMouse || rightMouse.containsMouse
 
-    // Solo animación táctil al hacer click (presionar), sin elevarse ni saltar en hover
-    scale: mainMouse.pressed ? 0.97 : 1.0
+    // Animación táctil al presionar (escala leve)
+    scale: (leftMouse.pressed || rightMouse.pressed) ? 0.97 : 1.0
     Behavior on scale {
         NumberAnimation {
             duration: Theme.animFast
@@ -35,123 +36,142 @@ Item {
         radius: 12
         border.width: root.focused ? 2 : 0
         border.color: root.active ? "#ffffff" : Theme.wsActiveColor
+        clip: true
 
         Behavior on border.width { NumberAnimation { duration: Theme.animFast } }
         Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
 
         color: root.active
-               ? ((root.isHovered || root.focused) ? Qt.lighter(Theme.wsActiveColor, 1.08) : Theme.wsActiveColor)
-               : ((root.isHovered || root.focused) ? Theme.surfaceHover : Theme.surfaceBase)
+               ? ((root.isAnyHovered || root.focused) ? Qt.lighter(Theme.wsActiveColor, 1.08) : Theme.wsActiveColor)
+               : ((root.isAnyHovered || root.focused) ? Theme.surfaceHover : Theme.surfaceBase)
 
         Behavior on color {
             ColorAnimation { duration: Theme.animFast }
         }
 
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 12
-            anchors.rightMargin: 6
-            spacing: 10
+        // -------------------------------------------------------
+        // ZONA IZQUIERDA: Icono + Título (acción: toggle)
+        // -------------------------------------------------------
+        Item {
+            id: leftZone
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            // Si hay submenú, la zona derecha toma 34px; si no, ocupa todo
+            anchors.right: root.hasSubmenu ? divider.left : parent.right
 
-            // Icono limpio directo sobre el fondo (sin caja anidada)
+            Row {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: parent.left
+                anchors.leftMargin: 10
+                anchors.right: parent.right
+                anchors.rightMargin: 6
+                spacing: 7
+
+                Text {
+                    id: iconText
+                    text: root.icon
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 16
+                    color: root.active ? "#161616" : Theme.textSecondary
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.animFast }
+                    }
+                }
+
+                Text {
+                    id: titleText
+                    width: parent.width - iconText.width - parent.spacing
+                    text: root.title
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 11
+                    font.weight: Font.DemiBold
+                    color: root.active ? "#161616" : Theme.text
+                    elide: Text.ElideRight
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.animFast }
+                    }
+                }
+            }
+
+            MouseArea {
+                id: leftMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.clicked()
+            }
+        }
+
+        // -------------------------------------------------------
+        // DIVISOR VERTICAL (solo visible cuando hasSubmenu)
+        // -------------------------------------------------------
+        Rectangle {
+            id: divider
+            visible: root.hasSubmenu
+            width: 1
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.right: rightZone.left
+
+            color: root.active
+                   ? Qt.rgba(0, 0, 0, 0.18)
+                   : Qt.rgba(1, 1, 1, 0.08)
+
+            Behavior on color {
+                ColorAnimation { duration: Theme.animFast }
+            }
+        }
+
+        // -------------------------------------------------------
+        // ZONA DERECHA: Flecha › (acción: abrir submenú)
+        // -------------------------------------------------------
+        Item {
+            id: rightZone
+            visible: root.hasSubmenu
+            width: 34
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+
             Text {
-                text: root.icon
+                id: arrowText
+                anchors.centerIn: parent
+                text: "›"
                 font.family: Theme.fontFamily
-                font.pixelSize: 18
-                color: root.active ? "#161616" : Theme.textSecondary
-                Layout.alignment: Qt.AlignVCenter
+                font.pixelSize: 16
+                font.weight: Font.Bold
+
+                // Translación horizontal sutil al hacer hover sobre la zona derecha
+                x: rightMouse.containsMouse ? 1 : 0
+                Behavior on x {
+                    NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuad }
+                }
+
+                color: {
+                    if (root.active) return "#161616";
+                    return root.isAnyHovered ? Theme.text : Theme.textMuted;
+                }
+                opacity: root.active ? 0.85 : (root.isAnyHovered ? 0.90 : 0.45)
 
                 Behavior on color {
                     ColorAnimation { duration: Theme.animFast }
                 }
-            }
-
-            // Etiquetas (Título + Subtítulo)
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 1
-
-                Text {
-                    Layout.fillWidth: true
-                    text: root.title
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 12
-                    font.weight: Font.DemiBold
-                    color: root.active ? "#161616" : Theme.text
-                    elide: Text.ElideRight
-
-                    Behavior on color {
-                        ColorAnimation { duration: Theme.animFast }
-                    }
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: root.subtitle
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 10
-                    font.weight: root.active ? Font.Medium : Font.Normal
-                    color: root.active ? Qt.rgba(0.09, 0.09, 0.09, 0.75) : Theme.textMuted
-                    elide: Text.ElideRight
-
-                    Behavior on color {
-                        ColorAnimation { duration: Theme.animFast }
-                    }
+                Behavior on opacity {
+                    NumberAnimation { duration: Theme.animFast }
                 }
             }
 
-            // Botón opcional de submenú (flecha) con micro-cápsula interactiva
-            Item {
-                implicitWidth: 26
-                implicitHeight: 34
-                visible: root.hasSubmenu
-                Layout.alignment: Qt.AlignVCenter
-                Layout.rightMargin: 2
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 8
-                    color: root.active ? Qt.rgba(0, 0, 0, 0.12) : Theme.surfaceHover
-                    opacity: mainMouse.isOverArrow ? 1.0 : 0.0
-
-                    Behavior on opacity {
-                        NumberAnimation { duration: Theme.animFast }
-                    }
-                    Behavior on color {
-                        ColorAnimation { duration: Theme.animFast }
-                    }
-                }
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "›"
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 17
-                    font.weight: Font.Bold
-                    color: root.active ? "#161616" : (mainMouse.isOverArrow ? Theme.wsActiveColor : Theme.textMuted)
-                    opacity: root.active ? 0.90 : (mainMouse.isOverArrow ? 1.0 : 0.55)
-
-                    Behavior on color {
-                        ColorAnimation { duration: Theme.animFast }
-                    }
-                }
-            }
-        }
-
-        // MouseArea unificado para todo el botón (con desvanecimiento seguro al salir)
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-
-            // Solo es true SI contiene el ratón Y además está sobre las coordenadas de la flecha
-
-            onClicked: mouse => {
-                if (isOverArrow) {
-                    root.submenuClicked();
-                } else {
-                    root.clicked();
-                }
+            MouseArea {
+                id: rightMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.submenuClicked()
             }
         }
     }

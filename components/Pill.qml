@@ -10,6 +10,7 @@ Item {
     default property alias content: contentLayout.data
     property alias spacing: contentLayout.spacing
     property int paddingHorizontal: Theme.pillPaddingHorizontal
+    property int paddingVertical: Theme.pillPaddingVertical
     property int radius: Theme.pillRadius
     property bool clickable: false
     property string tooltipText: ""

@@ -11,7 +11,7 @@ Item {
 
     property bool isKeyNavActive: false // Solo se activa al presionar flechas o teclado
 
-    implicitWidth: 300 + 8
+    implicitWidth: 318 + 8
     implicitHeight: mainCard.implicitHeight + 14
     width: implicitWidth
     height: implicitHeight
@@ -434,7 +434,6 @@ Item {
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 0
                                 icon: NetworkService.icon
                                 title: "Wi-Fi"
-                                subtitle: NetworkService.connectionName
                                 active: NetworkService.isConnected
                                 hasSubmenu: true
                                 onClicked: ControlCenterService.toggleWifi()
@@ -446,7 +445,6 @@ Item {
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 1
                                 icon: BluetoothService.icon
                                 title: "Bluetooth"
-                                subtitle: BluetoothService.deviceName
                                 active: BluetoothService.isEnabled
                                 hasSubmenu: true
                                 onClicked: ControlCenterService.toggleBluetooth()
@@ -459,7 +457,6 @@ Item {
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 2
                                 icon: NotificationService.dnd ? "󰂛" : "󰂚"
                                 title: "No Molestar"
-                                subtitle: NotificationService.dnd ? "Silenciado" : "Desactivado"
                                 active: NotificationService.dnd
                                 hasSubmenu: false
                                 onClicked: NotificationService.toggleDnd()
@@ -471,7 +468,6 @@ Item {
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 3
                                 icon: ControlCenterService.isMicMuted ? "󰍭" : "󰍬"
                                 title: "Micrófono"
-                                subtitle: ControlCenterService.isMicMuted ? "Silenciado" : "Activo"
                                 active: !ControlCenterService.isMicMuted
                                 hasSubmenu: false
                                 onClicked: ControlCenterService.toggleMicMute()
@@ -497,6 +493,9 @@ Item {
                                 value: AudioService.currentPercent
                                 isMuted: AudioService.isMuted
                                 accentColor: Theme.wsActiveColor
+                                minValue: 0
+                                maxValue: 100
+                                step: 5
                                 onValueChangedByUser: pct => AudioService.setVolume(pct)
                                 onIconClicked: AudioService.toggleMute()
                             }
@@ -508,6 +507,9 @@ Item {
                                 value: BrightnessService.brightnessPercent
                                 isMuted: false
                                 accentColor: Theme.wsActiveColor
+                                minValue: 5
+                                maxValue: 100
+                                step: 5
                                 onValueChangedByUser: pct => BrightnessService.setBrightness(pct)
                                 onIconClicked: BrightnessService.setBrightness(BrightnessService.brightnessPercent > 10 ? 10 : 100)
                             }

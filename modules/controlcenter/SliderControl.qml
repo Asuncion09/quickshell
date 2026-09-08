@@ -9,17 +9,20 @@ Item {
     property int value: 50
     property color accentColor: Theme.highlight
     property bool isMuted: false
+    property int minValue: 0
+    property int maxValue: 100
+    property int step: 5
 
 
     property bool focused: false
 
     function stepUp() {
-        let next = Math.min(100, root.value + 5);
+        let next = Math.min(root.maxValue, Math.floor(root.value / root.step) * root.step + root.step);
         root.valueChangedByUser(next);
     }
 
     function stepDown() {
-        let next = Math.max(0, root.value - 5);
+        let next = Math.max(root.minValue, Math.ceil(root.value / root.step) * root.step - root.step);
         root.valueChangedByUser(next);
     }
 
@@ -152,8 +155,10 @@ Item {
 
                 if (mouseArea.width <= 0) return;
                 let clamped = Math.max(0, Math.min(mouseArea.width, posX));
-                let pct = Math.round((clamped / mouseArea.width) * 100);
-                root.valueChangedByUser(Math.max(0, Math.min(100, pct)));
+                let rawPct = (clamped / mouseArea.width) * 100;
+                let stepped = Math.round(rawPct / root.step) * root.step;
+                let finalVal = Math.max(root.minValue, Math.min(root.maxValue, stepped));
+                root.valueChangedByUser(finalVal);
             }
 
             onPressed: mouse => updateFromMouse(mouse.x)
@@ -162,9 +167,11 @@ Item {
             }
 
             onWheel: wheel => {
-                let step = wheel.angleDelta.y > 0 ? 3 : -3;
-                let target = Math.max(0, Math.min(100, root.value + step));
-                root.valueChangedByUser(target);
+                if (wheel.angleDelta.y > 0) {
+                    root.stepUp();
+                } else if (wheel.angleDelta.y < 0) {
+                    root.stepDown();
+                }
             }
         }
     }

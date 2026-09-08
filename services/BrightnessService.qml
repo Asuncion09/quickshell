@@ -63,7 +63,7 @@ Item {
     }
 
     function setBrightness(pct) {
-        let val = Math.max(1, Math.min(100, pct));
+        let val = Math.max(5, Math.min(100, pct));
         root.brightnessPercent = val;
         root._lastReportedPercent = val;
         if (root._readyForOsd) {
@@ -76,12 +76,14 @@ Item {
 
     function increase(step) {
         let s = step || 5;
-        setBrightness(brightnessPercent + s);
+        let next = Math.min(100, Math.floor(brightnessPercent / s) * s + s);
+        setBrightness(next);
     }
 
     function decrease(step) {
         let s = step || 5;
-        setBrightness(brightnessPercent - s);
+        let prev = Math.max(5, Math.ceil(brightnessPercent / s) * s - s);
+        setBrightness(prev);
     }
 
     // Sincronización de fondo ocasional para cambios externos sin disparar OSD innecesario

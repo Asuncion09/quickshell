@@ -21,6 +21,8 @@ Item {
         return "󰕾";
     }
 
+    signal volumeChangedTriggered(int percent, bool muted)
+    signal micMutedTriggered(bool muted)
 
     // Evitar que el OSD aparezca durante la carga inicial
     property bool _readyForOsd: false
@@ -80,13 +82,29 @@ Item {
     }
 
     function increaseVolume(step) {
+        if (root.isMuted) {
+            // Si está en silencio, preservar el volumen anterior y solo mostrar el aviso OSD en Mute
+            if (root._readyForOsd) {
+                root.volumeChangedTriggered(root.currentPercent, true);
+            }
+            return;
+        }
         let s = step || 5;
-        setVolume(currentPercent + s);
+        let next = Math.min(100, Math.floor(currentPercent / s) * s + s);
+        setVolume(next);
     }
 
     function decreaseVolume(step) {
+        if (root.isMuted) {
+            // Si está en silencio, preservar el volumen anterior y solo mostrar el aviso OSD en Mute
+            if (root._readyForOsd) {
+                root.volumeChangedTriggered(root.currentPercent, true);
+            }
+            return;
+        }
         let s = step || 5;
-        setVolume(currentPercent - s);
+        let prev = Math.max(0, Math.ceil(currentPercent / s) * s - s);
+        setVolume(prev);
     }
 
     function toggleMute() {
@@ -119,6 +137,9 @@ Item {
             if (micWpctlProc.running) micWpctlProc.running = false;
             micWpctlProc.command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", newMute ? "1" : "0"];
             micWpctlProc.running = true;
+        }
+        if (root._readyForOsd) {
+            root.micMutedTriggered(newMute);
         }
     }
 }
