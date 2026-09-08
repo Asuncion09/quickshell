@@ -8,9 +8,12 @@ Item {
     id: root
 
     // Respaldo de estado mediante bluetoothctl
+    property bool _sysPowered: false
     property bool _sysConnected: false
+    property string _sysDeviceName: ""
 
     Process {
+        id: btReader
         command: ["sh", "-c", "powered=$(bluetoothctl show 2>/dev/null | grep -q 'Powered: yes' && echo 'yes' || echo 'no'); name=$(bluetoothctl devices Connected 2>/dev/null | head -n 1 | cut -d ' ' -f 3- | xargs); echo \"$powered:$name\""]
         stdout: SplitParser {
             onRead: data => {

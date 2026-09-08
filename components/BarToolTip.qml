@@ -9,6 +9,7 @@ PopupWindow {
     property alias text: label.text
     property alias targetItem: root.anchor.item
     property bool hovered: false
+    property int delay: 300
 
     anchor.edges: Edges.Bottom
     anchor.gravity: Edges.Bottom
@@ -20,7 +21,9 @@ PopupWindow {
     implicitHeight: container.implicitHeight + 16
 
     Timer {
+        id: showTimer
         interval: root.delay
+        property bool shouldShow: false
 
         onTriggered: {
             if (root.hovered && root.text !== "") {

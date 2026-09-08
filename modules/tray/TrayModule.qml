@@ -11,12 +11,15 @@ Row {
 
     spacing: 8
 
+    readonly property int activeCount: (SystemTray.items && SystemTray.items.values) ? SystemTray.items.values.length : 0
     readonly property bool hasItems: activeCount > 0
 
     Repeater {
+        id: trayRepeater
         model: SystemTray.items
 
         Item {
+            id: trayButton
 
             required property var modelData
 
@@ -26,6 +29,7 @@ Row {
             implicitHeight: 26
 
             // Resuelve el icono original a color de la aplicación si el cliente expone un icono simbólico genérico
+            readonly property string resolvedSource: {
                 let raw = trayButton.modelData.icon || "";
 
                 // 1. Si el icono se llama algo como com.spotify.Client-symbolic, buscar la versión oficial a color
@@ -44,6 +48,7 @@ Row {
             }
 
             IconImage {
+                id: iconImg
                 anchors.centerIn: parent
                 width: 16
                 height: 16
@@ -65,6 +70,7 @@ Row {
 
             // Menú contextual 100% en QML integrado con el diseño de la barra
             TrayMenu {
+                id: trayMenu
                 menu: trayButton.modelData.menu
                 targetItem: trayButton
             }

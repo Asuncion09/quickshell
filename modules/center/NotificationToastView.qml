@@ -9,6 +9,7 @@ Item {
     id: root
 
     readonly property var currentToast: NotificationService.currentToast
+    readonly property bool hasToast: currentToast !== null
 
     implicitHeight: 26
     implicitWidth: {
@@ -23,6 +24,7 @@ Item {
     }
 
     MouseArea {
+        id: toastMouse
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
@@ -60,6 +62,7 @@ Item {
             Layout.alignment: Qt.AlignVCenter
 
             IconImage {
+                id: toastIconImg
                 anchors.fill: parent
                 source: root.currentToast ? (root.currentToast.appIcon || "") : ""
                 visible: source !== "" && status === Image.Ready
@@ -98,6 +101,7 @@ Item {
             clip: true
 
             Text {
+                id: appNameText
                 text: root.currentToast ? (root.currentToast.appName || "Aviso") : ""
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
@@ -115,6 +119,7 @@ Item {
             }
 
             Text {
+                id: messageLabel
                 text: {
                     if (!root.currentToast) return "";
                     let s = (root.currentToast.summary || "").trim();
@@ -147,6 +152,7 @@ Item {
 
         // Botón discreto de cierre rápido al pasar el cursor
         Rectangle {
+            id: closeBtn
             implicitWidth: toastMouse.containsMouse ? 16 : 0
             implicitHeight: 16
             radius: 8

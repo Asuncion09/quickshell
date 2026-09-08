@@ -18,6 +18,7 @@ Item {
 
     property int navIndex: 0
     property bool isKeyNavActive: false
+    property int passkeyNavIndex: 1 // 0: Rechazar, 1: Confirmar
 
     HoverHandler {
         onPointChanged: {
@@ -176,6 +177,7 @@ Item {
     }
 
     // 1. Dispositivos resueltos nativamente por Quickshell.Bluetooth
+    readonly property var nativeDevices: {
         let raw = [];
         if (Bluetooth.devices && Bluetooth.devices.values) {
             raw = Bluetooth.devices.values.slice();
@@ -188,10 +190,13 @@ Item {
     }
 
     // 2. Respaldo CLI directo por bluetoothctl con acumulador de líneas
+    property var cliDevices: []
+    property var _accumulatedLines: []
     property bool isScanning: false
 
     // Proceso para activar escaneo en vivo de nuevos dispositivos (Discovery)
     Process {
+        id: scanCtlProc
         command: ["bluetoothctl", "--timeout", "15", "scan", "on"]
         onStarted: root.isScanning = true
         onExited: {
@@ -203,6 +208,7 @@ Item {
 
     // Proceso de inspección de dispositivos (Conectados, Emparejados y Disponibles)
     Process {
+        id: btScanProc
         command: ["sh", "-c", "conn=$(bluetoothctl devices Connected 2>/dev/null | awk '{print $2}'); paired=$(bluetoothctl devices Paired 2>/dev/null | awk '{print $2}'); bluetoothctl devices 2>/dev/null | while read -r tag mac name; do [ \"$tag\" = \"Device\" ] || continue; is_conn=$(echo \"$conn\" | grep -Fq \"$mac\" && echo 'yes' || echo 'no'); is_paired=$(echo \"$paired\" | grep -Fq \"$mac\" && echo 'yes' || echo 'no'); echo \"$is_conn|$is_paired|$mac|$name\"; done"]
         onStarted: {
             root._accumulatedLines = [];
@@ -250,6 +256,7 @@ Item {
         root.cliDevices = list;
     }
 
+    function refreshBtScan() {
         if (!BluetoothService.isEnabled) return;
         root.isScanning = true;
         if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) {
@@ -262,6 +269,7 @@ Item {
         btScanProc.running = true;
     }
 
+    function stopBtScan() {
         root.isScanning = false;
         if (scanCtlProc.running) scanCtlProc.running = false;
         if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) {
@@ -292,6 +300,7 @@ Item {
     }
 
     // Fusión de dispositivos de ambas fuentes
+    readonly property var allDevices: {
         let map = new Map();
 
         // 1. Dispositivos CLI
@@ -324,6 +333,7 @@ Item {
     }
 
     // 1. Mis Dispositivos (Emparejados previamente o actualmente conectados)
+    readonly property var pairedDevices: {
         let list = allDevices.filter(d => d && (d.paired || d.connected));
         list.sort((a, b) => {
             if (a.connected && !b.connected) return -1;
@@ -336,6 +346,7 @@ Item {
     }
 
     // 2. Dispositivos Disponibles (Descubiertos en el aire sin emparejar ni conectar)
+    readonly property var availableDevices: {
         let list = allDevices.filter(d => d && !d.paired && !d.connected && d.name && d.name.trim() !== "" && !d.name.includes("-") && d.name !== d.address);
         list.sort((a, b) => {
             let nameA = (a.name || a.deviceName || "").toLowerCase();
@@ -345,6 +356,7 @@ Item {
         return list;
     }
 
+    function deviceIcon(dev) {
         let name = (dev.name || dev.deviceName || "").toLowerCase();
         if (name.includes("headphone") || name.includes("auricular") || name.includes("wh-") || name.includes("airpod") || name.includes("buds") || name.includes("earphone")) return "󰋋";
         if (name.includes("speaker") || name.includes("parlante") || name.includes("sound") || name.includes("boom") || name.includes("jbl")) return "󰓃";
@@ -464,6 +476,7 @@ Item {
 
             // Switch compacto de Encendido / Apagado
             Rectangle {
+                id: btSwitch
                 implicitWidth: 38
                 implicitHeight: 22
                 radius: 11
@@ -507,6 +520,7 @@ Item {
         // TARJETA DE CONFIRMACIÓN DE CLAVE / PASSKEY (SSP)
         // ==========================================
         Rectangle {
+            id: passkeyCard
             Layout.fillWidth: true
             visible: ControlCenterService.hasPasskeyPrompt
             implicitHeight: passkeyCol.implicitHeight + 20
@@ -515,6 +529,7 @@ Item {
             border.width: 0
 
             ColumnLayout {
+                id: passkeyCol
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
@@ -603,6 +618,7 @@ Item {
                     spacing: 8
 
                     Rectangle {
+                        id: rejectBtn
                         Layout.fillWidth: true
                         implicitHeight: 32
                         radius: 8
@@ -620,6 +636,7 @@ Item {
                         }
 
                         MouseArea {
+                            id: rejectMouse
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
@@ -628,6 +645,7 @@ Item {
                     }
 
                     Rectangle {
+                        id: confirmBtn
                         Layout.fillWidth: true
                         implicitHeight: 32
                         radius: 8
@@ -645,6 +663,7 @@ Item {
                         }
 
                         MouseArea {
+                            id: confirmMouse
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
@@ -691,6 +710,7 @@ Item {
 
             // Estado 2: Lista interactiva de dispositivos
             ScrollView {
+                id: devScroll
                 anchors.fill: parent
                 visible: BluetoothService.isEnabled
                 ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
@@ -723,6 +743,7 @@ Item {
                             model: root.pairedDevices
 
                             delegate: Rectangle {
+                                id: devItem
                                 Layout.fillWidth: true
                                 implicitHeight: 34
                                 radius: 8
@@ -777,12 +798,15 @@ Item {
 
                                     // Indicador de Batería (SOLO SI EL DISPOSITIVO ENVÍA EL NIVEL)
                                     Item {
+                                        id: batBadge
+                                        readonly property int batLevel: ControlCenterService.getDeviceBattery(modelData.address)
                                         visible: modelData.connected && batLevel >= 0
                                         implicitWidth: visible ? batRow.implicitWidth : 0
                                         implicitHeight: visible ? 18 : 0
                                         Layout.alignment: Qt.AlignVCenter
 
                                         RowLayout {
+                                            id: batRow
                                             anchors.centerIn: parent
                                             spacing: 3
 
@@ -816,6 +840,7 @@ Item {
 
                                     // Botón discreto de "Olvidar / Desvincular"
                                     Rectangle {
+                                        id: forgetBtn
                                         implicitWidth: 22
                                         implicitHeight: 22
                                         radius: 5
@@ -832,6 +857,7 @@ Item {
                                         }
 
                                         MouseArea {
+                                            id: forgetMouse
                                             anchors.fill: parent
                                             hoverEnabled: true
                                             cursorShape: Qt.PointingHandCursor
@@ -841,6 +867,7 @@ Item {
                                 }
 
                                 MouseArea {
+                                    id: rowMouse
                                     anchors.fill: parent
                                     anchors.rightMargin: forgetBtn.visible ? 24 : 0
                                     hoverEnabled: true
@@ -909,6 +936,7 @@ Item {
                             model: root.availableDevices
 
                             delegate: Rectangle {
+                                id: availItem
                                 Layout.fillWidth: true
                                 implicitHeight: 34
                                 radius: 8
@@ -967,6 +995,7 @@ Item {
                                 }
 
                                 MouseArea {
+                                    id: availMouse
                                     anchors.fill: parent
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor

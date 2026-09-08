@@ -163,6 +163,7 @@ Item {
     }
 
     // Resuelve el dispositivo Wi-Fi nativo en Quickshell
+    readonly property var wifiDevice: {
         if (!Networking.devices || !Networking.devices.values) return null;
         let devs = Networking.devices.values;
         for (let i = 0; i < devs.length; i++) {
@@ -175,6 +176,7 @@ Item {
     }
 
     // Activar escáner nativo al montar o hacerse visible
+    function updateScanner(enable) {
         if (wifiDevice && wifiDevice.scannerEnabled !== undefined) {
             wifiDevice.scannerEnabled = enable;
         }
@@ -201,6 +203,7 @@ Item {
     }
 
     // 1. Redes detectadas nativamente por Quickshell.Networking
+    readonly property var nativeNetworks: {
         if (!wifiDevice || !wifiDevice.networks || !wifiDevice.networks.values) return [];
         let raw = wifiDevice.networks.values;
         let map = new Map();
@@ -225,9 +228,12 @@ Item {
     }
 
     // 2. Respaldo directo de nmcli por CLI
+    property var cliNetworks: []
+    property var _accumulatedNetLines: []
     property bool isScanning: false
 
     Process {
+        id: scanProc
         command: ["sh", "-c", "LC_ALL=C nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY device wifi list 2>/dev/null"]
         onStarted: {
             root._accumulatedNetLines = [];
@@ -291,16 +297,19 @@ Item {
         root.cliNetworks = list;
     }
 
+    function refreshScan() {
         root.isScanning = true;
         if (scanProc.running) scanProc.running = false;
         scanProc.running = true;
     }
 
+    function stopScan() {
         root.isScanning = false;
         if (scanProc.running) scanProc.running = false;
     }
 
     // Fusión de fuentes: muestra todas las redes del hardware detectadas por CLI y enriquece con nativas
+    readonly property var displayNetworks: {
         let map = new Map();
 
         // 1. Redes encontradas por escaneo CLI
@@ -364,7 +373,9 @@ Item {
     }
 
     // Registro dinámico de redes guardadas/reconocidas para evitar que salten a "Redes Disponibles"
+    property var knownSavedMap: ({})
 
+    function syncKnownSaved() {
         let next = Object.assign({}, knownSavedMap);
         let changed = false;
         let active = (NetworkService.connectionName || "").trim().toLowerCase();
@@ -379,12 +390,14 @@ Item {
         if (changed) knownSavedMap = next;
     }
 
+    function isNetworkSaved(name) {
         if (!name) return false;
         let nTrim = name.trim().toLowerCase();
         if (knownSavedMap[nTrim] === true) return true;
         return ControlCenterService.isWifiSaved(name);
     }
 
+    function markSaved(name) {
         if (!name) return;
         let nTrim = name.trim().toLowerCase();
         if (knownSavedMap[nTrim] === true) return;
@@ -393,6 +406,7 @@ Item {
         knownSavedMap = next;
     }
 
+    function forgetSaved(name) {
         if (!name) return;
         let nTrim = name.trim().toLowerCase();
         let next = Object.assign({}, knownSavedMap);
@@ -400,6 +414,7 @@ Item {
         knownSavedMap = next;
     }
 
+    function isConnectingNet(netName) {
         if (!netName || !ControlCenterService.connectingWifiSsid) return false;
         let c = ControlCenterService.connectingWifiSsid.trim().toLowerCase();
         let n = netName.trim().toLowerCase();
@@ -407,6 +422,7 @@ Item {
     }
 
     // 1. Mis Redes (Conectada actualmente o guardada en NetworkManager)
+    readonly property var savedNetworks: {
         let _s = ControlCenterService.savedWifiConnections;
         let _c = ControlCenterService.connectingWifiSsid;
         let _k = knownSavedMap;
@@ -420,6 +436,7 @@ Item {
     }
 
     // 2. Redes Disponibles (Cercanas en el aire que no están guardadas)
+    readonly property var availableNetworks: {
         let _s = ControlCenterService.savedWifiConnections;
         let _c = ControlCenterService.connectingWifiSsid;
         let _k = knownSavedMap;
@@ -428,6 +445,7 @@ Item {
         return list;
     }
 
+    function signalIcon(strength) {
         let s = strength !== undefined ? strength : 0.5;
         if (s >= 0.75) return "󰤨";
         if (s >= 0.50) return "󰤢";
@@ -437,7 +455,10 @@ Item {
 
     // --- Manejo de Entrada de Contraseña Inline ---
     property string selectedSsid: ""
+    property string passwordText: ""
+    property bool showPassword: false
 
+    function promptPassword(ssid) {
         root.selectedSsid = ssid;
         root.passwordText = "";
         root.showPassword = false;
@@ -452,14 +473,17 @@ Item {
         ControlCenterService.wifiErrorMessage = "";
     }
 
+    function submitPassword() {
         if (!root.selectedSsid || !root.passwordText) return;
         ControlCenterService.connectWifiWithPassword(root.selectedSsid, root.passwordText);
     }
 
     Connections {
         target: ControlCenterService
+        function onSavedWifiConnectionsChanged() {
             root.syncKnownSaved();
         }
+        function onWifiConnectionFinished() {
             root.refreshScan();
             root.syncKnownSaved();
             if (!ControlCenterService.wifiErrorMessage) {
@@ -468,6 +492,7 @@ Item {
                 root.passwordText = "";
             }
         }
+        function onConnectingWifiSsidChanged() {
             if (!ControlCenterService.connectingWifiSsid) {
                 root.refreshScan();
                 root.syncKnownSaved();
@@ -481,6 +506,7 @@ Item {
 
     Connections {
         target: NetworkService
+        function onConnectionNameChanged() {
             root.refreshScan();
             root.syncKnownSaved();
         }
@@ -598,6 +624,7 @@ Item {
 
             // Switch compacto de Encendido / Apagado
             Rectangle {
+                id: wifiSwitch
                 implicitWidth: 38
                 implicitHeight: 22
                 radius: 11
@@ -641,6 +668,7 @@ Item {
         // TARJETA DE CONTRASEÑA WI-FI INLINE
         // ==========================================
         Rectangle {
+            id: passwordCard
             Layout.fillWidth: true
             visible: root.selectedSsid !== ""
             implicitHeight: passCol.implicitHeight + 20
@@ -653,6 +681,7 @@ Item {
             }
 
             ColumnLayout {
+                id: passCol
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
@@ -697,6 +726,7 @@ Item {
 
                 // Campo de entrada de contraseña
                 Rectangle {
+                    id: passBox
                     Layout.fillWidth: true
                     implicitHeight: 34
                     radius: 6
@@ -705,6 +735,7 @@ Item {
                     border.color: passInput.activeFocus ? Theme.wsActiveColor : Theme.dividerColor
 
                     MouseArea {
+                        id: passBoxMouse
                         anchors.fill: parent
                         anchors.rightMargin: 32
                         hoverEnabled: true
@@ -719,6 +750,7 @@ Item {
                         spacing: 6
 
                         TextInput {
+                            id: passInput
                             Layout.fillWidth: true
                             text: root.passwordText
                             echoMode: root.showPassword ? TextInput.Normal : TextInput.Password
@@ -764,6 +796,7 @@ Item {
                             }
 
                             MouseArea {
+                                id: eyeMouse
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
@@ -793,6 +826,7 @@ Item {
                     spacing: 8
 
                     Rectangle {
+                        id: cancelBtn
                         Layout.fillWidth: true
                         implicitHeight: 30
                         radius: 6
@@ -808,6 +842,7 @@ Item {
                         }
 
                         MouseArea {
+                            id: cancelMouse
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
@@ -816,6 +851,7 @@ Item {
                     }
 
                     Rectangle {
+                        id: connectBtn
                         Layout.fillWidth: true
                         implicitHeight: 30
                         radius: 6
@@ -904,6 +940,7 @@ Item {
 
             // Estado 3: Lista interactiva de redes
             ScrollView {
+                id: netScroll
                 anchors.fill: parent
                 visible: (Networking.wifiEnabled || NetworkService.isConnected) && root.displayNetworks.length > 0
                 ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
@@ -936,6 +973,7 @@ Item {
                             model: root.savedNetworks
 
                             delegate: Rectangle {
+                                id: savedItem
                                 Layout.fillWidth: true
                                 implicitHeight: 34
                                 radius: 8
@@ -1002,6 +1040,7 @@ Item {
 
                                     // Botón para olvidar / borrar red guardada (󰆴)
                                     Rectangle {
+                                        id: forgetNetBtn
                                         implicitWidth: 22
                                         implicitHeight: 22
                                         radius: 5
@@ -1018,6 +1057,7 @@ Item {
                                         }
 
                                         MouseArea {
+                                            id: forgetNetMouse
                                             anchors.fill: parent
                                             hoverEnabled: true
                                             cursorShape: Qt.PointingHandCursor
@@ -1030,6 +1070,7 @@ Item {
                                 }
 
                                 MouseArea {
+                                    id: savedRowMouse
                                     anchors.fill: parent
                                     anchors.rightMargin: forgetNetBtn.visible ? 24 : 0
                                     hoverEnabled: true
@@ -1096,6 +1137,7 @@ Item {
                             model: root.availableNetworks
 
                             delegate: Rectangle {
+                                id: availNetItem
                                 Layout.fillWidth: true
                                 implicitHeight: 34
                                 radius: 8
@@ -1164,6 +1206,7 @@ Item {
                                 }
 
                                 MouseArea {
+                                    id: availNetMouse
                                     anchors.fill: parent
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor

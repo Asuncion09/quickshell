@@ -5,13 +5,17 @@ Rectangle {
     id: root
 
     signal clicked()
+    signal rightClicked()
 
     property alias text: label.text
+    property alias textColor: label.color
     property alias font: label.font
     property alias pixelSize: label.font.pixelSize
+    property alias fontWeight: label.font.weight
 
     property color defaultTextColor: Theme.text
     property color hoverTextColor: Theme.highlight
+    property color defaultBgColor: "transparent"
     property color hoverBgColor: Theme.hoverBg
 
     property string tooltipText: ""
@@ -73,6 +77,7 @@ Rectangle {
 
     // Tooltip integrado en QML con el tema de Quickshell
     BarToolTip {
+        id: barTooltip
         targetItem: root
         text: root.tooltipText
         hovered: mouseArea.containsMouse

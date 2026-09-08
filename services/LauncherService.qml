@@ -10,8 +10,10 @@ Item {
     property string searchQuery: ""
     property int selectedIndex: 0
 
+    signal appLaunched()
 
     // Resuelve todas las aplicaciones instaladas en el sistema (.desktop)
+    readonly property var allApplications: {
         if (typeof DesktopEntries === "undefined" || !DesktopEntries || !DesktopEntries.applications || !DesktopEntries.applications.values) {
             return [];
         }
@@ -101,12 +103,14 @@ Item {
         }
     }
 
+    readonly property string preferredTerminal: {
         let envTerm = Quickshell.env("TERMINAL");
         if (envTerm && envTerm.trim() !== "") return envTerm.trim();
         return "ghostty";
     }
 
     Process {
+        id: terminalAppProc
     }
 
     function launchApp(app) {

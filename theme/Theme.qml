@@ -7,6 +7,7 @@ QtObject {
     readonly property color bgDarkAlt: "#1e1e1e"          // Hover sutil sobre cápsulas (sutilmente más claro que #161616)
     readonly property color borderDark: Qt.rgba(1, 1, 1, 0.08)  // Borde sutil de relieve (rim light)
     readonly property color dark6: "#80525252"            // @dark-6 (50% opacity)
+    readonly property color dark5: "#1f525252"            // @dark-5 (12% opacity)
     readonly property color highlight: "#78a9ff"          // @highlight (azul acento)
     readonly property color hoverBg: "#1f78a9ff"          // rgba(120, 169, 255, 0.12)
     
@@ -67,6 +68,7 @@ QtObject {
     readonly property string fontFamily: "JetBrainsMono Nerd Font Propo"
     readonly property int fontSize: 13
     readonly property int launcherFontSize: 15
+    readonly property int iconSize: 16
 
     // --- Tiempos de Animación ---
     readonly property int animFast: 120

@@ -6,6 +6,7 @@ Item {
     id: root
 
     // Resolver el reproductor activo (prioridad: estado Playing, luego el primero disponible con metadatos)
+    readonly property var activePlayer: {
         if (!Mpris.players || !Mpris.players.values) return null;
         let players = Mpris.players.values;
         if (players.length === 0) return null;
@@ -49,13 +50,16 @@ Item {
         return "";
     }
 
+    readonly property string album: activePlayer ? (activePlayer.trackAlbum || "") : ""
 
+    readonly property string artUrl: {
         if (!activePlayer || !activePlayer.trackArtUrl) return "";
         let url = activePlayer.trackArtUrl;
         if (url.startsWith("/")) return "file://" + url;
         return url;
     }
 
+    readonly property string identity: activePlayer ? (activePlayer.identity || "") : ""
 
     readonly property string appIcon: {
         let id = identity.toLowerCase();
@@ -69,6 +73,11 @@ Item {
         return "󰝚"; // Icono musical genérico
     }
 
+    readonly property bool canPlay: activePlayer ? activePlayer.canPlay : false
+    readonly property bool canPause: activePlayer ? activePlayer.canPause : false
+    readonly property bool canGoNext: activePlayer ? activePlayer.canGoNext : false
+    readonly property bool canGoPrevious: activePlayer ? activePlayer.canGoPrevious : false
+    readonly property bool canRaise: activePlayer ? activePlayer.canRaise : false
 
     function playPause() {
         if (!activePlayer) return;

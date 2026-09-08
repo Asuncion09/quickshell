@@ -6,9 +6,14 @@ import "../../services"
 Item {
     id: root
 
+    property date currentDate: new Date()
+    property bool showDate: false
     readonly property bool isHovered: mouseArea.containsMouse
 
+    readonly property string timeString: Qt.formatDateTime(currentDate, "hh:mm AP")
+    readonly property string dateString: Qt.formatDateTime(currentDate, "ddd, dd MMM")
 
+    readonly property string activeText: showDate ? dateString : timeString
 
     implicitWidth: textLabel.implicitWidth
     implicitHeight: 28
@@ -37,6 +42,7 @@ Item {
         clip: true
 
         Text {
+            id: textLabel
             anchors.centerIn: parent
 
             text: root.activeText
@@ -59,6 +65,7 @@ Item {
         }
     }
 
+    signal wakeMediaRequested()
     signal wheelRequested()
 
     MouseArea {

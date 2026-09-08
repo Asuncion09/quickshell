@@ -34,6 +34,7 @@ Item {
 
             // Icono de campana y título (Clic para cerrar y volver al reloj, sin hover visual)
             Rectangle {
+                id: titleBtn
                 implicitWidth: titleRow.implicitWidth + 8
                 implicitHeight: 26
                 radius: 6
@@ -42,6 +43,7 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
 
                 RowLayout {
+                    id: titleRow
                     anchors.centerIn: parent
                     spacing: 7
 
@@ -64,6 +66,7 @@ Item {
                 }
 
                 MouseArea {
+                    id: titleMouse
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -111,6 +114,7 @@ Item {
                 }
 
                 MouseArea {
+                    id: dndMouse
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
@@ -140,6 +144,7 @@ Item {
                 }
 
                 MouseArea {
+                    id: clearMouse
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
@@ -195,6 +200,7 @@ Item {
 
             // Lista de Tarjetas de Notificaciones
             ListView {
+                id: notifListView
                 anchors.fill: parent
                 visible: NotificationService.count > 0
                 model: NotificationService.notifications
@@ -214,6 +220,8 @@ Item {
                 }
 
                 delegate: Rectangle {
+                    id: cardItem
+                    readonly property var notifItem: modelData
                     width: notifListView.width
                     implicitHeight: cardContent.implicitHeight + 10
                     radius: 6
@@ -225,11 +233,13 @@ Item {
                     Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
 
                     MouseArea {
+                        id: cardMouse
                         anchors.fill: parent
                         hoverEnabled: true
                     }
 
                     ColumnLayout {
+                        id: cardContent
                         anchors.fill: parent
                         anchors.leftMargin: 8
                         anchors.rightMargin: 8
@@ -248,6 +258,7 @@ Item {
                                 Layout.alignment: Qt.AlignVCenter
 
                                 IconImage {
+                                    id: cardIconImg
                                     anchors.fill: parent
                                     source: modelData.appIcon || ""
                                     visible: source !== "" && status === Image.Ready
@@ -324,6 +335,7 @@ Item {
                                 }
 
                                 MouseArea {
+                                    id: itemDismissMouse
                                     anchors.fill: parent
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
@@ -350,6 +362,7 @@ Item {
 
                         // Cuerpo del mensaje (Body) - Formateo limpio con chip completo si es comando de terminal
                         Rectangle {
+                            id: bodyBox
                             Layout.fillWidth: true
                             implicitHeight: bodyText.implicitHeight + (isCmd ? 8 : 0)
                             radius: 4
@@ -358,11 +371,13 @@ Item {
                             border.color: isCmd ? Qt.rgba(255, 255, 255, 0.08) : "transparent"
                             visible: modelData.body && modelData.body !== ""
 
+                            readonly property bool isCmd: {
                                 let b = (modelData.body || "");
                                 return b.indexOf("Command:") !== -1 || b.indexOf("bash -c") !== -1 || b.indexOf("sh ") !== -1 || b.indexOf("python") !== -1;
                             }
 
                             Text {
+                                id: bodyText
                                 anchors.fill: parent
                                 anchors.leftMargin: bodyBox.isCmd ? 6 : 0
                                 anchors.rightMargin: bodyBox.isCmd ? 6 : 0
@@ -404,6 +419,7 @@ Item {
                                     Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
 
                                     Text {
+                                        id: actionLabel
                                         anchors.centerIn: parent
                                         text: modelData.text || "Acción"
                                         font.family: Theme.fontFamily
@@ -413,6 +429,7 @@ Item {
                                     }
 
                                     MouseArea {
+                                        id: actionMouse
                                         anchors.fill: parent
                                         hoverEnabled: true
                                         cursorShape: Qt.PointingHandCursor
