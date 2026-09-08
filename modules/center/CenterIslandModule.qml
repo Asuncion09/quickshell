@@ -50,6 +50,20 @@ Item {
         return false;
     }
 
+    // Indicador para animar el ancho solo al cambiar entre modos (Reloj <-> Media),
+    // dejando que MediaView anime su expansión en hover de forma 100% sincronizada sin desfase del contenedor.
+    property bool _modeChanging: false
+    Timer {
+        id: modeTimer
+        interval: Theme.animNormal + 50
+        onTriggered: root._modeChanging = false
+    }
+
+    onIsMediaActiveChanged: {
+        root._modeChanging = true;
+        modeTimer.restart();
+    }
+
     onIsMediaHoveredChanged: {
         if (root.isMediaHovered) {
             // Cancelar cuenta regresiva mientras el usuario interactúa con la música
@@ -98,6 +112,17 @@ Item {
         }
         function onSelectedIndexChanged() {
             root.ensureItemVisible(LauncherService.selectedIndex);
+        }
+    }
+
+    Connections {
+        target: NotificationService
+        function onIsCenterOpenChanged() {
+            if (NotificationService.isCenterOpen) {
+                Qt.callLater(() => {
+                    notifCenterView.forceActiveFocus();
+                });
+            }
         }
     }
 
@@ -176,7 +201,7 @@ Item {
     clip: true
 
     Behavior on implicitWidth {
-        enabled: !(root.isMediaActive && mediaView.isHovered)
+        enabled: !root.isMediaActive || root._modeChanging || LauncherService.isOpen || NotificationService.isCenterOpen || OsdService.isVisible || NotificationService.isToastActive
         NumberAnimation {
             duration: Theme.animNormal
             easing.type: Easing.OutCubic
@@ -330,6 +355,7 @@ Item {
         }
 
         NotificationCenterView {
+            id: notifCenterView
             anchors.fill: parent
         }
     }

@@ -41,7 +41,7 @@ PanelWindow {
 
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusiveZone: Theme.barHeight
-    WlrLayershell.keyboardFocus: (LauncherService.isOpen || ControlCenterService.isOpen) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: (LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     // Máscara de clics por hardware:
     // Cerrado: Solo las 5 cápsulas físicas reciben clics (100% permeable al escritorio).

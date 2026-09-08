@@ -7,15 +7,12 @@ Item {
     id: root
 
     property date currentDate: new Date()
-    property bool showDate: false
     readonly property bool isHovered: mouseArea.containsMouse
 
     readonly property string timeString: Qt.formatDateTime(currentDate, "hh:mm AP")
     readonly property string dateString: Qt.formatDateTime(currentDate, "ddd, dd MMM")
 
-    readonly property string activeText: showDate ? dateString : timeString
-
-    implicitWidth: textLabel.implicitWidth
+    implicitWidth: contentRow.implicitWidth
     implicitHeight: 28
     width: implicitWidth
     height: implicitHeight
@@ -41,18 +38,10 @@ Item {
         anchors.fill: parent
         clip: true
 
-        Text {
-            id: textLabel
+        Row {
+            id: contentRow
             anchors.centerIn: parent
-
-            text: root.activeText
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSize
-            font.weight: Font.ExtraBold
-
-            color: Theme.highlight
-            verticalAlignment: Text.AlignVCenter
-            horizontalAlignment: Text.AlignHCenter
+            spacing: 8
 
             scale: mouseArea.pressed ? 0.96 : 1.0
 
@@ -61,6 +50,39 @@ Item {
                     duration: Theme.animFast
                     easing.type: Easing.OutQuad
                 }
+            }
+
+            Text {
+                id: dateLabel
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.dateString
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize
+                font.weight: Font.DemiBold
+                color: Theme.textSecondary
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            Text {
+                id: separator
+                anchors.verticalCenter: parent.verticalCenter
+                text: "•"
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize - 2
+                font.weight: Font.Normal
+                color: Theme.textMuted
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            Text {
+                id: timeLabel
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.timeString
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize
+                font.weight: Font.ExtraBold
+                color: Theme.highlight
+                verticalAlignment: Text.AlignVCenter
             }
         }
     }
@@ -80,8 +102,8 @@ Item {
                 // Alterna el Centro de Notificaciones nativo de Quickshell
                 NotificationService.toggleCenter();
             } else if (mouse.button === Qt.MiddleButton) {
-                // Clic central: alterna rápidamente entre hora y fecha
-                root.showDate = !root.showDate;
+                // Clic central (rueda del ratón): Despierta el reproductor multimedia si hay música en pausa
+                root.wakeMediaRequested();
             }
         }
 
@@ -91,3 +113,4 @@ Item {
         }
     }
 }
+

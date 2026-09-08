@@ -11,12 +11,45 @@ import "../../services"
 Item {
     id: root
 
+    focus: true
+
+    Keys.onPressed: event => {
+        if (event.key === Qt.Key_Escape) {
+            event.accepted = true;
+            NotificationService.closeCenter();
+        }
+    }
+
+    Timer {
+        id: focusTimer
+        interval: 30
+        repeat: false
+        onTriggered: {
+            if (NotificationService.isCenterOpen) {
+                root.forceActiveFocus();
+            }
+        }
+    }
+
+    Connections {
+        target: NotificationService
+        function onIsCenterOpenChanged() {
+            if (NotificationService.isCenterOpen) {
+                Qt.callLater(() => root.forceActiveFocus());
+                focusTimer.restart();
+            }
+        }
+    }
+
     // Absorbe clics dentro de la isla para evitar que se propaguen al dismissArea
     MouseArea {
         anchors.fill: parent
         z: -1
         acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onPressed: mouse => mouse.accepted = true
+        onPressed: mouse => {
+            mouse.accepted = true;
+            root.forceActiveFocus();
+        }
     }
 
     ColumnLayout {
@@ -63,6 +96,27 @@ Item {
                         font.weight: Font.DemiBold
                         color: "#ffffff"
                         Layout.alignment: Qt.AlignVCenter
+                    }
+
+                    Rectangle {
+                        visible: NotificationService.count > 0
+                        implicitWidth: countText.implicitWidth + 8
+                        implicitHeight: 16
+                        radius: 8
+                        color: Qt.rgba(120/255, 169/255, 255/255, 0.16)
+                        border.color: Qt.rgba(120/255, 169/255, 255/255, 0.32)
+                        border.width: 1
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Text {
+                            id: countText
+                            anchors.centerIn: parent
+                            text: NotificationService.count
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 10
+                            font.weight: Font.Bold
+                            color: Theme.highlight
+                        }
                     }
                 }
 
@@ -212,13 +266,18 @@ Item {
 
                 ScrollBar.vertical: ScrollBar {
                     policy: ScrollBar.AsNeeded
-                    width: 3
+                    width: 4
                     contentItem: Rectangle {
-                        implicitWidth: 3
-                        radius: 1.5
-                        color: parent.pressed ? "#555555" : (parent.hovered ? "#444444" : "#2e2e2e")
+                        implicitWidth: 4
+                        radius: 2
+                        color: parent.pressed ? Theme.highlight : (parent.hovered ? Qt.lighter(Theme.dark6, 1.3) : Qt.rgba(1, 1, 1, 0.22))
                         Behavior on color { ColorAnimation { duration: Theme.animFast } }
                     }
+                }
+
+                footer: Item {
+                    width: notifListView.width
+                    height: (notifListView.contentHeight > notifListView.height) ? 22 : 0
                 }
 
                 delegate: Item {
@@ -502,6 +561,92 @@ Item {
                                 }
                             }
                         }
+                    }
+                }
+            }
+
+            // Desvanecimiento inferior para sugerir continuidad de contenido
+            Rectangle {
+                id: bottomFade
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                height: 28
+                z: 5
+                visible: opacity > 0.01
+                opacity: (NotificationService.count > 0 && notifListView.contentHeight > notifListView.height + 6 && !notifListView.atYEnd) ? 1.0 : 0.0
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: "transparent" }
+                    GradientStop { position: 1.0; color: Theme.bgDark }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuad }
+                }
+            }
+
+            // Indicador interactivo flotante "... 󰅀" cuando hay más contenido debajo
+            Rectangle {
+                id: moreIndicator
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 2
+                z: 10
+                implicitWidth: moreRow.implicitWidth + 14
+                implicitHeight: 20
+                radius: 10
+                color: moreHover.containsMouse ? Theme.surfaceHover : Qt.rgba(24/255, 24/255, 24/255, 0.94)
+                border.color: moreHover.containsMouse ? Qt.lighter(Theme.highlight, 1.1) : Qt.rgba(1, 1, 1, 0.15)
+                border.width: 1
+
+                visible: opacity > 0.01
+                opacity: (NotificationService.count > 0 && notifListView.contentHeight > notifListView.height + 6 && !notifListView.atYEnd) ? 1.0 : 0.0
+
+                scale: moreHover.pressed ? 0.92 : (moreHover.containsMouse ? 1.04 : 1.0)
+
+                Behavior on opacity {
+                    NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuad }
+                }
+                Behavior on scale {
+                    NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuad }
+                }
+                Behavior on color {
+                    ColorAnimation { duration: Theme.animFast }
+                }
+                Behavior on border.color {
+                    ColorAnimation { duration: Theme.animFast }
+                }
+
+                Row {
+                    id: moreRow
+                    anchors.centerIn: parent
+                    spacing: 5
+
+                    Text {
+                        text: "•••"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 11
+                        font.weight: Font.Bold
+                        color: moreHover.containsMouse ? Theme.text : Theme.textSecondary
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    Text {
+                        text: "󰅀"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 11
+                        color: Theme.highlight
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
+
+                MouseArea {
+                    id: moreHover
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        notifListView.contentY = Math.min(notifListView.contentHeight - notifListView.height, notifListView.contentY + 90);
                     }
                 }
             }

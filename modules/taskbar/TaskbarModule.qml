@@ -210,14 +210,15 @@ Item {
 
     readonly property bool hasWindows: activeWindows.length > 0
 
+    Layout.alignment: Qt.AlignVCenter
     implicitWidth: contentRow.implicitWidth
-    implicitHeight: 26
+    implicitHeight: 28
     width: implicitWidth
     height: implicitHeight
 
     Row {
         id: contentRow
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.centerIn: parent
         spacing: 4
 
         Repeater {
@@ -228,14 +229,15 @@ Item {
                 required property var modelData
 
                 width: 26
-                height: 26
+                height: 28
                 implicitWidth: 26
-                implicitHeight: 26
+                implicitHeight: 28
 
                 // Icono a color de la aplicación
                 IconImage {
                     id: appIcon
                     anchors.centerIn: parent
+                    anchors.verticalCenterOffset: taskItem.modelData.isFocused ? -1.5 : 0
                     width: 17
                     height: 17
                     source: taskItem.modelData.iconSource
@@ -255,11 +257,19 @@ Item {
                     Behavior on opacity {
                         NumberAnimation { duration: Theme.animFast }
                     }
+
+                    Behavior on anchors.verticalCenterOffset {
+                        NumberAnimation {
+                            duration: Theme.animNormal
+                            easing.type: Easing.OutCubic
+                        }
+                    }
                 }
 
                 // Fallback si no tiene icono temático SVG/PNG
                 Text {
                     anchors.centerIn: parent
+                    anchors.verticalCenterOffset: taskItem.modelData.isFocused ? -1.5 : 0
                     visible: taskItem.modelData.iconSource === ""
                     text: ""
                     font.family: Theme.fontFamily
@@ -275,13 +285,20 @@ Item {
                             easing.overshoot: 1.4
                         }
                     }
+
+                    Behavior on anchors.verticalCenterOffset {
+                        NumberAnimation {
+                            duration: Theme.animNormal
+                            easing.type: Easing.OutCubic
+                        }
+                    }
                 }
 
                 // Línea indicadora iluminada en la base:
                 // SOLO aparece debajo de la ventana enfocada (sin marcos ni puntos adicionales)
                 Rectangle {
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 1.5
+                    anchors.bottomMargin: 2
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: taskItem.modelData.isFocused ? 12 : 0
                     height: 2

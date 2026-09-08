@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import "../../theme"
 import "../../components"
 import "../../services"
@@ -8,8 +9,7 @@ Item {
 
     readonly property bool isHovered: hoverArea.containsMouse || prevMouse.containsMouse || playMouse.containsMouse || nextMouse.containsMouse
 
-    // Progreso único de animación (0.0 = reposo, 1.0 = expandido en hover)
-    // Sincroniza al 100% la cápsula exterior y los controles interiores sin ningún lag
+    // Progreso único de animación de ancho (0.0 = reposo, 1.0 = expandido en hover)
     property real expandProgress: isHovered ? 1.0 : 0.0
     Behavior on expandProgress {
         NumberAnimation {
@@ -18,8 +18,19 @@ Item {
         }
     }
 
+    // Opacidad sincronizada de controles:
+    // Al entrar en hover, aparece suavemente en sincronía con la expansión.
+    // Al salir de hover, se desvanece con rapidez (100ms InQuad) antes de que la contracción recorte botones o deje aislada la barra separadora.
+    property real controlsOpacity: isHovered ? 1.0 : 0.0
+    Behavior on controlsOpacity {
+        NumberAnimation {
+            duration: root.isHovered ? Theme.animNormal : 100
+            easing.type: root.isHovered ? Easing.OutCubic : Easing.InQuad
+        }
+    }
+
     implicitWidth: Math.round(contentRow.implicitWidth)
-    implicitHeight: 26
+    implicitHeight: 28
     width: implicitWidth
     height: implicitHeight
 
@@ -52,7 +63,7 @@ Item {
     }
 
     // 2. Fila de contenido sincronizada (z: 1)
-    Row {
+    RowLayout {
         id: contentRow
         anchors.centerIn: parent
         spacing: 6
@@ -61,7 +72,7 @@ Item {
         // Icono de la Aplicación / Medios (YouTube, Spotify, Firefox, etc.)
         Text {
             id: appIcon
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.alignment: Qt.AlignVCenter
             text: MediaService.appIcon
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSize
@@ -75,40 +86,41 @@ Item {
         // Título de la pista / video
         Text {
             id: titleLabel
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.alignment: Qt.AlignVCenter
             text: MediaService.title
             font.family: Theme.fontFamily
             font.pixelSize: 11
             font.weight: Font.DemiBold
             color: Theme.text
             elide: Text.ElideRight
-            width: Math.min(implicitWidth, 130)
+            Layout.preferredWidth: Math.min(implicitWidth, 130)
         }
 
         // Nombre del Artista / Canal
         Text {
             id: artistLabel
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.alignment: Qt.AlignVCenter
             visible: MediaService.artist !== ""
             text: "•  " + MediaService.artist
             font.family: Theme.fontFamily
             font.pixelSize: 11
             color: Theme.textSecondary
             elide: Text.ElideRight
-            width: Math.min(implicitWidth, 110)
+            Layout.preferredWidth: Math.min(implicitWidth, 110)
         }
 
         // Contenedor de Controles interactivos:
-        // Su ancho y opacidad están ligados directamente a expandProgress,
-        // garantizando que la cápsula y los controles se muevan exactamente al mismo tiempo
+        // Layout.leftMargin se contrae a -6 a medida que expandProgress llega a 0,
+        // eliminando cualquier salto o separación residual al cerrarse.
         Item {
             id: controlsContainer
-            anchors.verticalCenter: parent.verticalCenter
-            width: Math.round((controlsRow.implicitWidth + 4) * root.expandProgress)
-            height: 26
+            Layout.alignment: Qt.AlignVCenter
+            Layout.preferredWidth: Math.round(controlsRow.implicitWidth * root.expandProgress)
+            Layout.preferredHeight: 26
+            Layout.leftMargin: Math.round(6 * root.expandProgress) - 6
             clip: true
-            opacity: root.expandProgress
-            visible: root.expandProgress > 0.01
+            opacity: root.controlsOpacity
+            visible: root.expandProgress > 0.001
 
             Row {
                 id: controlsRow
