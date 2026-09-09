@@ -57,12 +57,25 @@ Item {
             return;
         }
         if (root.navIndex === 1) {
-            if (root.isScanning) root.stopBtScan();
-            else root.refreshBtScan();
+            if (root.isScanning) {
+                root.stopBtScan();
+            } else {
+                root.hasCompletedScan = false;
+                root.refreshBtScan();
+            }
             return;
         }
         if (root.navIndex === 2) {
+            let willTurnOn = !BluetoothService.isEnabled;
             ControlCenterService.toggleBluetooth();
+            if (willTurnOn) {
+                root.hasCompletedScan = false;
+                root.isScanning = true;
+                enableScanTimer.restart();
+            } else {
+                root.stopBtScan();
+                root.hasCompletedScan = false;
+            }
             return;
         }
         let devIdx = root.navIndex - 3;
@@ -193,14 +206,78 @@ Item {
     property var cliDevices: []
     property var _accumulatedLines: []
     property bool isScanning: false
+    property bool hasCompletedScan: false
+
+    Timer {
+        id: enableScanTimer
+        interval: 650
+        repeat: false
+        onTriggered: {
+            if (BluetoothService.isEnabled && root.visible) {
+                root.refreshBtScan();
+            }
+        }
+    }
+
+    Timer {
+        id: scanPollTimer
+        interval: 2500
+        repeat: true
+        running: root.visible && root.isScanning && BluetoothService.isEnabled
+        onTriggered: {
+            if (!btScanProc.running) {
+                btScanProc.running = true;
+            }
+        }
+    }
+
+    Timer {
+        id: scanTimeoutTimer
+        interval: 10000
+        repeat: false
+        onTriggered: {
+            root.isScanning = false;
+            root.hasCompletedScan = true;
+            if (scanCtlProc.running) scanCtlProc.running = false;
+        }
+    }
+
+    Timer {
+        id: autoScanTimer
+        interval: 16000
+        running: root.visible && BluetoothService.isEnabled
+        repeat: true
+        onTriggered: {
+            if (!root.isScanning) {
+                root.refreshBtScan();
+            }
+        }
+    }
+
+    Connections {
+        target: BluetoothService
+        function onIsEnabledChanged() {
+            if (BluetoothService.isEnabled) {
+                if (root.visible) {
+                    root.hasCompletedScan = false;
+                    root.isScanning = true;
+                    enableScanTimer.restart();
+                }
+            } else {
+                root.stopBtScan();
+                root.hasCompletedScan = false;
+            }
+        }
+    }
 
     // Proceso para activar escaneo en vivo de nuevos dispositivos (Discovery)
     Process {
         id: scanCtlProc
-        command: ["bluetoothctl", "--timeout", "15", "scan", "on"]
+        command: ["bluetoothctl", "--timeout", "10", "scan", "on"]
         onStarted: root.isScanning = true
         onExited: {
             root.isScanning = false;
+            root.hasCompletedScan = true;
             if (btScanProc.running) btScanProc.running = false;
             btScanProc.running = true;
         }
@@ -209,7 +286,7 @@ Item {
     // Proceso de inspección de dispositivos (Conectados, Emparejados y Disponibles)
     Process {
         id: btScanProc
-        command: ["sh", "-c", "conn=$(bluetoothctl devices Connected 2>/dev/null | awk '{print $2}'); paired=$(bluetoothctl devices Paired 2>/dev/null | awk '{print $2}'); bluetoothctl devices 2>/dev/null | while read -r tag mac name; do [ \"$tag\" = \"Device\" ] || continue; is_conn=$(echo \"$conn\" | grep -Fq \"$mac\" && echo 'yes' || echo 'no'); is_paired=$(echo \"$paired\" | grep -Fq \"$mac\" && echo 'yes' || echo 'no'); echo \"$is_conn|$is_paired|$mac|$name\"; done"]
+        command: ["sh", "-c", "conn=$(bluetoothctl devices Connected 2>/dev/null | awk '{print $2}'); paired=$(bluetoothctl devices Paired 2>/dev/null | awk '{print $2}'); (bluetoothctl devices Paired 2>/dev/null; bluetoothctl devices 2>/dev/null) | awk '!seen[$2]++' | while read -r tag mac name; do [ \"$tag\" = \"Device\" ] || continue; is_conn=$(echo \"$conn\" | grep -Fq \"$mac\" && echo 'yes' || echo 'no'); is_paired=$(echo \"$paired\" | grep -Fq \"$mac\" && echo 'yes' || echo 'no'); echo \"$is_conn|$is_paired|$mac|$name\"; done"]
         onStarted: {
             root._accumulatedLines = [];
         }
@@ -229,6 +306,12 @@ Item {
             root.parseCliLines(root._accumulatedLines);
             ControlCenterService.refreshBluetoothBatteries();
         }
+    }
+
+    function isMacAddress(str) {
+        if (!str) return false;
+        let s = str.trim();
+        return /^([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}$/.test(s) || /^[0-9a-fA-F]{12}$/.test(s);
     }
 
     function parseCliLines(lines) {
@@ -259,6 +342,8 @@ Item {
     function refreshBtScan() {
         if (!BluetoothService.isEnabled) return;
         root.isScanning = true;
+        scanTimeoutTimer.restart();
+
         if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) {
             Bluetooth.defaultAdapter.discovering = true;
         }
@@ -271,30 +356,44 @@ Item {
 
     function stopBtScan() {
         root.isScanning = false;
+        root.hasCompletedScan = true;
+        scanTimeoutTimer.stop();
         if (scanCtlProc.running) scanCtlProc.running = false;
-        if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) {
+        if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled && Bluetooth.defaultAdapter.discovering) {
             Bluetooth.defaultAdapter.discovering = false;
         }
     }
 
-    Component.onCompleted: refreshBtScan()
+    Component.onCompleted: {
+        if (BluetoothService.isEnabled) {
+            root.hasCompletedScan = false;
+            root.isScanning = true;
+            enableScanTimer.restart();
+        }
+    }
 
     onVisibleChanged: {
         root.isKeyNavActive = false;
         root.navIndex = 0;
         root.passkeyNavIndex = 1;
         if (visible) {
-            refreshBtScan();
             ControlCenterService.refreshBluetoothBatteries();
+            if (BluetoothService.isEnabled) {
+                root.hasCompletedScan = false;
+                root.isScanning = true;
+                enableScanTimer.restart();
+            } else {
+                root.hasCompletedScan = false;
+                root.isScanning = false;
+            }
             if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) {
                 Bluetooth.defaultAdapter.discoverable = true;
-                Bluetooth.defaultAdapter.discovering = true;
             }
         } else {
-            stopBtScan();
+            root.stopBtScan();
+            enableScanTimer.stop();
             if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled) {
                 Bluetooth.defaultAdapter.discoverable = false;
-                Bluetooth.defaultAdapter.discovering = false;
             }
         }
     }
@@ -347,7 +446,13 @@ Item {
 
     // 2. Dispositivos Disponibles (Descubiertos en el aire sin emparejar ni conectar)
     readonly property var availableDevices: {
-        let list = allDevices.filter(d => d && !d.paired && !d.connected && d.name && d.name.trim() !== "" && !d.name.includes("-") && d.name !== d.address);
+        let list = allDevices.filter(d => {
+            if (!d || d.paired || d.connected) return false;
+            let name = (d.name || d.deviceName || "").trim();
+            if (name === "" || root.isMacAddress(name)) return false;
+            if (name.toLowerCase() === (d.address || "").toLowerCase()) return false;
+            return true;
+        });
         list.sort((a, b) => {
             let nameA = (a.name || a.deviceName || "").toLowerCase();
             let nameB = (b.name || b.deviceName || "").toLowerCase();
@@ -475,6 +580,7 @@ Item {
                         if (root.isScanning) {
                             root.stopBtScan();
                         } else {
+                            root.hasCompletedScan = false;
                             root.refreshBtScan();
                         }
                     }
@@ -514,7 +620,18 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: ControlCenterService.toggleBluetooth()
+                    onClicked: {
+                        let willTurnOn = !BluetoothService.isEnabled;
+                        ControlCenterService.toggleBluetooth();
+                        if (willTurnOn) {
+                            root.hasCompletedScan = false;
+                            root.isScanning = true;
+                            enableScanTimer.restart();
+                        } else {
+                            root.stopBtScan();
+                            root.hasCompletedScan = false;
+                        }
+                    }
                 }
             }
         }
@@ -718,11 +835,41 @@ Item {
                 }
             }
 
-            // Estado 2: Lista interactiva de dispositivos
+            // Estado 2: Buscando Dispositivos / Sin Dispositivos
+            ColumnLayout {
+                anchors.centerIn: parent
+                spacing: 6
+                visible: BluetoothService.isEnabled && root.pairedDevices.length === 0 && root.availableDevices.length === 0
+
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: (!root.hasCompletedScan || root.isScanning) ? "󰑐" : "󰂲"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 22
+                    color: (!root.hasCompletedScan || root.isScanning) ? Theme.wsActiveColor : Theme.textMuted
+
+                    RotationAnimator on rotation {
+                        from: 0
+                        to: 360
+                        duration: 1200
+                        loops: Animation.Infinite
+                        running: (!root.hasCompletedScan || root.isScanning)
+                    }
+                }
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: (!root.hasCompletedScan || root.isScanning) ? "Buscando dispositivos..." : "No se encontraron dispositivos"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 11
+                    color: Theme.textSecondary
+                }
+            }
+
+            // Estado 3: Lista interactiva de dispositivos
             ScrollView {
                 id: devScroll
                 anchors.fill: parent
-                visible: BluetoothService.isEnabled
+                visible: BluetoothService.isEnabled && (root.pairedDevices.length > 0 || root.availableDevices.length > 0)
                 ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
                 ScrollBar.vertical.policy: ScrollBar.AsNeeded
                 contentWidth: availableWidth
@@ -952,7 +1099,7 @@ Item {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: root.isScanning ? "Buscando dispositivos..." : "Sin dispositivos cerca"
+                                text: (!root.hasCompletedScan || root.isScanning) ? "Buscando dispositivos..." : "Sin dispositivos cerca"
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 10
                                 color: Theme.textSecondary
