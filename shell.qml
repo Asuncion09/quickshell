@@ -172,11 +172,6 @@ ShellRoot {
 
     Variants {
         model: Quickshell.screens
-        CriticalBatteryAlert {}
-    }
-
-    Variants {
-        model: Quickshell.screens
         WindowSwitcher {}
     }
 }

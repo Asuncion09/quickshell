@@ -11,7 +11,13 @@ Item {
     id: root
 
     property bool isPillHovered: false
-    readonly property bool isMediaHovered: (!LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible) && (isPillHovered || mediaView.isHovered)
+    readonly property bool isBatteryToast: notificationToastView.isBatteryToast && NotificationService.isToastActive
+    readonly property bool isBatteryAlertActive: batteryAlertIslandView.isActive
+    readonly property bool isBatteryAlertDisplaying: batteryAlertIslandView.isActive && !LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible
+    readonly property color batteryBorderColor: batteryAlertIslandView.alertBorderColor
+    readonly property color batteryBgColor: batteryAlertIslandView.alertBgColor
+    readonly property real batteryBorderWidth: batteryAlertIslandView.alertBorderWidth
+    readonly property bool isMediaHovered: (!LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible && !batteryAlertIslandView.isActive) && (isPillHovered || mediaView.isHovered)
 
     // Estados para control manual y temporizador de gracia
     property bool forceClock: false
@@ -42,6 +48,7 @@ Item {
     // 5. Si está en pausa y el cursor está encima de la música (Regla 1: Anti-frustración) -> Multimedia
     // 6. Si está en pausa y corre el temporizador de gracia (Regla 2: 5s grace period) -> Multimedia
     readonly property bool isMediaActive: {
+        if (batteryAlertIslandView.isActive) return false;
         if (!MediaService.hasMedia || MediaService.title === "") return false;
         if (root.forceClock) return false;
         if (MediaService.isPlaying) return true;
@@ -144,7 +151,7 @@ Item {
     }
 
     function handleWheel() {
-        if (LauncherService.isOpen || NotificationService.isCenterOpen || OsdService.isVisible) return;
+        if (LauncherService.isOpen || NotificationService.isCenterOpen || OsdService.isVisible || batteryAlertIslandView.isActive) return;
         if (root._wheelLocked) return;
         root._wheelLocked = true;
         wheelCooldown.restart();
@@ -184,6 +191,9 @@ Item {
         if (NotificationService.isToastActive) {
             return notificationToastView.implicitWidth;
         }
+        if (batteryAlertIslandView.isActive) {
+            return batteryAlertIslandView.implicitWidth;
+        }
         return Math.round(isMediaActive ? mediaView.implicitWidth : clockView.implicitWidth);
     }
 
@@ -205,7 +215,7 @@ Item {
     clip: true
 
     Behavior on implicitWidth {
-        enabled: !root.isMediaActive || root._modeChanging || LauncherService.isOpen || NotificationService.isCenterOpen || OsdService.isVisible || NotificationService.isToastActive
+        enabled: !root.isMediaActive || root._modeChanging || LauncherService.isOpen || NotificationService.isCenterOpen || OsdService.isVisible || NotificationService.isToastActive || batteryAlertIslandView.isActive
         NumberAnimation {
             duration: Theme.animNormal
             easing.type: Easing.OutCubic
@@ -257,7 +267,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         width: implicitWidth
         height: 28
-        opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible && root.height <= 36) ? (root.isMediaActive ? 0.0 : 1.0) : 0.0
+        opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible && !batteryAlertIslandView.isActive && root.height <= 36) ? (root.isMediaActive ? 0.0 : 1.0) : 0.0
         scale: opacity > 0.8 ? 1.0 : 0.94
         transformOrigin: Item.Center
         visible: opacity > 0.01
@@ -288,13 +298,36 @@ Item {
         width: implicitWidth
         height: 28
         isContainerHovered: root.isPillHovered
-        opacity: (LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastActive || OsdService.isVisible) ? 0.0 : (root.isMediaActive ? 1.0 : 0.0)
+        opacity: (LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastActive || OsdService.isVisible || batteryAlertIslandView.isActive) ? 0.0 : (root.isMediaActive ? 1.0 : 0.0)
         visible: opacity > 0.01
 
         onDismissToClockRequested: root.dismissToClock()
         onWheelRequested: root.handleWheel()
 
         Behavior on opacity {
+            NumberAnimation {
+                duration: Theme.animFast
+                easing.type: Easing.OutQuad
+            }
+        }
+    }
+
+    // 2.5. Vista de Alerta de Batería Crítica / Confirmación de Cargador Conectado
+    BatteryAlertIslandView {
+        id: batteryAlertIslandView
+        anchors.centerIn: parent
+        isHovered: root.isPillHovered
+        opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible && batteryAlertIslandView.isActive) ? 1.0 : 0.0
+        scale: opacity > 0.5 ? 1.0 : 0.94
+        visible: opacity > 0.01
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Theme.animFast
+                easing.type: Easing.OutQuad
+            }
+        }
+        Behavior on scale {
             NumberAnimation {
                 duration: Theme.animFast
                 easing.type: Easing.OutQuad

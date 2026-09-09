@@ -11,6 +11,10 @@ Item {
     readonly property var currentToast: NotificationService.currentToast
     readonly property bool hasToast: currentToast !== null
     readonly property bool isExpanded: NotificationService.isToastExpanded
+    readonly property bool isBatteryToast: currentToast !== null && (
+        (currentToast.appName && (currentToast.appName.toLowerCase().includes("batería") || currentToast.appName.toLowerCase().includes("battery"))) ||
+        (currentToast.summary && (currentToast.summary.toLowerCase().includes("batería") || currentToast.summary.toLowerCase().includes("battery")))
+    )
 
     focus: isExpanded
 
@@ -45,8 +49,7 @@ Item {
         let appW = appNameText.implicitWidth + 5;
         let dotW = 8 + 5;
         let msgW = Math.min(240, messageLabel.implicitWidth);
-        let closeW = toastMouse.containsMouse ? 22 : 0;
-        return Math.min(380, Math.max(120, Math.round(baseW + urgencyW + appW + dotW + msgW + closeW)));
+        return Math.min(380, Math.max(120, Math.round(baseW + urgencyW + appW + dotW + msgW)));
     }
 
     // Absorbedor de clics cuando está expandida para evitar que pasen a dismissArea
@@ -109,7 +112,7 @@ Item {
             IconImage {
                 id: toastIconImg
                 anchors.fill: parent
-                source: root.currentToast ? (root.currentToast.appIcon || "") : ""
+                source: (root.currentToast && root.currentToast.appIcon && root.currentToast.appIcon.length > 2) ? root.currentToast.appIcon : ""
                 visible: source !== "" && status === Image.Ready
             }
 
@@ -117,14 +120,18 @@ Item {
                 anchors.centerIn: parent
                 text: {
                     if (!root.currentToast) return "󰂚";
+                    if (root.currentToast.appIcon && root.currentToast.appIcon.length <= 2) {
+                        return root.currentToast.appIcon;
+                    }
                     let a = (root.currentToast.appName || "").toLowerCase();
+                    if (a.includes("batería") || a.includes("battery")) return BatteryService.icon || "󰁻";
                     if (a.includes("antigravity") || a.includes("code") || a.includes("vscode")) return "󰅩";
                     if (a.includes("term") || a.includes("bash") || a.includes("shell") || a.includes("kitty") || a.includes("alacritty")) return "󰆍";
                     return "󰂚";
                 }
                 font.family: Theme.fontFamily
                 font.pixelSize: 12
-                color: (root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight
+                color: (!root.isExpanded && root.isBatteryToast) ? "#161616" : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight)
                 visible: !toastIconImg.visible
             }
         }
@@ -134,7 +141,7 @@ Item {
             implicitWidth: 5
             implicitHeight: 5
             radius: 2.5
-            color: Theme.critical
+            color: (!root.isExpanded && root.isBatteryToast) ? "#161616" : Theme.critical
             visible: root.currentToast && root.currentToast.urgency === 2
             Layout.alignment: Qt.AlignVCenter
         }
@@ -151,7 +158,7 @@ Item {
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
                 font.weight: Font.DemiBold
-                color: (root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight
+                color: (!root.isExpanded && root.isBatteryToast) ? "#161616" : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight)
                 Layout.alignment: Qt.AlignVCenter
             }
 
@@ -159,7 +166,7 @@ Item {
                 text: "•"
                 font.family: Theme.fontFamily
                 font.pixelSize: 9
-                color: Theme.textMuted
+                color: (!root.isExpanded && root.isBatteryToast) ? Qt.rgba(0, 0, 0, 0.45) : Theme.textMuted
                 Layout.alignment: Qt.AlignVCenter
             }
 
@@ -179,52 +186,24 @@ Item {
                         s = "Permiso Terminal";
                     }
 
+                    if (a.toLowerCase().includes("batería") || a.toLowerCase().includes("battery")) {
+                        if (s !== "") {
+                            return s.replace(/^⚠️\s*/, "");
+                        }
+                        return b;
+                    }
+
                     if (s !== "" && b !== "") return s + " — " + b;
                     return s !== "" ? s : b;
                 }
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
                 font.weight: Font.Normal
-                color: Theme.text
+                color: (!root.isExpanded && root.isBatteryToast) ? "#161616" : Theme.text
                 maximumLineCount: 1
                 elide: Text.ElideRight
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter
-            }
-        }
-
-        // Botón discreto de cierre rápido al pasar el cursor
-        Rectangle {
-            id: closeBtn
-            implicitWidth: toastMouse.containsMouse ? 16 : 0
-            implicitHeight: 16
-            radius: 8
-            clip: true
-            color: closeMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.20) : Qt.rgba(1, 1, 1, 0.08)
-            opacity: toastMouse.containsMouse ? 1.0 : 0.0
-            visible: implicitWidth > 0 || opacity > 0
-            Layout.alignment: Qt.AlignVCenter
-
-            Behavior on implicitWidth { NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuad } }
-            Behavior on opacity { NumberAnimation { duration: Theme.animFast } }
-            Behavior on color { ColorAnimation { duration: Theme.animFast } }
-
-            Text {
-                anchors.centerIn: parent
-                text: "󰅖"
-                font.family: Theme.fontFamily
-                font.pixelSize: 9
-                color: closeMouse.containsMouse ? "#ffffff" : Theme.textSecondary
-            }
-
-            MouseArea {
-                id: closeMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    NotificationService.dismissToast();
-                }
             }
         }
     }
@@ -259,7 +238,7 @@ Item {
                 IconImage {
                     id: expIconImg
                     anchors.fill: parent
-                    source: root.currentToast ? (root.currentToast.appIcon || "") : ""
+                    source: (root.currentToast && root.currentToast.appIcon && root.currentToast.appIcon.length > 2) ? root.currentToast.appIcon : ""
                     visible: source !== "" && status === Image.Ready
                 }
 
@@ -267,14 +246,18 @@ Item {
                     anchors.centerIn: parent
                     text: {
                         if (!root.currentToast) return "󰂚";
+                        if (root.currentToast.appIcon && root.currentToast.appIcon.length <= 2) {
+                            return root.currentToast.appIcon;
+                        }
                         let a = (root.currentToast.appName || "").toLowerCase();
+                        if (a.includes("batería") || a.includes("battery")) return BatteryService.icon || "󰁻";
                         if (a.includes("antigravity") || a.includes("code") || a.includes("vscode")) return "󰅩";
                         if (a.includes("term") || a.includes("bash") || a.includes("shell") || a.includes("kitty") || a.includes("alacritty")) return "󰆍";
                         return "󰂚";
                     }
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
-                    color: (root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight
+                    color: root.isBatteryToast ? Theme.warning : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight)
                     visible: !expIconImg.visible
                 }
             }
@@ -284,7 +267,7 @@ Item {
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
                 font.weight: Font.DemiBold
-                color: (root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight
+                color: root.isBatteryToast ? Theme.warning : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight)
                 Layout.alignment: Qt.AlignVCenter
             }
 

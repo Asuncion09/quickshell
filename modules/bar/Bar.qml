@@ -43,6 +43,7 @@ PanelWindow {
     WlrLayershell.exclusiveZone: Theme.barHeight
     WlrLayershell.keyboardFocus: (LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
+
     // Máscara de clics por hardware:
     // Cerrado: Solo las 5 cápsulas físicas reciben clics (100% permeable al escritorio).
     // Abierto: Se expande a pantalla completa para capturar cualquier clic exterior y cerrar el lanzador o el centro de control.
@@ -146,7 +147,23 @@ PanelWindow {
             Pill {
                 id: centerPill
                 animateSize: false
-                paddingHorizontal: (LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? 6 : ((NotificationService.isToastActive || OsdService.isVisible) ? 8 : Theme.centerPillPaddingHorizontal)
+                paddingHorizontal: (LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? 6 : ((NotificationService.isToastActive || OsdService.isVisible) ? (centerIsland.isBatteryToast ? 12 : 8) : (centerIsland.isBatteryAlertActive ? 13 : Theme.centerPillPaddingHorizontal))
+                customBorderColor: {
+                    if (centerIsland.isBatteryToast) return Theme.warning;
+                    if (centerIsland.isBatteryAlertActive) return centerIsland.batteryBorderColor;
+                    if (OsdService.isVisible && OsdService.mode === "volume" && OsdService.value > 100 && !OsdService.isMuted) return Qt.rgba(241/255, 196/255, 15/255, 0.45);
+                    return null;
+                }
+                customColor: {
+                    if (centerIsland.isBatteryToast && !NotificationService.isToastExpanded) return Theme.warning;
+                    if (centerIsland.isBatteryAlertDisplaying) return centerIsland.batteryBgColor;
+                    return null;
+                }
+                customBorderWidth: {
+                    if (centerIsland.isBatteryToast) return 1.0;
+                    if (centerIsland.isBatteryAlertActive) return centerIsland.batteryBorderWidth;
+                    return null;
+                }
 
                 CenterIslandModule {
                     id: centerIsland

@@ -76,11 +76,11 @@ Item {
 
         if (defaultSink && defaultSink.audio) {
             defaultSink.audio.volume = normalized;
-        } else {
-            if (wpctlProc.running) wpctlProc.running = false;
-            wpctlProc.command = ["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SINK@", normalized.toFixed(2)];
-            wpctlProc.running = true;
         }
+        if (wpctlProc.running) wpctlProc.running = false;
+        wpctlProc.command = ["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SINK@", normalized.toFixed(2)];
+        wpctlProc.running = true;
+
         if (root._readyForOsd) {
             root.volumeChangedTriggered(clamped, root.isMuted);
         }
@@ -95,7 +95,7 @@ Item {
             return;
         }
         let s = step || 5;
-        let next = Math.min(100, Math.floor(currentPercent / s) * s + s);
+        let next = Math.min(150, Math.floor(currentPercent / s) * s + s);
         setVolume(next);
     }
 

@@ -145,8 +145,8 @@ Item {
                     if (typeof NotificationService !== "undefined" && NotificationService) {
                         NotificationService.postInternalNotification(
                             "Batería",
-                            "⚠️ Batería Baja",
-                            `Te queda el ${p}% de energía.`,
+                            `${p}% restante`,
+                            "Conecta el cargador pronto.",
                             1,
                             Quickshell.iconPath("battery-low") || root.icon,
                             "/usr/share/sounds/freedesktop/stereo/dialog-warning.oga"

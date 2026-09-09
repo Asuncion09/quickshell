@@ -76,7 +76,7 @@ Item {
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            width: Math.max(0, Math.min(trackBg.width, Math.round(trackBg.width * (root.value / 100.0))))
+            width: Math.max(0, Math.min(trackBg.width, Math.round(trackBg.width * ((root.value - root.minValue) / Math.max(1, root.maxValue - root.minValue)))))
             radius: 12
             color: root.isMuted ? Theme.critical : root.accentColor
             opacity: root.isMuted ? 0.65 : 1.0
@@ -159,13 +159,14 @@ Item {
                 font.pixelSize: 11
                 font.weight: Font.DemiBold
                 color: {
+                    let isCovered = (root.value - root.minValue) >= ((root.maxValue - root.minValue) * 0.88);
                     if (root.isMuted) {
-                        return root.value >= 88 ? "#161616" : Theme.critical;
+                        return isCovered ? "#161616" : Theme.critical;
                     }
                     if (root.focused) {
-                        return root.value >= 88 ? "#161616" : Theme.highlight;
+                        return isCovered ? "#161616" : Theme.highlight;
                     }
-                    return root.value >= 88 ? "#161616" : Theme.text;
+                    return isCovered ? "#161616" : Theme.text;
                 }
                 verticalAlignment: Text.AlignVCenter
                 opacity: 0.95
@@ -187,7 +188,7 @@ Item {
             function updateFromMouse(posX) {
                 if (mouseArea.width <= 0) return;
                 let clamped = Math.max(0, Math.min(mouseArea.width, posX));
-                let rawPct = (clamped / mouseArea.width) * 100;
+                let rawPct = root.minValue + (clamped / mouseArea.width) * (root.maxValue - root.minValue);
                 let stepped = Math.round(rawPct / root.step) * root.step;
                 let finalVal = Math.max(root.minValue, Math.min(root.maxValue, stepped));
                 root.valueChangedByUser(finalVal);

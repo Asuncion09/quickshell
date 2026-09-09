@@ -13,6 +13,9 @@ Item {
     property int paddingVertical: Theme.pillPaddingVertical
     property alias borderColor: pillBackground.border.color
     property alias borderWidth: pillBackground.border.width
+    property var customColor: null
+    property var customBorderColor: null
+    property var customBorderWidth: null
     property int radius: Theme.pillRadius
     property bool clickable: false
     property string tooltipText: ""
@@ -85,9 +88,9 @@ Item {
         clip: true
 
         // En hover solo cambia suavemente de color sin cambiar de tamaño
-        color: (root.clickable && pillMouse.containsMouse) ? Theme.bgDarkAlt : Theme.bgDark
-        border.color: root.isExpanded ? Qt.rgba(1, 1, 1, 0.12) : Theme.borderDark
-        border.width: Theme.pillBorderWidth
+        color: root.customColor !== null ? root.customColor : ((root.clickable && pillMouse.containsMouse) ? Theme.bgDarkAlt : Theme.bgDark)
+        border.color: root.customBorderColor !== null ? root.customBorderColor : (root.isExpanded ? Qt.rgba(1, 1, 1, 0.12) : Theme.borderDark)
+        border.width: root.customBorderWidth !== null ? root.customBorderWidth : Theme.pillBorderWidth
         radius: root.radius
 
         Behavior on implicitWidth {
