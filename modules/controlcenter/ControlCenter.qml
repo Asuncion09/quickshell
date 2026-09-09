@@ -27,7 +27,7 @@ Item {
             case 2: NotificationService.toggleDnd(); break;
             case 3: ControlCenterService.toggleMicMute(); break;
             case 4: AudioService.toggleMute(); break;
-            case 5: BrightnessService.setBrightness(BrightnessService.brightnessPercent > 10 ? 10 : 100); break;
+            case 5: break; // No hacer nada en el slider de brillo (solo flechas izquierda/derecha)
             case 6: ControlCenterService.lockScreen(); break;
             case 7:
                 ControlCenterService.togglePowerMenu();
@@ -46,7 +46,7 @@ Item {
             case 2: NotificationService.toggleDnd(); break;
             case 3: ControlCenterService.toggleMicMute(); break;
             case 4: AudioService.toggleMute(); break;
-            case 5: BrightnessService.setBrightness(BrightnessService.brightnessPercent > 10 ? 10 : 100); break;
+            case 5: break; // No hacer nada en el slider de brillo (solo flechas izquierda/derecha)
             case 6: ControlCenterService.lockScreen(); break;
             case 7:
                 ControlCenterService.togglePowerMenu();
@@ -311,7 +311,7 @@ Item {
                         root.isKeyNavActive = true; // Hace visible la selección con estilo hover
                         return;                     // Detiene aquí para que Wi-Fi quede seleccionado en la primera pulsación
                     }
-                    // Si se presiona Espacio o Enter sin haber navegado, se ignora completamente para evitar misclick accidental
+                    // Si se presiona Espacio o Enter sin haber navegado, se ignora completamente para evitar apagar/activar por error
                     if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                         event.accepted = true;
                         return;
@@ -456,8 +456,8 @@ Item {
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 0
                                 icon: NetworkService.icon
                                 title: "Wi-Fi"
-                                subtitle: NetworkService.connectionName
-                                active: NetworkService.isConnected
+                                active: NetworkService.isWifiEnabled
+                                loading: NetworkService.isWifiEnabled && !NetworkService.isConnected
                                 hasSubmenu: true
                                 onClicked: ControlCenterService.toggleWifi()
                                 onSubmenuClicked: root.currentView = 1
@@ -469,7 +469,6 @@ Item {
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 1
                                 icon: BluetoothService.icon
                                 title: "Bluetooth"
-                                subtitle: BluetoothService.deviceName
                                 active: BluetoothService.isEnabled
                                 hasSubmenu: true
                                 onClicked: ControlCenterService.toggleBluetooth()
@@ -482,7 +481,6 @@ Item {
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 2
                                 icon: NotificationService.dnd ? "󰂛" : "󰂚"
                                 title: "No Molestar"
-                                subtitle: NotificationService.dnd ? "Silenciado" : "Desactivado"
                                 active: NotificationService.dnd
                                 hasSubmenu: false
                                 onClicked: NotificationService.toggleDnd()
@@ -494,7 +492,6 @@ Item {
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 3
                                 icon: ControlCenterService.isMicMuted ? "󰍭" : "󰍬"
                                 title: "Micrófono"
-                                subtitle: ControlCenterService.isMicMuted ? "Silenciado" : "Activo"
                                 active: !ControlCenterService.isMicMuted
                                 hasSubmenu: false
                                 onClicked: ControlCenterService.toggleMicMute()

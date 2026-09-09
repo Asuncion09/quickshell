@@ -194,6 +194,9 @@ Item {
         if (NotificationService.isCenterOpen) {
             return notificationCenterHeight;
         }
+        if (NotificationService.isToastActive && NotificationService.isToastExpanded) {
+            return notificationToastView.implicitHeight;
+        }
         return 28;
     }
 

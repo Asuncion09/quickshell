@@ -56,7 +56,17 @@ Item {
             return;
         }
         if (root.navIndex === 2) {
+            let willTurnOn = !NetworkService.isWifiEnabled;
             ControlCenterService.toggleWifi();
+            if (willTurnOn) {
+                root.hasCompletedScan = false;
+                root.isScanning = true;
+                root.scanAttempt = 0;
+                enableScanTimer.restart();
+            } else {
+                root.stopScan();
+                root.hasCompletedScan = false;
+            }
             return;
         }
         let netIdx = root.navIndex - 3;
@@ -231,10 +241,21 @@ Item {
     property var cliNetworks: []
     property var _accumulatedNetLines: []
     property bool isScanning: false
+    property bool hasCompletedScan: false
+    property int scanAttempt: 0
+
+    Timer {
+        id: enableScanTimer
+        interval: 1400
+        repeat: false
+        onTriggered: {
+            root.refreshScan();
+        }
+    }
 
     Process {
         id: scanProc
-        command: ["sh", "-c", "LC_ALL=C nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY device wifi list 2>/dev/null"]
+        command: ["sh", "-c", "LC_ALL=C nmcli device wifi rescan 2>/dev/null; sleep 0.8; LC_ALL=C nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY device wifi list 2>/dev/null"]
         onStarted: {
             root._accumulatedNetLines = [];
         }
@@ -251,10 +272,20 @@ Item {
             }
         }
         onExited: {
-            root.isScanning = false;
             root.parseCliLines(root._accumulatedNetLines);
             ControlCenterService.refreshSavedWifiConnections();
             root.syncKnownSaved();
+
+            if (root.cliNetworks.length > 0 || NetworkService.isConnected) {
+                root.hasCompletedScan = true;
+                root.isScanning = false;
+            } else if (root.scanAttempt < 2 && (Networking.wifiEnabled || NetworkService.isWifiEnabled)) {
+                root.scanAttempt++;
+                enableScanTimer.restart();
+            } else {
+                root.hasCompletedScan = true;
+                root.isScanning = false;
+            }
         }
     }
 
@@ -305,7 +336,9 @@ Item {
 
     function stopScan() {
         root.isScanning = false;
+        root.hasCompletedScan = true;
         if (scanProc.running) scanProc.running = false;
+        if (enableScanTimer.running) enableScanTimer.stop();
     }
 
     // Fusión de fuentes: muestra todas las redes del hardware detectadas por CLI y enriquece con nativas
@@ -337,13 +370,24 @@ Item {
         }
 
         // La red activa proviene con certeza de NetworkService.connectionName
-        let activeKey = (NetworkService.connectionName || "").trim().toLowerCase();
-        let hasActive = activeKey !== "" && activeKey !== "desconectado" && activeKey !== "wifi" && activeKey !== "ethernet" && activeKey !== "conectado";
+        let isActuallyConnected = NetworkService.isConnected && (NetworkService.isWifi || !NetworkService.isEthernet);
+        let activeKey = isActuallyConnected ? (NetworkService.connectionName || "").trim().toLowerCase() : "";
+        let isSpecialPlaceholder = activeKey === "" ||
+                                   activeKey === "desconectado" ||
+                                   activeKey === "desactivado" ||
+                                   activeKey === "buscando..." ||
+                                   activeKey === "buscando" ||
+                                   activeKey === "wifi" ||
+                                   activeKey === "ethernet" ||
+                                   activeKey === "conectado";
+        let hasActive = isActuallyConnected && !isSpecialPlaceholder;
 
         let list = Array.from(map.values()).map(item => {
             let itemKey = item.name.trim().toLowerCase();
             let isConn = false;
-            if (hasActive) {
+            if (!isActuallyConnected) {
+                isConn = false;
+            } else if (hasActive) {
                 isConn = (itemKey === activeKey);
             } else {
                 isConn = item.connected === true;
@@ -378,14 +422,24 @@ Item {
     function syncKnownSaved() {
         let next = Object.assign({}, knownSavedMap);
         let changed = false;
-        let active = (NetworkService.connectionName || "").trim().toLowerCase();
-        if (active && active !== "desconectado" && active !== "wifi" && active !== "ethernet" && active !== "conectado") {
+
+        let invalidKeys = ["buscando...", "buscando", "desconectado", "desactivado", "wifi", "ethernet", "conectado", ""];
+        for (let k = 0; k < invalidKeys.length; k++) {
+            if (next[invalidKeys[k]] !== undefined) {
+                delete next[invalidKeys[k]];
+                changed = true;
+            }
+        }
+
+        let isActuallyConnected = NetworkService.isConnected && (NetworkService.isWifi || !NetworkService.isEthernet);
+        let active = isActuallyConnected ? (NetworkService.connectionName || "").trim().toLowerCase() : "";
+        if (active && !invalidKeys.includes(active)) {
             if (!next[active]) { next[active] = true; changed = true; }
         }
         let list = ControlCenterService.savedWifiConnections || [];
         for (let i = 0; i < list.length; i++) {
             let s = (list[i] || "").trim().toLowerCase();
-            if (s && !next[s]) { next[s] = true; changed = true; }
+            if (s && !invalidKeys.includes(s) && !next[s]) { next[s] = true; changed = true; }
         }
         if (changed) knownSavedMap = next;
     }
@@ -393,6 +447,8 @@ Item {
     function isNetworkSaved(name) {
         if (!name) return false;
         let nTrim = name.trim().toLowerCase();
+        let invalid = ["buscando...", "buscando", "desconectado", "desactivado", "wifi", "ethernet", "conectado", ""];
+        if (invalid.includes(nTrim)) return false;
         if (knownSavedMap[nTrim] === true) return true;
         return ControlCenterService.isWifiSaved(name);
     }
@@ -400,6 +456,8 @@ Item {
     function markSaved(name) {
         if (!name) return;
         let nTrim = name.trim().toLowerCase();
+        let invalid = ["buscando...", "buscando", "desconectado", "desactivado", "wifi", "ethernet", "conectado", ""];
+        if (invalid.includes(nTrim)) return;
         if (knownSavedMap[nTrim] === true) return;
         let next = Object.assign({}, knownSavedMap);
         next[nTrim] = true;
@@ -505,6 +563,22 @@ Item {
     }
 
     Connections {
+        target: Networking
+        function onWifiEnabledChanged() {
+            if (Networking.wifiEnabled) {
+                root.hasCompletedScan = false;
+                root.isScanning = true;
+                root.scanAttempt = 0;
+                enableScanTimer.restart();
+            } else {
+                root.stopScan();
+                root.hasCompletedScan = false;
+                root.cliNetworks = [];
+            }
+        }
+    }
+
+    Connections {
         target: NetworkService
         function onConnectionNameChanged() {
             root.refreshScan();
@@ -533,12 +607,16 @@ Item {
                 implicitWidth: 28
                 implicitHeight: 28
                 radius: 14
-                color: (backMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 0)) ? Theme.surfaceHover : "transparent"
-                border.width: 0
+                readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 0
+                color: isKeyFocused ? "#2c2c2c" : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                border.width: isKeyFocused ? 1.5 : 0
+                border.color: Theme.highlight
 
                 scale: backMouse.pressed ? 0.90 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                Behavior on border.width { NumberAnimation { duration: 40 } }
+                Behavior on border.color { ColorAnimation { duration: 40 } }
+                Behavior on color { ColorAnimation { duration: backMouse.containsMouse ? Theme.animFast : 40 } }
 
                 Text {
                     anchors.centerIn: parent
@@ -546,9 +624,9 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 15
                     font.weight: Font.DemiBold
-                    color: (backMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 0)) ? Theme.text : Theme.textSecondary
+                    color: (backMouse.containsMouse || backBtn.isKeyFocused) ? Theme.text : Theme.textSecondary
 
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                    Behavior on color { ColorAnimation { duration: backMouse.containsMouse ? Theme.animFast : 40 } }
                 }
 
                 MouseArea {
@@ -580,15 +658,20 @@ Item {
 
             // Botón Recargar / Pausar escaneo (circular, sin borde agresivo en teclado)
             Rectangle {
+                id: refreshBtn
                 implicitWidth: 28
                 implicitHeight: 28
                 radius: 14
-                color: (refreshMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 1)) ? Theme.surfaceHover : "transparent"
-                border.width: 0
+                readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 1
+                color: isKeyFocused ? "#2c2c2c" : (refreshMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                border.width: isKeyFocused ? 1.5 : 0
+                border.color: Theme.highlight
 
                 scale: refreshMouse.pressed ? 0.90 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                Behavior on border.width { NumberAnimation { duration: 40 } }
+                Behavior on border.color { ColorAnimation { duration: 40 } }
+                Behavior on color { ColorAnimation { duration: refreshMouse.containsMouse ? Theme.animFast : 40 } }
 
                 Text {
                     anchors.centerIn: parent
@@ -599,10 +682,10 @@ Item {
                         if (root.isScanning) {
                             return refreshMouse.containsMouse ? Theme.critical : Theme.wsActiveColor;
                         }
-                        return (refreshMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 1)) ? Theme.wsActiveColor : Theme.textMuted;
+                        return (refreshMouse.containsMouse || refreshBtn.isKeyFocused) ? Theme.wsActiveColor : Theme.textMuted;
                     }
 
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                    Behavior on color { ColorAnimation { duration: refreshMouse.containsMouse ? Theme.animFast : 40 } }
                 }
 
                 MouseArea {
@@ -626,10 +709,13 @@ Item {
                 implicitWidth: 38
                 implicitHeight: 22
                 radius: 11
+                readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 2
                 color: (Networking.wifiEnabled || NetworkService.isConnected) ? Theme.wsActiveColor : Theme.surfaceBase
-                border.width: 0
-                border.color: (Networking.wifiEnabled || NetworkService.isConnected) ? "#ffffff" : Theme.wsActiveColor
+                border.width: isKeyFocused ? 1.5 : 0
+                border.color: (Networking.wifiEnabled || NetworkService.isConnected) ? "#ffffff" : Theme.highlight
 
+                Behavior on border.width { NumberAnimation { duration: 40 } }
+                Behavior on border.color { ColorAnimation { duration: 40 } }
                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                 // Perilla deslizante blanca
@@ -650,7 +736,19 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: ControlCenterService.toggleWifi()
+                    onClicked: {
+                        let willTurnOn = !NetworkService.isWifiEnabled;
+                        ControlCenterService.toggleWifi();
+                        if (willTurnOn) {
+                            root.hasCompletedScan = false;
+                            root.isScanning = true;
+                            root.scanAttempt = 0;
+                            enableScanTimer.restart();
+                        } else {
+                            root.stopScan();
+                            root.hasCompletedScan = false;
+                        }
+                    }
                 }
             }
         }
@@ -914,22 +1012,30 @@ Item {
                 }
             }
 
-            // Estado 2: Buscando Redes
+            // Estado 2: Buscando Redes / Sin Redes
             ColumnLayout {
                 anchors.centerIn: parent
-                spacing: 4
+                spacing: 6
                 visible: (Networking.wifiEnabled || NetworkService.isConnected) && root.displayNetworks.length === 0
 
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "󰖩"
+                    text: (!root.hasCompletedScan || root.isScanning) ? "󰑐" : "󰖩"
                     font.family: Theme.fontFamily
                     font.pixelSize: 22
-                    color: Theme.wsActiveColor
+                    color: (!root.hasCompletedScan || root.isScanning) ? Theme.wsActiveColor : Theme.textMuted
+
+                    RotationAnimator on rotation {
+                        from: 0
+                        to: 360
+                        duration: 1200
+                        loops: Animation.Infinite
+                        running: (!root.hasCompletedScan || root.isScanning)
+                    }
                 }
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: root.isScanning ? "Buscando redes..." : "No se encontraron redes"
+                    text: (!root.hasCompletedScan || root.isScanning) ? "Buscando redes..." : "No se encontraron redes"
                     font.family: Theme.fontFamily
                     font.pixelSize: 11
                     color: Theme.textSecondary
@@ -975,19 +1081,22 @@ Item {
                                 Layout.fillWidth: true
                                 implicitHeight: 34
                                 radius: 8
+                                readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === (3 + index)
                                 color: {
-                                    let isHovered = savedRowMouse.containsMouse || (root.isKeyNavActive && root.navIndex === (3 + index));
                                     if (modelData.connected) {
-                                        return isHovered ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.05);
+                                        return (savedRowMouse.containsMouse || isKeyFocused) ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.05);
                                     }
-                                    return isHovered ? Theme.surfaceHover : "transparent";
+                                    if (isKeyFocused) return "#2c2c2c";
+                                    return savedRowMouse.containsMouse ? Theme.surfaceHover : "transparent";
                                 }
-                                border.width: modelData.connected ? 1 : 0
-                                border.color: Qt.rgba(1, 1, 1, 0.08)
+                                border.width: isKeyFocused ? 1.5 : (modelData.connected ? 1 : 0)
+                                border.color: isKeyFocused ? (modelData.connected ? Qt.rgba(1, 1, 1, 0.85) : Theme.highlight) : Qt.rgba(1, 1, 1, 0.08)
 
                                 scale: savedRowMouse.pressed ? 0.98 : 1.0
                                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                                Behavior on border.width { NumberAnimation { duration: 40 } }
+                                Behavior on border.color { ColorAnimation { duration: 40 } }
+                                Behavior on color { ColorAnimation { duration: savedRowMouse.containsMouse ? Theme.animFast : 40 } }
 
                                 RowLayout {
                                     anchors.fill: parent
@@ -1138,7 +1247,7 @@ Item {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: root.isScanning ? "Buscando redes..." : "Sin redes cercanas"
+                                text: (!root.hasCompletedScan || root.isScanning) ? "Buscando redes..." : "Sin redes cercanas"
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 10
                                 color: Theme.textSecondary
@@ -1153,13 +1262,16 @@ Item {
                                 Layout.fillWidth: true
                                 implicitHeight: 34
                                 radius: 8
-                                color: (availNetMouse.containsMouse || (root.isKeyNavActive && root.navIndex === (3 + root.savedNetworks.length + index))) ? Theme.surfaceHover : "transparent"
-                                border.width: 0
-                                border.color: Theme.wsActiveColor
+                                readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === (3 + root.savedNetworks.length + index)
+                                color: isKeyFocused ? "#2c2c2c" : (availNetMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                                border.width: isKeyFocused ? 1.5 : 0
+                                border.color: Theme.highlight
 
                                 scale: availNetMouse.pressed ? 0.98 : 1.0
                                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                                Behavior on border.width { NumberAnimation { duration: 40 } }
+                                Behavior on border.color { ColorAnimation { duration: 40 } }
+                                Behavior on color { ColorAnimation { duration: availNetMouse.containsMouse ? Theme.animFast : 40 } }
 
                                 RowLayout {
                                     anchors.fill: parent

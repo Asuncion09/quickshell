@@ -10,6 +10,7 @@ Item {
     property string subtitle: "Estado"
     property bool active: false
     property bool hasSubmenu: false
+    property bool loading: false
 
     signal clicked()
     signal submenuClicked()
@@ -22,6 +23,11 @@ Item {
 
     // Hover unificado: cualquier zona activa hace que ambas partes reaccionen
     readonly property bool isAnyHovered: leftMouse.containsMouse || rightMouse.containsMouse
+    property bool wasHovered: false
+    onIsAnyHoveredChanged: {
+        if (isAnyHovered) wasHovered = true;
+        else Qt.callLater(() => { wasHovered = false; });
+    }
 
     // Animación táctil al presionar (escala leve)
     scale: (leftMouse.pressed || rightMouse.pressed) ? 0.97 : 1.0
@@ -35,19 +41,32 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 12
-        border.width: 0
         clip: true
 
-        color: root.active
-               ? ((root.isAnyHovered || root.focused) ? Qt.lighter(Theme.wsActiveColor, 1.08) : Theme.wsActiveColor)
-               : ((root.isAnyHovered || root.focused) ? Theme.surfaceHover : Theme.surfaceBase)
+        border.width: root.focused ? 1.5 : 0
+        border.color: root.active ? Qt.rgba(1, 1, 1, 0.90) : Theme.highlight
 
+        color: {
+            if (root.active) {
+                return (root.isAnyHovered || root.focused) ? Qt.lighter(Theme.wsActiveColor, 1.08) : Theme.wsActiveColor;
+            }
+            if (root.focused) return "#2c2c2c";
+            if (root.isAnyHovered) return Theme.surfaceHover;
+            return Theme.surfaceBase;
+        }
+
+        Behavior on border.width {
+            NumberAnimation { duration: 40 }
+        }
+        Behavior on border.color {
+            ColorAnimation { duration: 40 }
+        }
         Behavior on color {
-            ColorAnimation { duration: Theme.animFast }
+            ColorAnimation { duration: (root.isAnyHovered || root.wasHovered) ? Theme.animFast : 40 }
         }
 
         // -------------------------------------------------------
-        // ZONA IZQUIERDA: Icono + Título (acción: toggle)
+        // ZONA IZQUIERDA: Icono + Título + Spinner cargando (acción: toggle)
         // -------------------------------------------------------
         Item {
             id: leftZone
@@ -57,7 +76,7 @@ Item {
             // Si hay submenú, la zona derecha toma 34px; si no, ocupa todo
             anchors.right: root.hasSubmenu ? divider.left : parent.right
 
-            Row {
+            RowLayout {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
                 anchors.leftMargin: 10
@@ -71,27 +90,48 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 16
                     color: root.active ? "#161616" : ((root.isAnyHovered || root.focused) ? Theme.text : Theme.textSecondary)
-                    anchors.verticalCenter: parent.verticalCenter
+                    Layout.alignment: Qt.AlignVCenter
 
                     Behavior on color {
-                        ColorAnimation { duration: Theme.animFast }
+                        ColorAnimation { duration: (root.isAnyHovered || root.wasHovered) ? Theme.animFast : 40 }
                     }
                 }
 
                 Text {
                     id: titleText
-                    width: parent.width - iconText.width - parent.spacing
                     text: root.title
                     font.family: Theme.fontFamily
                     font.pixelSize: 11
                     font.weight: Font.DemiBold
                     color: root.active ? "#161616" : Theme.text
                     elide: Text.ElideRight
-                    anchors.verticalCenter: parent.verticalCenter
+                    Layout.alignment: Qt.AlignVCenter
 
                     Behavior on color {
-                        ColorAnimation { duration: Theme.animFast }
+                        ColorAnimation { duration: (root.isAnyHovered || root.wasHovered) ? Theme.animFast : 40 }
                     }
+                }
+
+                Text {
+                    id: loadingIcon
+                    visible: root.loading
+                    text: "󰑐"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 11
+                    color: root.active ? "#161616" : Theme.wsActiveColor
+                    Layout.alignment: Qt.AlignVCenter
+
+                    RotationAnimator on rotation {
+                        from: 0
+                        to: 360
+                        duration: 1000
+                        loops: Animation.Infinite
+                        running: root.loading
+                    }
+                }
+
+                Item {
+                    Layout.fillWidth: true
                 }
             }
 
@@ -114,6 +154,8 @@ Item {
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             anchors.right: rightZone.left
+            anchors.topMargin: root.focused ? 1.5 : 0
+            anchors.bottomMargin: root.focused ? 1.5 : 0
 
             color: root.active
                    ? Qt.rgba(0, 0, 0, 0.18)
@@ -145,7 +187,7 @@ Item {
                 font.weight: Font.DemiBold
 
                 Behavior on anchors.horizontalCenterOffset {
-                    NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuad }
+                    NumberAnimation { duration: (root.isAnyHovered || root.wasHovered) ? Theme.animFast : 40; easing.type: Easing.OutQuad }
                 }
 
                 scale: rightMouse.pressed ? 0.88 : 1.0
@@ -160,10 +202,10 @@ Item {
                 opacity: root.active ? 0.85 : ((root.isAnyHovered || root.focused) ? 0.90 : 0.45)
 
                 Behavior on color {
-                    ColorAnimation { duration: Theme.animFast }
+                    ColorAnimation { duration: (root.isAnyHovered || root.wasHovered) ? Theme.animFast : 40 }
                 }
                 Behavior on opacity {
-                    NumberAnimation { duration: Theme.animFast }
+                    NumberAnimation { duration: (root.isAnyHovered || root.wasHovered) ? Theme.animFast : 40 }
                 }
             }
 

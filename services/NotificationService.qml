@@ -48,6 +48,7 @@ Item {
 
     // Notificación actual para la Dynamic Island (Toast efímero)
     property var currentToast: null
+    property bool isToastExpanded: false
     readonly property bool isToastActive: currentToast !== null && !isCenterOpen && !isLauncherOpen
 
     // Comprobación segura de estado de Launcher
@@ -74,6 +75,7 @@ Item {
         id: toastTimer
         interval: 4000
         onTriggered: {
+            root.isToastExpanded = false;
             root.currentToast = null;
         }
     }
@@ -83,14 +85,26 @@ Item {
     }
 
     function resumeToast() {
-        if (root.currentToast) {
+        if (root.currentToast && !root.isToastExpanded) {
             toastTimer.interval = 3500;
             toastTimer.restart();
         }
     }
 
+    function expandToast() {
+        if (!root.currentToast) return;
+        root.isToastExpanded = true;
+        root.pauseToast();
+    }
+
+    function collapseToast() {
+        root.isToastExpanded = false;
+        root.resumeToast();
+    }
+
     function dismissToast() {
         toastTimer.stop();
+        root.isToastExpanded = false;
         root.currentToast = null;
     }
 
@@ -126,9 +140,10 @@ Item {
                 if (Quickshell.hasThemeIcon("utilities-terminal")) return Quickshell.iconPath("utilities-terminal");
             }
         }
-        return Quickshell.iconPath("com.visualstudio.code") ||
-               Quickshell.iconPath("dialog-information") ||
-               Quickshell.iconPath("preferences-desktop-notification") || "";
+        if (Quickshell.hasThemeIcon("dialog-information")) return Quickshell.iconPath("dialog-information");
+        if (Quickshell.hasThemeIcon("preferences-desktop-notification")) return Quickshell.iconPath("preferences-desktop-notification");
+        if (Quickshell.hasThemeIcon("notification-symbolic")) return Quickshell.iconPath("notification-symbolic");
+        return "";
     }
 
     function handleNotification(notif) {
@@ -174,6 +189,7 @@ Item {
         // Mostrar Toast si no está en modo DND (No Molestar) o si es urgente/crítica
         // También omitir si el centro de notificaciones ya está abierto
         if (!root.isCenterOpen && (!root.dnd || notif.urgency === 2)) {
+            root.isToastExpanded = false;
             root.currentToast = item;
             toastTimer.restart();
         }
@@ -207,6 +223,7 @@ Item {
         root.notifications = list;
 
         if (!root.isCenterOpen && (!root.dnd || urgency === 2)) {
+            root.isToastExpanded = false;
             root.currentToast = item;
             toastTimer.restart();
         }
@@ -265,11 +282,20 @@ Item {
 
     Process {
         id: hyprFocusProc
+        stdout: SplitParser {
+            onRead: data => console.warn("[NotificationService] hyprFocusProc stdout:", data.trim())
+        }
+        stderr: SplitParser {
+            onRead: data => console.warn("[NotificationService] hyprFocusProc stderr:", data.trim())
+        }
     }
 
-    function focusAppWindow(appName, desktopEntry) {
+    function focusAppWindow(appName, desktopEntry, summary) {
         let targetApp = (appName || "").toLowerCase();
         let targetEntry = (desktopEntry || "").toLowerCase();
+        let targetSummary = (summary || "").toLowerCase();
+
+        console.warn("[NotificationService] focusAppWindow buscando ventana para:", appName, "| desktopEntry:", desktopEntry, "| summary:", summary);
 
         let foundAddr = "";
         let foundTop = null;
@@ -278,61 +304,60 @@ Item {
         if (Hyprland.toplevels && Hyprland.toplevels.values) {
             let toplevels = Hyprland.toplevels.values;
 
-            // FASE 1: Coincidencia estricta por clase / appId de la aplicación real (NUNCA por título)
+            // FASE 1: Coincidencia por clase o appId
             for (let i = 0; i < toplevels.length; i++) {
                 let top = toplevels[i];
                 let ipc = top.lastIpcObject || {};
                 let cls = (ipc.class || (top.wayland ? top.wayland.appId : "") || "").toLowerCase();
                 let initialCls = (ipc.initialClass || "").toLowerCase();
 
+                let cleanCls = cls.replace(/[^a-z0-9]/g, "");
+                let cleanInitCls = initialCls.replace(/[^a-z0-9]/g, "");
+                let cleanApp = targetApp.replace(/[^a-z0-9]/g, "");
+                let cleanEntry = targetEntry.replace(/[^a-z0-9]/g, "");
+
                 let match = false;
-                if (targetEntry !== "" && (cls === targetEntry || initialCls === targetEntry || cls.includes(targetEntry))) {
-                    match = true;
-                } else if (targetApp.includes("antigravity")) {
-                    if (cls.includes("antigravity") || initialCls.includes("antigravity")) {
+                if (cleanEntry !== "") {
+                    if (cleanCls === cleanEntry || cleanInitCls === cleanEntry || cleanCls.includes(cleanEntry) || cleanEntry.includes(cleanCls)) {
                         match = true;
                     }
-                } else if (targetApp.includes("code") || targetApp.includes("vscode")) {
-                    if (cls.includes("code") || initialCls.includes("code") || cls.includes("vscode")) {
-                        match = true;
+                }
+
+                if (!match && cleanApp !== "") {
+                    if (cleanApp.includes("antigravity") && (cleanCls.includes("antigravity") || cleanInitCls.includes("antigravity"))) match = true;
+                    else if ((cleanApp.includes("code") || cleanApp.includes("vscode")) && (cleanCls.includes("code") || cleanInitCls.includes("code"))) match = true;
+                    else if (cleanApp.includes("ghostty") && (cleanCls.includes("ghostty") || cleanInitCls.includes("ghostty"))) match = true;
+                    else if (cleanApp.includes("spotify") && (cleanCls.includes("spotify") || cleanInitCls.includes("spotify"))) match = true;
+                    else if (cleanApp.includes("zen") && (cleanCls.includes("zen") || cleanInitCls.includes("zen"))) match = true;
+                    else if (cleanApp.includes("firefox") && (cleanCls.includes("firefox") || cleanInitCls.includes("firefox"))) match = true;
+                    else if (cleanApp.includes("steam") && (cleanCls.includes("steam") || cleanInitCls.includes("steam"))) match = true;
+                    else if (cleanApp.includes("telegram") && (cleanCls.includes("telegram") || cleanInitCls.includes("telegram"))) match = true;
+                    else if (cleanApp.includes("discord") && (cleanCls.includes("discord") || cleanCls.includes("vesktop") || cleanInitCls.includes("discord"))) match = true;
+                    else if ((cleanApp.includes("nautilus") || cleanApp.includes("files") || cleanApp.includes("archivo")) && (cleanCls.includes("nautilus") || cleanCls.includes("files"))) match = true;
+                    else if ((cleanApp.includes("chrome") || cleanApp.includes("chromium")) && (cleanCls.includes("chrome") || cleanCls.includes("chromium"))) match = true;
+                    else if (cleanCls === cleanApp || cleanInitCls === cleanApp || cleanCls.includes(cleanApp) || (cleanApp.length >= 4 && cleanApp.includes(cleanCls))) match = true;
+                }
+
+                // Fallback para notificaciones de script/notify-send usando el summary
+                if (!match && (cleanApp.includes("notifysend") || cleanApp.includes("sistema") || cleanApp.includes("system") || cleanApp === "")) {
+                    let cleanSum = targetSummary.replace(/[^a-z0-9]/g, "");
+                    if (cleanSum.length >= 3) {
+                        if (cleanSum.includes("antigravity") && (cleanCls.includes("antigravity") || cleanInitCls.includes("antigravity"))) match = true;
+                        else if ((cleanSum.includes("code") || cleanSum.includes("vscode")) && (cleanCls.includes("code") || cleanInitCls.includes("code"))) match = true;
+                        else if (cleanSum.includes("ghostty") && (cleanCls.includes("ghostty") || cleanInitCls.includes("ghostty"))) match = true;
+                        else if (cleanCls.includes(cleanSum) || cleanInitCls.includes(cleanSum)) match = true;
                     }
-                } else if (targetApp.includes("ghostty")) {
-                    if (cls.includes("ghostty") || initialCls.includes("ghostty")) {
-                        match = true;
-                    }
-                } else if (targetApp.includes("spotify")) {
-                    if (cls.includes("spotify") || initialCls.includes("spotify")) {
-                        match = true;
-                    }
-                } else if (targetApp.includes("zen")) {
-                    if (cls.includes("zen") || initialCls.includes("zen")) {
-                        match = true;
-                    }
-                } else if (targetApp.includes("firefox")) {
-                    if (cls.includes("firefox") || initialCls.includes("firefox")) {
-                        match = true;
-                    }
-                } else if (targetApp.includes("nautilus") || targetApp.includes("files")) {
-                    if (cls.includes("nautilus") || cls.includes("files")) {
-                        match = true;
-                    }
-                } else if (targetApp.includes("chrome") || targetApp.includes("chromium")) {
-                    if (cls.includes("chrome") || cls.includes("chromium")) {
-                        match = true;
-                    }
-                } else if (targetApp !== "" && (cls === targetApp || initialCls === targetApp || cls.includes(targetApp))) {
-                    match = true;
                 }
 
                 if (match) {
                     foundAddr = top.address || "";
                     foundTop = top;
-                    foundWs = top.workspace ? top.workspace.id : (ipc.workspace ? ipc.workspace.id : 0);
+                    foundWs = (top.workspace && top.workspace.id) ? top.workspace.id : (ipc.workspace ? (ipc.workspace.id || ipc.workspace) : 0);
                     break;
                 }
             }
 
-            // FASE 2: Solo si ninguna clase coincidió, buscar por título EXCLUYENDO emuladores de terminal
+            // FASE 2: Coincidencia por título si la clase no coincidió (excluyendo emuladores de terminal)
             if (!foundTop) {
                 for (let i = 0; i < toplevels.length; i++) {
                     let top = toplevels[i];
@@ -340,20 +365,25 @@ Item {
                     let cls = (ipc.class || (top.wayland ? top.wayland.appId : "") || "").toLowerCase();
                     let title = (top.title || ipc.title || "").toLowerCase();
 
-                    // Ignorar terminales (ej. Ghostty con ruta ~/Downloads/Antigravity IDE)
                     let isTerminal = cls.includes("ghostty") || cls.includes("kitty") || cls.includes("alacritty") || cls.includes("foot") || cls.includes("terminal");
                     if (isTerminal && !targetApp.includes("ghostty") && !targetApp.includes("term") && !targetApp.includes("kitty")) {
                         continue;
                     }
 
-                    if (targetApp !== "" && title.includes(targetApp)) {
+                    if (targetApp !== "" && !targetApp.includes("notifysend") && title.includes(targetApp)) {
                         foundAddr = top.address || "";
                         foundTop = top;
-                        foundWs = top.workspace ? top.workspace.id : (ipc.workspace ? ipc.workspace.id : 0);
+                        foundWs = (top.workspace && top.workspace.id) ? top.workspace.id : (ipc.workspace ? (ipc.workspace.id || ipc.workspace) : 0);
                         break;
                     }
                 }
             }
+        }
+
+        if (foundAddr !== "") {
+            console.warn("[NotificationService] Ventana encontrada:", foundAddr, "| en workspace:", foundWs);
+        } else {
+            console.warn("[NotificationService] No se encontró ventana activa para:", appName, "| desktopEntry:", desktopEntry, "| summary:", summary);
         }
 
         // 1. Activar vía protocolo Wayland si está soportado
@@ -361,10 +391,26 @@ Item {
             foundTop.wayland.activate();
         }
 
-        // 2. Enfocar ventana y asegurar el cambio al espacio de trabajo correspondiente
+        // 2. Enfocar ventana y cambiar al workspace correspondiente vía Hyprland Lua
         if (foundAddr !== "") {
+            let cleanAddr = foundAddr.startsWith("0x") ? foundAddr : ("0x" + foundAddr);
+            let ws = (foundWs && foundWs > 0) ? foundWs : 0;
+
+            let luaCmd = "local ws = " + ws + "; "
+                       + "local addr = \"" + cleanAddr + "\"; "
+                       + "if ws > 0 then hl.dispatch(hl.dsp.focus({ workspace = ws })) end; "
+                       + "hl.dispatch(hl.dsp.focus({ window = \"address:\" .. addr })); "
+                       + "for _, w in ipairs(hl.get_windows()) do "
+                       + "  if w.address:lower() == addr:lower() and w.at and w.size then "
+                       + "    local cx = math.floor(w.at.x + w.size.x / 2); "
+                       + "    local cy = math.floor(w.at.y + w.size.y / 2); "
+                       + "    hl.dispatch(hl.dsp.cursor.move({ x = cx, y = cy })); "
+                       + "    break; "
+                       + "  end; "
+                       + "end;";
+
             if (hyprFocusProc.running) hyprFocusProc.running = false;
-            hyprFocusProc.command = ["hyprctl", "repl", "hl.dispatch(hl.dsp.focus({ window = \"address:" + foundAddr + "\" }))"];
+            hyprFocusProc.command = ["hyprctl", "repl", luaCmd];
             hyprFocusProc.running = true;
             return true;
         }
@@ -373,11 +419,15 @@ Item {
     }
 
     function activateNotification(id) {
-        let notif = root.notifications.find(n => n.id === id);
-        if (!notif) return;
+        let notif = root.notifications.find(n => n.id == id) || (root.currentToast && root.currentToast.id == id ? root.currentToast : null);
+        if (!notif) {
+            console.warn("[NotificationService] activateNotification: no se encontró notificación con id:", id);
+            return;
+        }
 
         let appName = notif.appName || "";
-        let desktopEntry = (notif.ref && notif.ref.desktopEntry) ? notif.ref.desktopEntry : "";
+        let desktopEntry = (notif.ref && notif.ref.desktopEntry) ? notif.ref.desktopEntry : (notif.desktopEntry || "");
+        let summary = notif.summary || "";
 
         // 1. Invocar la acción predeterminada ("default") si la app la registró
         try {
@@ -385,27 +435,34 @@ Item {
                 notif.ref.invokeAction("default");
             }
         } catch (e) {
-            console.log("[NotificationService] Error al invocar acción default:", e);
+            console.warn("[NotificationService] Error al invocar acción default:", e);
         }
 
-        // 2. Enfocar la ventana de la app en Hyprland y cambiar a su workspace
-        if (appName !== "" || desktopEntry !== "") {
-            root.focusAppWindow(appName, desktopEntry);
-        }
-
-        // 3. Cerrar el centro de notificaciones si estaba abierto
+        // 2. Cerrar el centro de notificaciones y la cápsula
         if (root.isCenterOpen) {
             root.closeCenter();
         }
+        root.dismissToast();
 
-        // 4. Descartar la notificación
+        // 3. Enfocar la ventana de la app en Hyprland y cambiar a su workspace
+        if (appName !== "" || desktopEntry !== "" || summary !== "") {
+            root.focusAppWindow(appName, desktopEntry, summary);
+        }
+
+        // 4. Descartar la notificación del registro
         root.dismiss(id);
     }
 
     function invokeAction(id, action) {
-        let notif = root.notifications.find(n => n.id === id);
-        let appName = notif ? (notif.appName || "") : "";
-        let desktopEntry = (notif && notif.ref && notif.ref.desktopEntry) ? notif.ref.desktopEntry : "";
+        let notif = root.notifications.find(n => n.id == id) || (root.currentToast && root.currentToast.id == id ? root.currentToast : null);
+        if (!notif) {
+            console.warn("[NotificationService] invokeAction: no se encontró notificación con id:", id);
+            return;
+        }
+
+        let appName = notif.appName || "";
+        let desktopEntry = (notif.ref && notif.ref.desktopEntry) ? notif.ref.desktopEntry : (notif.desktopEntry || "");
+        let summary = notif.summary || "";
 
         try {
             if (action && typeof action.invoke === "function") {
@@ -417,17 +474,18 @@ Item {
                 }
             }
         } catch (e) {
-            console.log("[NotificationService] Error al invocar acción:", e);
+            console.warn("[NotificationService] Error al invocar acción:", e);
         }
 
-        // Enfocar la ventana de la aplicación que emitió la notificación
-        if (appName !== "" || desktopEntry !== "") {
-            root.focusAppWindow(appName, desktopEntry);
-        }
-
-        // Cerrar el centro de notificaciones para mostrar directamente la ventana enfocada
+        // Cerrar el centro de notificaciones y el toast
         if (root.isCenterOpen) {
             root.closeCenter();
+        }
+        root.dismissToast();
+
+        // Enfocar la ventana de la aplicación que emitió la notificación
+        if (appName !== "" || desktopEntry !== "" || summary !== "") {
+            root.focusAppWindow(appName, desktopEntry, summary);
         }
 
         root.dismiss(id);

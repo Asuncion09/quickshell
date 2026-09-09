@@ -73,6 +73,13 @@ Item {
         return root._sysConnected;
     }
 
+    readonly property bool isWifiEnabled: {
+        if (typeof Networking !== "undefined" && Networking.wifiEnabled !== undefined) {
+            return Networking.wifiEnabled;
+        }
+        return isConnected || root._sysIsWifi;
+    }
+
     readonly property bool isWifi: {
         if (Networking.devices && Networking.devices.values) {
             let devs = Networking.devices.values;
@@ -101,6 +108,7 @@ Item {
         if (isEthernet) return "";
         if (isWifi) return "󰖩";
         if (isConnected) return "󰖩";
+        if (isWifiEnabled) return "󰖩";
         return "󰖪";
     }
 
@@ -115,6 +123,9 @@ Item {
     }
 
     readonly property string connectionName: {
+        if (!isWifiEnabled && !isEthernet) return "Desactivado";
+        if (!isConnected) return isWifiEnabled ? "Buscando..." : "Desactivado";
+
         // 1. Respaldo directo y preciso de nmcli / NetworkManager
         if (root._sysConnectionName && root._sysConnectionName !== "") {
             return root._sysConnectionName;
@@ -141,13 +152,13 @@ Item {
             }
         }
 
-        if (!isConnected) return "Desconectado";
         if (isWifi) return "WiFi";
         if (isEthernet) return "Ethernet";
         return "Conectado";
     }
 
     readonly property string tooltipText: {
+        if (!isWifiEnabled) return "WiFi: Desactivado";
         if (isWifi) return `WiFi: ${root.connectionName}`;
         if (isEthernet) return `Ethernet: ${root.connectionName}`;
         if (isConnected) return "Red: Conectado";

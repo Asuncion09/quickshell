@@ -50,8 +50,8 @@ PanelWindow {
         Region {
             x: 0
             y: 0
-            width: (LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen) ? (root.screen ? root.screen.width : 1920) : 0
-            height: (LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen) ? (root.screen ? root.screen.height : 1080) : 0
+            width: (LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? (root.screen ? root.screen.width : 1920) : 0
+            height: (LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? (root.screen ? root.screen.height : 1080) : 0
         }
         Region { item: leftPill }
         Region { item: taskbarPill }
@@ -70,6 +70,7 @@ PanelWindow {
                 if (LauncherService.isOpen) LauncherService.close();
                 if (ControlCenterService.isOpen) ControlCenterService.close();
                 if (NotificationService.isCenterOpen) NotificationService.closeCenter();
+                if (NotificationService.isToastExpanded) NotificationService.dismissToast();
             }
         }
     }
@@ -83,8 +84,8 @@ PanelWindow {
         MouseArea {
             id: dismissArea
             anchors.fill: parent
-            visible: LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen
-            enabled: LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen
+            visible: LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded
+            enabled: LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded
             z: 90
             acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
             onPressed: {
@@ -99,6 +100,10 @@ PanelWindow {
                 if (NotificationService.isCenterOpen) {
                     console.log("[Bar] Clic exterior detectado -> cerrando centro de notificaciones");
                     NotificationService.closeCenter();
+                }
+                if (NotificationService.isToastExpanded) {
+                    console.log("[Bar] Clic exterior detectado -> cerrando notificación expandida");
+                    NotificationService.dismissToast();
                 }
             }
         }
@@ -141,7 +146,7 @@ PanelWindow {
             Pill {
                 id: centerPill
                 animateSize: false
-                paddingHorizontal: (LauncherService.isOpen || NotificationService.isCenterOpen) ? 6 : ((NotificationService.isToastActive || OsdService.isVisible) ? 8 : Theme.centerPillPaddingHorizontal)
+                paddingHorizontal: (LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? 6 : ((NotificationService.isToastActive || OsdService.isVisible) ? 8 : Theme.centerPillPaddingHorizontal)
 
                 CenterIslandModule {
                     id: centerIsland

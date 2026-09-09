@@ -388,12 +388,16 @@ Item {
                 implicitWidth: 28
                 implicitHeight: 28
                 radius: 14
-                color: (backMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 0)) ? Theme.surfaceHover : "transparent"
-                border.width: 0
+                readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 0
+                color: isKeyFocused ? "#2c2c2c" : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                border.width: isKeyFocused ? 1.5 : 0
+                border.color: Theme.highlight
 
                 scale: backMouse.pressed ? 0.90 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                Behavior on border.width { NumberAnimation { duration: 40 } }
+                Behavior on border.color { ColorAnimation { duration: 40 } }
+                Behavior on color { ColorAnimation { duration: backMouse.containsMouse ? Theme.animFast : 40 } }
 
                 Text {
                     anchors.centerIn: parent
@@ -401,9 +405,9 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 15
                     font.weight: Font.DemiBold
-                    color: (backMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 0)) ? Theme.text : Theme.textSecondary
+                    color: (backMouse.containsMouse || backBtn.isKeyFocused) ? Theme.text : Theme.textSecondary
 
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                    Behavior on color { ColorAnimation { duration: backMouse.containsMouse ? Theme.animFast : 40 } }
                 }
 
                 MouseArea {
@@ -432,15 +436,20 @@ Item {
 
             // Botón Recargar / Pausar escaneo (circular, sin borde agresivo en teclado)
             Rectangle {
+                id: refreshBtn
                 implicitWidth: 28
                 implicitHeight: 28
                 radius: 14
-                color: (refreshMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 1)) ? Theme.surfaceHover : "transparent"
-                border.width: 0
+                readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 1
+                color: isKeyFocused ? "#2c2c2c" : (refreshMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                border.width: isKeyFocused ? 1.5 : 0
+                border.color: Theme.highlight
 
                 scale: refreshMouse.pressed ? 0.90 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                Behavior on border.width { NumberAnimation { duration: 40 } }
+                Behavior on border.color { ColorAnimation { duration: 40 } }
+                Behavior on color { ColorAnimation { duration: refreshMouse.containsMouse ? Theme.animFast : 40 } }
 
                 Text {
                     anchors.centerIn: parent
@@ -451,10 +460,10 @@ Item {
                         if (root.isScanning) {
                             return refreshMouse.containsMouse ? Theme.critical : Theme.wsActiveColor;
                         }
-                        return (refreshMouse.containsMouse || (root.isKeyNavActive && root.navIndex === 1)) ? Theme.wsActiveColor : Theme.textMuted;
+                        return (refreshMouse.containsMouse || refreshBtn.isKeyFocused) ? Theme.wsActiveColor : Theme.textMuted;
                     }
 
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                    Behavior on color { ColorAnimation { duration: refreshMouse.containsMouse ? Theme.animFast : 40 } }
                 }
 
                 MouseArea {
@@ -478,10 +487,13 @@ Item {
                 implicitWidth: 38
                 implicitHeight: 22
                 radius: 11
+                readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 2
                 color: BluetoothService.isEnabled ? Theme.wsActiveColor : Theme.surfaceBase
-                border.width: 0
-                border.color: BluetoothService.isEnabled ? "#ffffff" : Theme.wsActiveColor
+                border.width: isKeyFocused ? 1.5 : 0
+                border.color: BluetoothService.isEnabled ? "#ffffff" : Theme.highlight
 
+                Behavior on border.width { NumberAnimation { duration: 40 } }
+                Behavior on border.color { ColorAnimation { duration: 40 } }
                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
                 // Perilla deslizante blanca
@@ -745,19 +757,22 @@ Item {
                                 Layout.fillWidth: true
                                 implicitHeight: 34
                                 radius: 8
+                                readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === (3 + index)
                                 color: {
-                                    let isHovered = rowMouse.containsMouse || (root.isKeyNavActive && root.navIndex === (3 + index));
                                     if (modelData.connected) {
-                                        return isHovered ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.05);
+                                        return (rowMouse.containsMouse || isKeyFocused) ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.05);
                                     }
-                                    return isHovered ? Theme.surfaceHover : "transparent";
+                                    if (isKeyFocused) return "#2c2c2c";
+                                    return rowMouse.containsMouse ? Theme.surfaceHover : "transparent";
                                 }
-                                border.width: modelData.connected ? 1 : 0
-                                border.color: Qt.rgba(1, 1, 1, 0.08)
+                                border.width: isKeyFocused ? 1.5 : (modelData.connected ? 1 : 0)
+                                border.color: isKeyFocused ? (modelData.connected ? Qt.rgba(1, 1, 1, 0.85) : Theme.highlight) : Qt.rgba(1, 1, 1, 0.08)
 
                                 scale: rowMouse.pressed ? 0.98 : 1.0
                                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                                Behavior on border.width { NumberAnimation { duration: 40 } }
+                                Behavior on border.color { ColorAnimation { duration: 40 } }
+                                Behavior on color { ColorAnimation { duration: rowMouse.containsMouse ? Theme.animFast : 40 } }
 
                                 RowLayout {
                                     anchors.fill: parent
@@ -952,13 +967,16 @@ Item {
                                 Layout.fillWidth: true
                                 implicitHeight: 34
                                 radius: 8
-                                color: (availMouse.containsMouse || (root.isKeyNavActive && root.navIndex === (3 + root.pairedDevices.length + index))) ? Theme.surfaceHover : "transparent"
-                                border.width: 0
-                                border.color: Theme.wsActiveColor
+                                readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === (3 + root.pairedDevices.length + index)
+                                color: isKeyFocused ? "#2c2c2c" : (availMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                                border.width: isKeyFocused ? 1.5 : 0
+                                border.color: Theme.highlight
 
                                 scale: availMouse.pressed ? 0.98 : 1.0
                                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                                Behavior on border.width { NumberAnimation { duration: 40 } }
+                                Behavior on border.color { ColorAnimation { duration: 40 } }
+                                Behavior on color { ColorAnimation { duration: availMouse.containsMouse ? Theme.animFast : 40 } }
 
                                 RowLayout {
                                     anchors.fill: parent

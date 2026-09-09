@@ -62,6 +62,9 @@ Item {
     }
 
     function focusWindow(address, workspaceId, toplevel) {
+        if (!address) return;
+        let cleanAddr = address.startsWith("0x") ? address : ("0x" + address);
+
         // 1. Intentar el método nativo Wayland si está presente
         if (toplevel && toplevel.wayland && typeof toplevel.wayland.activate === "function") {
             toplevel.wayland.activate();
@@ -69,17 +72,33 @@ Item {
 
         // 2. Dispatch vía hyprctl Lua (cambia de workspace y enfoca la ventana automáticamente)
         if (focusProc.running) focusProc.running = false;
-        focusProc.command = ["hyprctl", "dispatch", "hl.dsp.focus({ window = \"address:" + address + "\" })"];
+        let ws = (workspaceId && workspaceId > 0) ? workspaceId : 0;
+        let luaCmd = "local ws = " + ws + "; "
+                   + "local addr = \"" + cleanAddr + "\"; "
+                   + "if ws > 0 then hl.dispatch(hl.dsp.focus({ workspace = ws })) end; "
+                   + "hl.dispatch(hl.dsp.focus({ window = \"address:\" .. addr })); "
+                   + "for _, w in ipairs(hl.get_windows()) do "
+                   + "  if w.address:lower() == addr:lower() and w.at and w.size then "
+                   + "    local cx = math.floor(w.at.x + w.size.x / 2); "
+                   + "    local cy = math.floor(w.at.y + w.size.y / 2); "
+                   + "    hl.dispatch(hl.dsp.cursor.move({ x = cx, y = cy })); "
+                   + "    break; "
+                   + "  end; "
+                   + "end;";
+
+        focusProc.command = ["hyprctl", "repl", luaCmd];
         focusProc.running = true;
     }
 
     function closeWindow(address, toplevel) {
+        if (!address) return;
+        let cleanAddr = address.startsWith("0x") ? address : ("0x" + address);
         if (toplevel && toplevel.wayland && typeof toplevel.wayland.close === "function") {
             toplevel.wayland.close();
         }
 
         if (closeProc.running) closeProc.running = false;
-        closeProc.command = ["hyprctl", "dispatch", "hl.dsp.window.close({ window = \"address:" + address + "\" })"];
+        closeProc.command = ["hyprctl", "repl", "hl.dispatch(hl.dsp.window.close({ window = \"address:" + cleanAddr + "\" }))"];
         closeProc.running = true;
     }
 

@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell.Io
+import Quickshell.Networking
 import "."
 
 Item {
@@ -54,6 +55,9 @@ Item {
     Process {
         id: wifiToggleProc
         command: ["sh", "-c", "if nmcli radio wifi | grep -q 'enabled'; then nmcli radio wifi off; else nmcli radio wifi on; fi"]
+        onExited: {
+            NetworkService.refresh();
+        }
     }
 
     onIsOpenChanged: {
@@ -149,8 +153,14 @@ Item {
     }
 
     function toggleWifi() {
-        if (wifiToggleProc.running) wifiToggleProc.running = false;
+        let turnOn = !NetworkService.isWifiEnabled;
+        if (typeof Networking !== "undefined" && Networking.wifiEnabled !== undefined) {
+            Networking.wifiEnabled = turnOn;
+        }
+        if (wifiToggleProc.running) return;
+        wifiToggleProc.command = ["nmcli", "radio", "wifi", turnOn ? "on" : "off"];
         wifiToggleProc.running = true;
+        NetworkService.refresh();
     }
 
     function connectWifi(ssid) {

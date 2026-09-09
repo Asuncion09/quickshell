@@ -18,6 +18,13 @@ Item {
 
     property bool focused: false
 
+    readonly property bool isHovered: mouseArea.containsMouse || iconMouse.containsMouse
+    property bool wasHovered: false
+    onIsHoveredChanged: {
+        if (isHovered) wasHovered = true;
+        else Qt.callLater(() => { wasHovered = false; });
+    }
+
     function stepUp() {
         let next = Math.min(root.maxValue, Math.floor(root.value / root.step) * root.step + root.step);
         root.valueChangedByUser(next);
@@ -37,12 +44,30 @@ Item {
         id: trackBg
         anchors.fill: parent
         radius: 12
-        color: (mouseArea.containsMouse || root.focused) ? Theme.surfaceHover : Theme.surfaceBase
+        color: root.focused ? "#2c2c2c" : (root.isHovered ? Theme.surfaceHover : Theme.surfaceBase)
         border.width: 0
         clip: true
 
         Behavior on color {
-            ColorAnimation { duration: Theme.animFast }
+            ColorAnimation { duration: (root.isHovered || root.wasHovered) ? Theme.animFast : 40 }
+        }
+
+        // Anillo de foco nítido para navegación por teclado (z: 5 para situarse sobre fillRect)
+        Rectangle {
+            id: focusRing
+            anchors.fill: parent
+            radius: 12
+            color: "transparent"
+            border.width: root.focused ? 1.5 : 0
+            border.color: Theme.highlight
+            z: 5
+
+            Behavior on border.width {
+                NumberAnimation { duration: 40 }
+            }
+            Behavior on border.color {
+                ColorAnimation { duration: 40 }
+            }
         }
 
         // Relleno de progreso visual limpio sin texto encima
@@ -96,11 +121,11 @@ Item {
                         if (root.isMuted) {
                             return root.value > 12 ? "#161616" : Theme.critical;
                         }
-                        return root.value > 12 ? "#161616" : Theme.textSecondary;
+                        return root.value > 12 ? "#161616" : (root.focused ? Theme.text : Theme.textSecondary);
                     }
 
                     Behavior on color {
-                        ColorAnimation { duration: Theme.animFast }
+                        ColorAnimation { duration: (root.isHovered || root.wasHovered) ? Theme.animFast : 40 }
                     }
 
                     scale: iconMouse.pressed ? 0.85 : 1.0
@@ -137,13 +162,16 @@ Item {
                     if (root.isMuted) {
                         return root.value >= 88 ? "#161616" : Theme.critical;
                     }
+                    if (root.focused) {
+                        return root.value >= 88 ? "#161616" : Theme.highlight;
+                    }
                     return root.value >= 88 ? "#161616" : Theme.text;
                 }
                 verticalAlignment: Text.AlignVCenter
                 opacity: 0.95
 
                 Behavior on color {
-                    ColorAnimation { duration: Theme.animFast }
+                    ColorAnimation { duration: (root.isHovered || root.wasHovered) ? Theme.animFast : 40 }
                 }
             }
         }

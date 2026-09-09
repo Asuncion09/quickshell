@@ -123,15 +123,22 @@ Item {
                 implicitWidth: 32
                 implicitHeight: 32
                 radius: 8
-                color: (lockMouse.containsMouse || root.lockFocused) ? Theme.surfaceHover : Theme.surfaceBase
-                border.width: 0
+                color: root.lockFocused ? "#2c2c2c" : (lockMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                border.width: root.lockFocused ? 1.5 : 0
+                border.color: Theme.highlight
 
                 scale: lockMouse.pressed ? 0.92 : 1.0
                 Behavior on scale {
                     NumberAnimation { duration: Theme.animFast }
                 }
+                Behavior on border.width {
+                    NumberAnimation { duration: 40 }
+                }
+                Behavior on border.color {
+                    ColorAnimation { duration: 40 }
+                }
                 Behavior on color {
-                    ColorAnimation { duration: Theme.animFast }
+                    ColorAnimation { duration: lockMouse.containsMouse ? Theme.animFast : 40 }
                 }
 
                 Text {
@@ -142,7 +149,7 @@ Item {
                     color: (lockMouse.containsMouse || root.lockFocused) ? Theme.highlight : Theme.textSecondary
 
                     Behavior on color {
-                        ColorAnimation { duration: Theme.animFast }
+                        ColorAnimation { duration: lockMouse.containsMouse ? Theme.animFast : 40 }
                     }
                 }
 
@@ -161,15 +168,22 @@ Item {
                 implicitWidth: 32
                 implicitHeight: 32
                 radius: 8
-                color: (powerMouse.containsMouse || root.powerFocused) ? Theme.surfaceHover : Theme.surfaceBase
-                border.width: 0
+                color: root.powerFocused ? "#2c2c2c" : (powerMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                border.width: root.powerFocused ? 1.5 : 0
+                border.color: Theme.critical
 
                 scale: powerMouse.pressed ? 0.92 : 1.0
                 Behavior on scale {
                     NumberAnimation { duration: Theme.animFast }
                 }
+                Behavior on border.width {
+                    NumberAnimation { duration: 40 }
+                }
+                Behavior on border.color {
+                    ColorAnimation { duration: 40 }
+                }
                 Behavior on color {
-                    ColorAnimation { duration: Theme.animFast }
+                    ColorAnimation { duration: powerMouse.containsMouse ? Theme.animFast : 40 }
                 }
 
                 Text {
@@ -177,10 +191,10 @@ Item {
                     text: "󰐥"
                     font.family: Theme.fontFamily
                     font.pixelSize: 14
-                    color: powerMouse.containsMouse ? Theme.critical : Theme.textSecondary
+                    color: (powerMouse.containsMouse || root.powerFocused) ? Theme.critical : Theme.textSecondary
 
                     Behavior on color {
-                        ColorAnimation { duration: Theme.animFast }
+                        ColorAnimation { duration: powerMouse.containsMouse ? Theme.animFast : 40 }
                     }
                 }
 
@@ -220,12 +234,16 @@ Item {
                 implicitWidth: 28
                 implicitHeight: 28
                 radius: 14
-                color: (backMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 0)) ? Theme.surfaceHover : "transparent"
-                border.width: 0
+                readonly property bool isKeyFocused: root.isPowerNavActive && root.powerNavIndex === 0
+                color: isKeyFocused ? "#2c2c2c" : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                border.width: isKeyFocused ? 1.5 : 0
+                border.color: Theme.highlight
 
                 scale: backMouse.pressed ? 0.90 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                Behavior on border.width { NumberAnimation { duration: 40 } }
+                Behavior on border.color { ColorAnimation { duration: 40 } }
+                Behavior on color { ColorAnimation { duration: backMouse.containsMouse ? Theme.animFast : 40 } }
 
                 Text {
                     anchors.centerIn: parent
@@ -233,9 +251,9 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 15
                     font.weight: Font.DemiBold
-                    color: (backMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 0)) ? Theme.text : Theme.textSecondary
+                    color: (backMouse.containsMouse || backBtn.isKeyFocused) ? Theme.text : Theme.textSecondary
 
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                    Behavior on color { ColorAnimation { duration: backMouse.containsMouse ? Theme.animFast : 40 } }
                 }
 
                 MouseArea {
@@ -291,21 +309,25 @@ Item {
                     implicitWidth: 32
                     implicitHeight: 32
                     radius: 8
-                    color: (suspMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 1)) ? Theme.surfaceHover : Theme.surfaceBase
-                    border.width: 0
+                    readonly property bool isKeyFocused: root.isPowerNavActive && root.powerNavIndex === 1
+                    color: isKeyFocused ? "#2c2c2c" : (suspMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                    border.width: isKeyFocused ? 1.5 : 0
+                    border.color: Theme.highlight
                     scale: suspMouse.pressed ? 0.92 : 1.0
 
                     Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                    Behavior on border.width { NumberAnimation { duration: 40 } }
+                    Behavior on border.color { ColorAnimation { duration: 40 } }
+                    Behavior on color { ColorAnimation { duration: suspMouse.containsMouse ? Theme.animFast : 40 } }
 
                     Text {
                         anchors.centerIn: parent
                         text: "󰤄"
                         font.family: Theme.fontFamily
                         font.pixelSize: 14
-                        color: (suspMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 1)) ? Theme.highlight : Theme.textSecondary
+                        color: (suspMouse.containsMouse || parent.isKeyFocused) ? Theme.highlight : Theme.textSecondary
 
-                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                        Behavior on color { ColorAnimation { duration: suspMouse.containsMouse ? Theme.animFast : 40 } }
                     }
 
                     MouseArea {
@@ -322,21 +344,25 @@ Item {
                     implicitWidth: 32
                     implicitHeight: 32
                     radius: 8
-                    color: (exitMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 2)) ? Theme.surfaceHover : Theme.surfaceBase
-                    border.width: 0
+                    readonly property bool isKeyFocused: root.isPowerNavActive && root.powerNavIndex === 2
+                    color: isKeyFocused ? "#2c2c2c" : (exitMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                    border.width: isKeyFocused ? 1.5 : 0
+                    border.color: Theme.warning
                     scale: exitMouse.pressed ? 0.92 : 1.0
 
                     Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                    Behavior on border.width { NumberAnimation { duration: 40 } }
+                    Behavior on border.color { ColorAnimation { duration: 40 } }
+                    Behavior on color { ColorAnimation { duration: exitMouse.containsMouse ? Theme.animFast : 40 } }
 
                     Text {
                         anchors.centerIn: parent
                         text: "󰍃"
                         font.family: Theme.fontFamily
                         font.pixelSize: 14
-                        color: (exitMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 2)) ? Theme.warning : Theme.textSecondary
+                        color: (exitMouse.containsMouse || parent.isKeyFocused) ? Theme.warning : Theme.textSecondary
 
-                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                        Behavior on color { ColorAnimation { duration: exitMouse.containsMouse ? Theme.animFast : 40 } }
                     }
 
                     MouseArea {
@@ -353,21 +379,25 @@ Item {
                     implicitWidth: 32
                     implicitHeight: 32
                     radius: 8
-                    color: (rebootMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 3)) ? Theme.surfaceHover : Theme.surfaceBase
-                    border.width: 0
+                    readonly property bool isKeyFocused: root.isPowerNavActive && root.powerNavIndex === 3
+                    color: isKeyFocused ? "#2c2c2c" : (rebootMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                    border.width: isKeyFocused ? 1.5 : 0
+                    border.color: Theme.warning
                     scale: rebootMouse.pressed ? 0.92 : 1.0
 
                     Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                    Behavior on border.width { NumberAnimation { duration: 40 } }
+                    Behavior on border.color { ColorAnimation { duration: 40 } }
+                    Behavior on color { ColorAnimation { duration: rebootMouse.containsMouse ? Theme.animFast : 40 } }
 
                     Text {
                         anchors.centerIn: parent
                         text: "󰑐"
                         font.family: Theme.fontFamily
                         font.pixelSize: 14
-                        color: (rebootMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 3)) ? Theme.warning : Theme.textSecondary
+                        color: (rebootMouse.containsMouse || parent.isKeyFocused) ? Theme.warning : Theme.textSecondary
 
-                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                        Behavior on color { ColorAnimation { duration: rebootMouse.containsMouse ? Theme.animFast : 40 } }
                     }
 
                     MouseArea {
@@ -384,21 +414,25 @@ Item {
                     implicitWidth: 32
                     implicitHeight: 32
                     radius: 8
-                    color: (shutMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 4)) ? Theme.surfaceHover : Theme.surfaceBase
-                    border.width: 0
+                    readonly property bool isKeyFocused: root.isPowerNavActive && root.powerNavIndex === 4
+                    color: isKeyFocused ? "#2c2c2c" : (shutMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                    border.width: isKeyFocused ? 1.5 : 0
+                    border.color: Theme.critical
                     scale: shutMouse.pressed ? 0.92 : 1.0
 
                     Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                    Behavior on border.width { NumberAnimation { duration: 40 } }
+                    Behavior on border.color { ColorAnimation { duration: 40 } }
+                    Behavior on color { ColorAnimation { duration: shutMouse.containsMouse ? Theme.animFast : 40 } }
 
                     Text {
                         anchors.centerIn: parent
                         text: "󰐥"
                         font.family: Theme.fontFamily
                         font.pixelSize: 14
-                        color: (shutMouse.containsMouse || (root.isPowerNavActive && root.powerNavIndex === 4)) ? Theme.critical : Theme.textSecondary
+                        color: (shutMouse.containsMouse || parent.isKeyFocused) ? Theme.critical : Theme.textSecondary
 
-                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                        Behavior on color { ColorAnimation { duration: shutMouse.containsMouse ? Theme.animFast : 40 } }
                     }
 
                     MouseArea {
