@@ -113,6 +113,7 @@ PanelWindow {
 
             Pill {
                 id: leftPill
+                animateSize: false
 
                 WorkspacesModule {
                     id: workspaces

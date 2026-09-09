@@ -43,7 +43,7 @@ QtObject {
 
     // --- Workspaces Tokens (Estilo GNOME: puntos inactivos compactos y cápsula activa alargada) ---
     readonly property int wsInactiveWidth: 8
-    readonly property int wsActiveWidth: 22
+    readonly property int wsActiveWidth: 16
     readonly property int wsHeight: 8
     readonly property int wsRadius: 4
 

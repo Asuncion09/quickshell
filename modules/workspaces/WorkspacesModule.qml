@@ -8,6 +8,21 @@ RowLayout {
     id: root
 
     spacing: 2
+    Layout.alignment: Qt.AlignVCenter
+
+    // Ancho fijo de cada casilla de workspace: garantiza que todos los slots permanezcan en su coordenada fija (sin desplazamientos laterales)
+    readonly property int slotWidth: Theme.wsActiveWidth
+
+    // Ancho total constante del módulo basado en la cuadrícula de casillas fijas
+    readonly property int stableWidth: {
+        let count = root.workspaceIds.length;
+        if (count <= 0) return 0;
+        return (count * root.slotWidth) + ((count - 1) * root.spacing);
+    }
+
+    implicitWidth: stableWidth
+    Layout.preferredWidth: stableWidth
+    width: stableWidth
 
     // Proceso auxiliar para garantizar el cambio de workspace mediante hyprctl en cualquier circunstancia
     Process {
@@ -39,11 +54,40 @@ RowLayout {
     readonly property int _toplevelsCount: (Hyprland.toplevels && Hyprland.toplevels.values) ? Hyprland.toplevels.values.length : 0
     readonly property int _workspacesCount: (Hyprland.workspaces && Hyprland.workspaces.values) ? Hyprland.workspaces.values.length : 0
 
+    // Caché estable de IDs de workspaces para evitar que el Repeater destruya/recree delegados
+    property var _cachedWorkspaceIds: [1, 2, 3, 4, 5]
+
+    function updateWorkspaceIds() {
+        let set = new Set([1, 2, 3, 4, 5]);
+        if (Hyprland.workspaces && Hyprland.workspaces.values) {
+            for (let i = 0; i < Hyprland.workspaces.values.length; i++) {
+                let ws = Hyprland.workspaces.values[i];
+                if (ws && ws.id > 0) {
+                    set.add(ws.id);
+                }
+            }
+        }
+        if (Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id > 0) {
+            set.add(Hyprland.focusedWorkspace.id);
+        }
+        let arr = Array.from(set).sort((a, b) => a - b);
+        if (arr.length !== root._cachedWorkspaceIds.length || !arr.every((v, idx) => v === root._cachedWorkspaceIds[idx])) {
+            root._cachedWorkspaceIds = arr;
+        }
+    }
+
+    Component.onCompleted: {
+        root.updateWorkspaceIds();
+    }
+
     Connections {
         target: Hyprland
         function onRawEvent(event) {
             if (!event) return;
             let n = event.name;
+            if (n === "createworkspace" || n === "destroyworkspace") {
+                root.updateWorkspaceIds();
+            }
             if (n === "openwindow"
              || n === "closewindow"
              || n === "movewindow"
@@ -130,31 +174,13 @@ RowLayout {
         return false;
     }
 
-    // Lista de IDs: incluye persistentemente los workspaces 1 al 5 + cualquier otro abierto
-    readonly property var workspaceIds: {
-        let _dep = root._eventVersion + root._workspacesCount;
-        let set = new Set([1, 2, 3, 4, 5]);
-
-        if (Hyprland.workspaces && Hyprland.workspaces.values) {
-            for (let i = 0; i < Hyprland.workspaces.values.length; i++) {
-                let ws = Hyprland.workspaces.values[i];
-                if (ws && ws.id > 0) {
-                    set.add(ws.id);
-                }
-            }
-        }
-
-        if (Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id > 0) {
-            set.add(Hyprland.focusedWorkspace.id);
-        }
-
-        return Array.from(set).sort((a, b) => a - b);
-    }
+    // Lista de IDs: proviene de la caché estable para evitar reinicializar delegados del Repeater
+    readonly property var workspaceIds: root._cachedWorkspaceIds
 
     Repeater {
         model: root.workspaceIds
 
-        // Contenedor con área de clic ampliada para facilitar la interacción
+        // Contenedor de ancho fijo (cuadrícula rítmica constante donde ningún slot se desplaza)
         Item {
             id: wsButton
 
@@ -180,8 +206,12 @@ RowLayout {
                 return false;
             }
 
-            implicitWidth: wsPill.implicitWidth + 6
+            implicitWidth: root.slotWidth
             implicitHeight: 26
+            Layout.preferredWidth: root.slotWidth
+            Layout.preferredHeight: 26
+            width: root.slotWidth
+            height: 26
 
             // Píldora visual centrada
             Rectangle {

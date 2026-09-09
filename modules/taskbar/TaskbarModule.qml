@@ -13,6 +13,29 @@ Item {
     // Versión de evento para reactividad inmediata ante cambios en Hyprland
     property int _eventVersion: 0
 
+    // Historial para mantener un orden estable de ventanas (orden de apertura / creación)
+    property var _windowOrder: []
+
+    function updateWindowOrder() {
+        if (!Hyprland.toplevels || !Hyprland.toplevels.values) return;
+        let currentAddrs = [];
+        for (let i = 0; i < Hyprland.toplevels.values.length; i++) {
+            let top = Hyprland.toplevels.values[i];
+            if (top && top.address) currentAddrs.push(top.address);
+        }
+        let updated = root._windowOrder.filter(a => currentAddrs.includes(a));
+        for (let i = 0; i < currentAddrs.length; i++) {
+            if (!updated.includes(currentAddrs[i])) {
+                updated.push(currentAddrs[i]);
+            }
+        }
+        root._windowOrder = updated;
+    }
+
+    Component.onCompleted: {
+        root.updateWindowOrder();
+    }
+
     Connections {
         target: Hyprland
         function onRawEvent(event) {
@@ -21,6 +44,7 @@ Item {
             if (n === "openwindow" || n === "closewindow" || n === "movewindow" || n === "movewindowv2"
              || n === "activewindow" || n === "activewindowv2" || n === "workspace"
              || n === "windowtitle" || n === "windowtitlev2") {
+                root.updateWindowOrder();
                 root._eventVersion++;
             }
         }
@@ -122,9 +146,12 @@ Item {
             candidates.push(last.toLowerCase());
         }
 
-        // Buscar en la base de datos de iconos del sistema
+        // Buscar en la base de datos de iconos del sistema o URLs resueltas
         for (let i = 0; i < candidates.length; i++) {
             let name = candidates[i];
+            if (name && (name.startsWith("file://") || name.startsWith("http://") || name.startsWith("https://") || name.includes("/"))) {
+                return name.startsWith("/") ? ("file://" + name) : name;
+            }
             if (name && Quickshell.hasThemeIcon(name)) {
                 return Quickshell.iconPath(name);
             }
@@ -203,10 +230,15 @@ Item {
             });
         }
 
-        // Ordenar por workspace y luego alfabéticamente
+        // Ordenar por workspace y luego por orden de apertura estable (nunca por título)
         list.sort((a, b) => {
             if (a.workspaceId !== b.workspaceId) return a.workspaceId - b.workspaceId;
-            return a.title.localeCompare(b.title);
+            let idxA = root._windowOrder.indexOf(a.address);
+            let idxB = root._windowOrder.indexOf(b.address);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return a.address.localeCompare(b.address);
         });
 
         return list;
@@ -232,90 +264,84 @@ Item {
                 id: taskItem
                 required property var modelData
 
+                readonly property bool isFocused: taskItem.modelData.isFocused
+                readonly property bool isHovered: taskMouse.containsMouse
+
                 width: 26
                 height: 28
                 implicitWidth: 26
                 implicitHeight: 28
 
-                // Icono a color de la aplicación
+                // 1. Cápsula de fondo sutil (Tile activo / Hover Surface sin bordes sólidos)
+                Rectangle {
+                    id: activeTile
+                    anchors.centerIn: parent
+                    width: 26
+                    height: 24
+                    radius: 7
+
+                    color: {
+                        if (taskItem.isFocused) {
+                            return taskMouse.pressed ? Qt.rgba(1, 1, 1, 0.16) : (taskItem.isHovered ? Qt.rgba(1, 1, 1, 0.14) : Qt.rgba(1, 1, 1, 0.10));
+                        }
+                        if (taskItem.isHovered) {
+                            return Qt.rgba(1, 1, 1, 0.05);
+                        }
+                        return "transparent";
+                    }
+
+                    Behavior on color {
+                        ColorAnimation { duration: Theme.animFast }
+                    }
+                }
+
+                // 2. Icono a color de la aplicación (16x16 para centrado simétrico exacto de 5px a cada lado)
                 IconImage {
                     id: appIcon
-                    anchors.centerIn: parent
-                    anchors.verticalCenterOffset: taskItem.modelData.isFocused ? -1.5 : 0
-                    width: 17
-                    height: 17
+                    anchors.centerIn: activeTile
+                    width: 16
+                    height: 16
                     source: taskItem.modelData.iconSource
                     visible: taskItem.modelData.iconSource !== ""
-                    opacity: taskItem.modelData.isFocused ? 1.0 : (taskMouse.containsMouse ? 1.0 : 0.80)
+                    opacity: taskItem.isFocused ? 1.0 : (taskItem.isHovered ? 0.95 : 0.72)
 
-                    scale: taskMouse.pressed ? 0.88 : ((taskMouse.containsMouse && !taskItem.modelData.isFocused) ? 1.15 : 1.0)
+                    scale: taskMouse.pressed ? 0.90 : ((taskItem.isHovered && !taskItem.isFocused) ? 1.08 : 1.0)
 
                     Behavior on scale {
                         NumberAnimation {
                             duration: Theme.animFast
                             easing.type: Easing.OutBack
-                            easing.overshoot: 1.4
+                            easing.overshoot: 1.3
                         }
                     }
 
                     Behavior on opacity {
                         NumberAnimation { duration: Theme.animFast }
                     }
-
-                    Behavior on anchors.verticalCenterOffset {
-                        NumberAnimation {
-                            duration: Theme.animNormal
-                            easing.type: Easing.OutCubic
-                        }
-                    }
                 }
 
-                // Fallback si no tiene icono temático SVG/PNG
+                // 3. Fallback si no tiene icono temático SVG/PNG (100% centrado)
                 Text {
-                    anchors.centerIn: parent
-                    anchors.verticalCenterOffset: taskItem.modelData.isFocused ? -1.5 : 0
+                    anchors.centerIn: activeTile
                     visible: taskItem.modelData.iconSource === ""
                     text: ""
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
-                    color: taskItem.modelData.isFocused ? Theme.highlight : Theme.textSecondary
+                    color: taskItem.isFocused ? Theme.text : (taskItem.isHovered ? Theme.text : Theme.textSecondary)
+                    opacity: taskItem.isFocused ? 1.0 : (taskItem.isHovered ? 0.95 : 0.72)
 
-                    scale: taskMouse.pressed ? 0.88 : ((taskMouse.containsMouse && !taskItem.modelData.isFocused) ? 1.15 : 1.0)
+                    scale: taskMouse.pressed ? 0.90 : ((taskItem.isHovered && !taskItem.isFocused) ? 1.08 : 1.0)
 
                     Behavior on scale {
                         NumberAnimation {
                             duration: Theme.animFast
                             easing.type: Easing.OutBack
-                            easing.overshoot: 1.4
-                        }
-                    }
-
-                    Behavior on anchors.verticalCenterOffset {
-                        NumberAnimation {
-                            duration: Theme.animNormal
-                            easing.type: Easing.OutCubic
-                        }
-                    }
-                }
-
-                // Línea indicadora iluminada en la base:
-                // SOLO aparece debajo de la ventana enfocada (sin marcos ni puntos adicionales)
-                Rectangle {
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 2
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: taskItem.modelData.isFocused ? 12 : 0
-                    height: 2
-                    radius: 1
-                    color: Theme.highlight
-                    visible: width > 0
-
-                    Behavior on width {
-                        NumberAnimation {
-                            duration: Theme.animNormal
-                            easing.type: Easing.OutBack
                             easing.overshoot: 1.3
                         }
+                    }
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: Theme.animFast }
                     }
                 }
 
