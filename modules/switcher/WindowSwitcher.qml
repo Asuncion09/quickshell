@@ -253,11 +253,12 @@ PanelWindow {
                             }
 
                             IconImage {
+                                id: switcherIconImg
                                 anchors.centerIn: parent
                                 width: 42
                                 height: 42
                                 source: cardDelegate.modelData.iconSource
-                                visible: cardDelegate.modelData.iconSource !== ""
+                                visible: cardDelegate.modelData.iconSource !== "" && status === Image.Ready
                             }
 
                             Text {
@@ -266,7 +267,7 @@ PanelWindow {
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 32
                                 color: cardDelegate.isCurrent ? Theme.highlight : Theme.textMuted
-                                visible: !cardDelegate.modelData.iconSource || cardDelegate.modelData.iconSource === ""
+                                visible: !switcherIconImg.visible
                             }
                         }
 

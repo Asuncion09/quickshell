@@ -461,7 +461,7 @@ Item {
                 RowLayout {
                     anchors.fill: parent
                     anchors.leftMargin: 8
-                    anchors.rightMargin: 6
+                    anchors.rightMargin: 8
                     spacing: 8
 
                     Text {
@@ -520,32 +520,6 @@ Item {
                                 LauncherService.launchCurrent();
                                 return;
                             }
-                        }
-                    }
-
-                    Rectangle {
-                        implicitWidth: escBadgeText.implicitWidth + 8
-                        implicitHeight: 18
-                        radius: 4
-                        color: Qt.rgba(1, 1, 1, 0.05)
-                        border.width: 1
-                        border.color: Qt.rgba(1, 1, 1, 0.08)
-                        Layout.alignment: Qt.AlignVCenter
-
-                        Text {
-                            id: escBadgeText
-                            anchors.centerIn: parent
-                            text: "ESC"
-                            font.family: Theme.fontFamily
-                            font.pixelSize: 9
-                            font.weight: Font.Normal
-                            color: Qt.rgba(1, 1, 1, 0.35)
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: LauncherService.close()
                         }
                     }
                 }

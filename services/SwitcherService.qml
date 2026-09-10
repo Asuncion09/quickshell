@@ -208,8 +208,10 @@ Item {
         let raw = appClass.trim();
         let lower = raw.toLowerCase();
 
-        if (lower.includes("code") || lower.includes("vscode") || lower.includes("antigravity")) {
-            candidates.push("code", "vscode", "visual-studio-code", "com.visualstudio.code", "/home/daniel/Downloads/Antigravity IDE/resources/app/resources/linux/code.png");
+        if (lower.includes("antigravity")) {
+            candidates.push("antigravity-ide", "antigravity", "/opt/Antigravity IDE/resources/app/resources/linux/code.png", "code", "vscode");
+        } else if (lower.includes("code") || lower.includes("vscode")) {
+            candidates.push("code", "vscode", "visual-studio-code", "com.visualstudio.code");
         } else if (lower.includes("ghostty")) {
             candidates.push("com.mitchellh.ghostty", "ghostty");
         } else if (lower.includes("btop")) {
