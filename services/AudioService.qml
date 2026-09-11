@@ -13,7 +13,9 @@ Item {
 
     readonly property PwNode defaultSink: Pipewire.defaultAudioSink
     readonly property real volume: (defaultSink && defaultSink.audio) ? defaultSink.audio.volume : 0.0
-    readonly property int volumePercent: Math.round(volume * 100)
+    // Factor de amplificación máxima: 1.5 (el 150% real del hardware se mapea a 100% en la UI)
+    readonly property real maxBoostFactor: 1.5
+    readonly property int volumePercent: Math.max(0, Math.min(100, Math.round((volume / maxBoostFactor) * 100)))
     readonly property bool isMuted: (defaultSink && defaultSink.audio) ? defaultSink.audio.muted : false
     readonly property string sinkName: defaultSink ? (defaultSink.description || defaultSink.name || "Speaker") : "No output"
 
@@ -83,8 +85,8 @@ Item {
     }
 
     function setVolume(pct) {
-        let clamped = Math.max(0, Math.min(150, pct));
-        let normalized = clamped / 100.0;
+        let clamped = Math.max(0, Math.min(100, Math.round(pct)));
+        let normalized = (clamped / 100.0) * root.maxBoostFactor;
         root.currentPercent = clamped;
         root._lastReportedPercent = clamped;
 
@@ -108,7 +110,7 @@ Item {
             return;
         }
         let s = step || 5;
-        let next = Math.min(150, Math.floor(currentPercent / s) * s + s);
+        let next = Math.min(100, Math.floor(currentPercent / s) * s + s);
         setVolume(next);
     }
 
@@ -290,7 +292,7 @@ Item {
                         name: name,
                         isDefault: isDefault,
                         volume: vol,
-                        volumePercent: Math.round(vol * 100),
+                        volumePercent: Math.max(0, Math.min(100, Math.round((vol / (currentSection === "sinks" ? root.maxBoostFactor : 1.0)) * 100))),
                         isMuted: isMuted,
                         type: devType,
                         icon: iconGlyph

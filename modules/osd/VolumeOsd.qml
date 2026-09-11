@@ -142,7 +142,7 @@ PanelWindow {
                         anchors.bottom: parent.bottom
                         width: Math.round(parent.width * (Math.max(0, Math.min(100, root.currentValue)) / 100.0))
                         radius: 3
-                        color: root.isMuted ? Theme.critical : (root.currentValue > 100 ? Theme.warning : Theme.highlight)
+                        color: root.isMuted ? Theme.critical : Theme.highlight
 
                         Behavior on width {
                             NumberAnimation {

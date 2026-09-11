@@ -611,9 +611,9 @@ Item {
                                 icon: AudioService.icon
                                 value: AudioService.currentPercent
                                 isMuted: AudioService.isMuted
-                                accentColor: (AudioService.currentPercent > 100 && !AudioService.isMuted) ? Theme.warning : Theme.wsActiveColor
+                                accentColor: Theme.wsActiveColor
                                 minValue: 0
-                                maxValue: 150
+                                maxValue: 100
                                 step: 5
                                 onValueChangedByUser: pct => AudioService.setVolume(pct)
                                 onIconClicked: AudioService.toggleMute()
