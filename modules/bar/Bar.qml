@@ -133,6 +133,7 @@ PanelWindow {
 
                 WorkspacesModule {
                     id: workspaces
+                    monitorName: root.screen ? root.screen.name : ""
                 }
             }
 
