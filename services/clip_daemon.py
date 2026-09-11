@@ -228,11 +228,28 @@ class ClipboardDaemon:
             except Exception:
                 pass
 
+def _set_pdeathsig():
+    try:
+        import ctypes
+        libc = ctypes.CDLL("libc.so.6")
+        libc.prctl(1, 15)  # PR_SET_PDEATHSIG = 1, SIGTERM = 15
+    except Exception:
+        pass
+
     def start_watcher(self):
         script_path = os.path.abspath(__file__)
+        try:
+            subprocess.run(["pkill", "-f", f"wl-paste --watch python3 {script_path}"], stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
         cmd = ["wl-paste", "--watch", "python3", script_path, "--send"]
         try:
-            self.watcher_proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self.watcher_proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                preexec_fn=_set_pdeathsig
+            )
         except Exception:
             pass
 

@@ -129,15 +129,30 @@ class BluezAgent(dbus.service.Object):
         sys.stdout.flush()
 
 import signal
+import ctypes
+
+try:
+    libc = ctypes.CDLL("libc.so.6")
+    # PR_SET_PDEATHSIG = 1, SIGTERM = 15
+    libc.prctl(1, 15)
+except Exception:
+    pass
 
 def on_stdin_read(channel, condition, agent, loop):
-    line = sys.stdin.readline()
-    if not line:
+    if condition & (GLib.IO_HUP | GLib.IO_ERR):
         loop.quit()
         return False
-    action = line.strip().lower()
-    agent.handle_user_response(action)
-    return True
+    try:
+        line = sys.stdin.readline()
+        if not line:
+            loop.quit()
+            return False
+        action = line.strip().lower()
+        agent.handle_user_response(action)
+        return True
+    except Exception:
+        loop.quit()
+        return False
 
 def main():
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -175,7 +190,7 @@ def main():
     except Exception:
         pass
 
-    GLib.io_add_watch(0, GLib.IO_IN, lambda ch, cond: on_stdin_read(ch, cond, agent, loop))
+    GLib.io_add_watch(0, GLib.IO_IN | GLib.IO_HUP | GLib.IO_ERR, lambda ch, cond: on_stdin_read(ch, cond, agent, loop))
 
     try:
         loop.run()
