@@ -13,8 +13,8 @@ Item {
 
     readonly property PwNode defaultSink: Pipewire.defaultAudioSink
     readonly property real volume: (defaultSink && defaultSink.audio) ? defaultSink.audio.volume : 0.0
-    // Factor de amplificación máxima: 1.5 (el 150% real del hardware se mapea a 100% en la UI)
-    readonly property real maxBoostFactor: 1.5
+    // Factor de amplificación máxima segura: 1.2 (el 120% real del hardware se mapea a 100% en la UI)
+    readonly property real maxBoostFactor: 1.2
     readonly property int volumePercent: Math.max(0, Math.min(100, Math.round((volume / maxBoostFactor) * 100)))
     readonly property bool isMuted: (defaultSink && defaultSink.audio) ? defaultSink.audio.muted : false
     readonly property string sinkName: defaultSink ? (defaultSink.description || defaultSink.name || "Speaker") : "No output"
@@ -94,7 +94,7 @@ Item {
             defaultSink.audio.volume = normalized;
         }
         if (wpctlProc.running) wpctlProc.running = false;
-        wpctlProc.command = ["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SINK@", normalized.toFixed(2)];
+        wpctlProc.command = ["wpctl", "set-volume", "-l", "1.2", "@DEFAULT_AUDIO_SINK@", normalized.toFixed(2)];
         wpctlProc.running = true;
 
         if (root._readyForOsd) {
