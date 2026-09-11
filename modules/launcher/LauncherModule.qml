@@ -12,7 +12,7 @@ BarButton {
     defaultTextColor: LauncherService.isOpen ? Theme.wsActiveColor : Theme.text
     hoverTextColor: Theme.highlight
     hoverBgColor: "transparent"
-    tooltipText: "Lanzador de aplicaciones (Super + Space)"
+    tooltipText: "Application launcher (Super + Space)"
     implicitWidth: 22
 
     onClicked: {

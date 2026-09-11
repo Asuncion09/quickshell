@@ -40,7 +40,7 @@ Item {
 
     readonly property string title: {
         if (!activePlayer) return "";
-        return activePlayer.trackTitle || (isPlaying ? "Reproduciendo" : "");
+        return activePlayer.trackTitle || (isPlaying ? "Playing" : "");
     }
 
     readonly property string artist: {

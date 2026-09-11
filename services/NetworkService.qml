@@ -123,8 +123,8 @@ Item {
     }
 
     readonly property string connectionName: {
-        if (!isWifiEnabled && !isEthernet) return "Desactivado";
-        if (!isConnected) return isWifiEnabled ? "Buscando..." : "Desactivado";
+        if (!isWifiEnabled && !isEthernet) return "Disabled";
+        if (!isConnected) return isWifiEnabled ? "Searching..." : "Disabled";
 
         // 1. Respaldo directo y preciso de nmcli / NetworkManager
         if (root._sysConnectionName && root._sysConnectionName !== "") {
@@ -154,15 +154,15 @@ Item {
 
         if (isWifi) return "WiFi";
         if (isEthernet) return "Ethernet";
-        return "Conectado";
+        return "Connected";
     }
 
     readonly property string tooltipText: {
-        if (!isWifiEnabled) return "WiFi: Desactivado";
+        if (!isWifiEnabled) return "WiFi: Disabled";
         if (isWifi) return `WiFi: ${root.connectionName}`;
         if (isEthernet) return `Ethernet: ${root.connectionName}`;
-        if (isConnected) return "Red: Conectado";
-        return "Red: Desconectado";
+        if (isConnected) return "Network: Connected";
+        return "Network: Disconnected";
     }
 }
 

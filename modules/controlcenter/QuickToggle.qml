@@ -7,7 +7,7 @@ Item {
 
     property string icon: "󰖩"
     property string title: "Toggle"
-    property string subtitle: "Estado"
+    property string subtitle: "Status"
     property bool active: false
     property bool hasSubmenu: false
     property bool loading: false

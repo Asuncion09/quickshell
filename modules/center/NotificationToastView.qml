@@ -15,6 +15,19 @@ Item {
         (currentToast.appName && (currentToast.appName.toLowerCase().includes("batería") || currentToast.appName.toLowerCase().includes("battery"))) ||
         (currentToast.summary && (currentToast.summary.toLowerCase().includes("batería") || currentToast.summary.toLowerCase().includes("battery")))
     )
+    readonly property bool isScreenshot: currentToast !== null && (
+        currentToast.isScreenshot === true ||
+        (currentToast.appName && currentToast.appName.toLowerCase().includes("hyprshot")) ||
+        (currentToast.summary && currentToast.summary.toLowerCase().includes("screenshot"))
+    )
+    readonly property string screenshotPath: currentToast ? (currentToast.screenshotPath || "") : ""
+    property bool copiedPathFeedback: false
+
+    Timer {
+        id: copiedFeedbackTimer
+        interval: 2000
+        onTriggered: root.copiedPathFeedback = false
+    }
 
     focus: isExpanded
 
@@ -34,6 +47,9 @@ Item {
     implicitHeight: {
         if (!hasToast) return 26;
         if (root.isExpanded) {
+            if (root.isScreenshot && root.screenshotPath !== "") {
+                return Math.min(270, Math.max(120, expandedCol.implicitHeight + 14));
+            }
             return Math.min(240, Math.max(80, expandedCol.implicitHeight + 14));
         }
         return 26;
@@ -42,6 +58,9 @@ Item {
     implicitWidth: {
         if (!hasToast) return 100;
         if (root.isExpanded) {
+            if (root.isScreenshot) {
+                return 358;
+            }
             return 330 - (6 * 2); // 318px
         }
         let baseW = 8 + 16 + 6;
@@ -113,13 +132,14 @@ Item {
                 id: toastIconImg
                 anchors.fill: parent
                 source: (root.currentToast && root.currentToast.appIcon && root.currentToast.appIcon.length > 2) ? root.currentToast.appIcon : ""
-                visible: source !== "" && status === Image.Ready
+                visible: !root.isScreenshot && source !== "" && status === Image.Ready
             }
 
             Text {
                 anchors.centerIn: parent
                 text: {
                     if (!root.currentToast) return "󰂚";
+                    if (root.isScreenshot) return "󰹑";
                     if (root.currentToast.appIcon && root.currentToast.appIcon.length <= 2) {
                         return root.currentToast.appIcon;
                     }
@@ -131,8 +151,8 @@ Item {
                 }
                 font.family: Theme.fontFamily
                 font.pixelSize: 12
-                color: (!root.isExpanded && root.isBatteryToast) ? "#161616" : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight)
-                visible: !toastIconImg.visible
+                color: root.isScreenshot ? Theme.wsActiveColor : ((!root.isExpanded && root.isBatteryToast) ? "#161616" : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
+                visible: !toastIconImg.visible || root.isScreenshot
             }
         }
 
@@ -154,11 +174,11 @@ Item {
 
             Text {
                 id: appNameText
-                text: root.currentToast ? (root.currentToast.appName || "Aviso") : ""
+                text: root.currentToast ? (root.isScreenshot ? "Hyprshot" : (root.currentToast.appName || "Notice")) : ""
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
                 font.weight: Font.DemiBold
-                color: (!root.isExpanded && root.isBatteryToast) ? "#161616" : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight)
+                color: root.isScreenshot ? Theme.wsActiveColor : ((!root.isExpanded && root.isBatteryToast) ? "#161616" : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
                 Layout.alignment: Qt.AlignVCenter
             }
 
@@ -174,6 +194,9 @@ Item {
                 id: messageLabel
                 text: {
                     if (!root.currentToast) return "";
+                    if (root.isScreenshot) {
+                        return root.screenshotPath !== "" ? "Captura guardada" : "Captura en portapapeles";
+                    }
                     let s = (root.currentToast.summary || "").trim();
                     let b = (root.currentToast.body || "").trim();
                     let a = (root.currentToast.appName || "").trim();
@@ -183,7 +206,7 @@ Item {
                     b = b.replace(/[\r\n\t]+/g, " ").replace(/\s{2,}/g, " ").trim();
 
                     if (s.toLowerCase().indexOf("requesting your permission in terminal") !== -1) {
-                        s = "Permiso Terminal";
+                        s = "Terminal Permission";
                     }
 
                     if (a.toLowerCase().includes("batería") || a.toLowerCase().includes("battery")) {
@@ -197,7 +220,7 @@ Item {
                     return s !== "" ? s : b;
                 }
                 font.family: Theme.fontFamily
-                font.pixelSize: 11
+                font.pixelSize: 12
                 font.weight: Font.Normal
                 color: (!root.isExpanded && root.isBatteryToast) ? "#161616" : Theme.text
                 maximumLineCount: 1
@@ -239,13 +262,14 @@ Item {
                     id: expIconImg
                     anchors.fill: parent
                     source: (root.currentToast && root.currentToast.appIcon && root.currentToast.appIcon.length > 2) ? root.currentToast.appIcon : ""
-                    visible: source !== "" && status === Image.Ready
+                    visible: !root.isScreenshot && source !== "" && status === Image.Ready
                 }
 
                 Text {
                     anchors.centerIn: parent
                     text: {
                         if (!root.currentToast) return "󰂚";
+                        if (root.isScreenshot) return "󰹑";
                         if (root.currentToast.appIcon && root.currentToast.appIcon.length <= 2) {
                             return root.currentToast.appIcon;
                         }
@@ -257,17 +281,17 @@ Item {
                     }
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
-                    color: root.isBatteryToast ? Theme.warning : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight)
-                    visible: !expIconImg.visible
+                    color: root.isScreenshot ? Theme.wsActiveColor : (root.isBatteryToast ? Theme.warning : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
+                    visible: !expIconImg.visible || root.isScreenshot
                 }
             }
 
             Text {
-                text: root.currentToast ? (root.currentToast.appName || "Aviso") : ""
+                text: root.currentToast ? (root.isScreenshot ? "Hyprshot" : (root.currentToast.appName || "Notice")) : ""
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
                 font.weight: Font.DemiBold
-                color: root.isBatteryToast ? Theme.warning : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight)
+                color: root.isScreenshot ? Theme.wsActiveColor : (root.isBatteryToast ? Theme.warning : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
                 Layout.alignment: Qt.AlignVCenter
             }
 
@@ -280,9 +304,9 @@ Item {
             }
 
             Text {
-                text: "ahora"
+                text: "now"
                 font.family: Theme.fontFamily
-                font.pixelSize: 10
+                font.pixelSize: 11
                 color: Theme.textMuted
                 Layout.alignment: Qt.AlignVCenter
             }
@@ -290,9 +314,9 @@ Item {
             Item { Layout.fillWidth: true }
 
             Rectangle {
-                implicitWidth: 18
-                implicitHeight: 18
-                radius: 9
+                implicitWidth: 20
+                implicitHeight: 20
+                radius: 10
                 color: closeExpMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.22) : Qt.rgba(1, 1, 1, 0.08)
                 Layout.alignment: Qt.AlignVCenter
 
@@ -302,7 +326,7 @@ Item {
                     anchors.centerIn: parent
                     text: "󰅖"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 9
+                    font.pixelSize: 10
                     color: closeExpMouse.containsMouse ? "#ffffff" : Theme.textSecondary
                 }
 
@@ -316,10 +340,125 @@ Item {
             }
         }
 
-        // 2. Contenido completo del mensaje
-        Item {
+        // 2a. Vista previa visual de captura (Screenshot Preview Card)
+        Rectangle {
+            id: screenshotPreviewBox
+            visible: root.isScreenshot && root.screenshotPath !== ""
             Layout.fillWidth: true
-            implicitHeight: fullTextCol.implicitHeight
+            implicitHeight: 126
+            radius: 8
+            color: Qt.rgba(0, 0, 0, 0.45)
+            clip: true
+            border.width: 1
+            border.color: shotHover.containsMouse ? Qt.rgba(255, 255, 255, 0.28) : Qt.rgba(255, 255, 255, 0.08)
+
+            Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
+
+            Image {
+                id: screenshotImg
+                anchors.fill: parent
+                source: root.screenshotPath !== "" ? ("file://" + root.screenshotPath) : ""
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                cache: false
+                smooth: true
+            }
+
+            // Sombra inferior sutil para destacar el nombre del archivo
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                height: 28
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: "transparent" }
+                    GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.75) }
+                }
+            }
+
+            // Nombre del archivo de la captura
+            RowLayout {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.margins: 6
+                spacing: 4
+
+                Text {
+                    text: "󰄄"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 10
+                    color: Qt.rgba(255, 255, 255, 0.75)
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: {
+                        if (!root.screenshotPath) return "";
+                        let parts = root.screenshotPath.split("/");
+                        return parts[parts.length - 1];
+                    }
+                    font.family: "JetBrainsMono Nerd Font Propo"
+                    font.pixelSize: 10
+                    color: Qt.rgba(255, 255, 255, 0.9)
+                    elide: Text.ElideMiddle
+                }
+            }
+
+            // Overlay al pasar el cursor (hint de "Click para abrir")
+            Rectangle {
+                anchors.fill: parent
+                color: Qt.rgba(0, 0, 0, 0.38)
+                opacity: shotHover.containsMouse ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: Theme.animFast } }
+
+                RowLayout {
+                    anchors.centerIn: parent
+                    spacing: 6
+
+                    Rectangle {
+                        implicitWidth: 26
+                        implicitHeight: 26
+                        radius: 13
+                        color: Qt.rgba(0, 0, 0, 0.6)
+                        border.width: 1
+                        border.color: Qt.rgba(255, 255, 255, 0.2)
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰈟"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 13
+                            color: "#ffffff"
+                        }
+                    }
+
+                    Text {
+                        text: "Click para abrir"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 11
+                        font.weight: Font.DemiBold
+                        color: "#ffffff"
+                    }
+                }
+            }
+
+            MouseArea {
+                id: shotHover
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    NotificationService.openScreenshot(root.screenshotPath);
+                }
+            }
+        }
+
+        // 2b. Contenido completo del mensaje para notificaciones normales o avisos sin archivo
+        Item {
+            visible: !root.isScreenshot || root.screenshotPath === ""
+            Layout.fillWidth: true
+            implicitHeight: visible ? fullTextCol.implicitHeight : 0
 
             ColumnLayout {
                 id: fullTextCol
@@ -338,7 +477,7 @@ Item {
                         return (s.toLowerCase() !== a.toLowerCase()) ? s : "";
                     }
                     font.family: Theme.fontFamily
-                    font.pixelSize: 12
+                    font.pixelSize: 13
                     font.weight: Font.DemiBold
                     color: "#ffffff"
                     wrapMode: Text.Wrap
@@ -350,7 +489,7 @@ Item {
                     visible: text !== ""
                     text: root.currentToast ? (root.currentToast.body || "").trim() : ""
                     font.family: Theme.fontFamily
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     font.weight: Font.Normal
                     color: Theme.textSecondary
                     wrapMode: Text.Wrap
@@ -372,9 +511,9 @@ Item {
             }
         }
 
-        // 3. Imagen adjunta si existe
+        // 3. Imagen adjunta para notificaciones normales si existe
         Item {
-            visible: root.currentToast && root.currentToast.image && root.currentToast.image !== ""
+            visible: !(root.isScreenshot && root.screenshotPath !== "") && root.currentToast && root.currentToast.image && root.currentToast.image !== ""
             Layout.fillWidth: true
             implicitHeight: expNotifImg.visible ? Math.min(80, expNotifImg.implicitHeight) : 0
 
@@ -387,17 +526,112 @@ Item {
             }
         }
 
-        // 4. Botones de acción inferiores
+        // 4a. Botones de acción dedicados para capturas de pantalla
         RowLayout {
+            visible: root.isScreenshot && root.screenshotPath !== ""
+            Layout.fillWidth: true
+            spacing: 8
+
+            // Botón 1: Copiar imagen al portapapeles (datos PNG reales)
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 28
+                radius: 14
+                color: root.copiedPathFeedback ? Qt.rgba(76/255, 175/255, 80/255, 0.28) : (copyImgMouse.containsMouse ? Qt.lighter(Theme.wsActiveColor, 1.1) : Theme.wsActiveColor)
+
+                scale: copyImgMouse.pressed ? 0.94 : 1.0
+                Behavior on scale { NumberAnimation { duration: Theme.animFast } }
+                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+
+                RowLayout {
+                    anchors.centerIn: parent
+                    spacing: 6
+                    Text {
+                        text: root.copiedPathFeedback ? "󰄬" : "󰆏"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        color: root.copiedPathFeedback ? "#81c784" : "#161616"
+                    }
+                    Text {
+                        text: root.copiedPathFeedback ? "¡Copiada al portapapeles!" : "Copiar imagen"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 11
+                        font.weight: Font.DemiBold
+                        color: root.copiedPathFeedback ? "#81c784" : "#161616"
+                    }
+                }
+
+                MouseArea {
+                    id: copyImgMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        NotificationService.copyScreenshotImage(root.screenshotPath);
+                        root.copiedPathFeedback = true;
+                        copiedFeedbackTimer.restart();
+                    }
+                }
+            }
+
+            // Botón 2: Borrar captura
+            Rectangle {
+                implicitWidth: 86
+                implicitHeight: 28
+                radius: 14
+                color: delShotMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.08)
+                border.width: 1
+                border.color: delShotMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.22) : Qt.rgba(1, 1, 1, 0.08)
+
+                scale: delShotMouse.pressed ? 0.94 : 1.0
+                Behavior on scale { NumberAnimation { duration: Theme.animFast } }
+                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
+
+                RowLayout {
+                    anchors.centerIn: parent
+                    spacing: 5
+                    Text {
+                        text: "󰅖"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 11
+                        color: delShotMouse.containsMouse ? "#ffffff" : Theme.textSecondary
+                    }
+                    Text {
+                        text: "Borrar"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 11
+                        font.weight: Font.Medium
+                        color: delShotMouse.containsMouse ? "#ffffff" : Theme.textSecondary
+                    }
+                }
+
+                MouseArea {
+                    id: delShotMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (root.currentToast) {
+                            NotificationService.deleteScreenshot(root.currentToast.id, root.screenshotPath);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4b. Botones de acción estándar para notificaciones normales
+        RowLayout {
+            visible: !(root.isScreenshot && root.screenshotPath !== "")
             Layout.fillWidth: true
             spacing: 6
 
             Item { Layout.fillWidth: true }
 
             Rectangle {
-                implicitWidth: closeLabel.implicitWidth + 14
-                implicitHeight: 22
-                radius: 6
+                implicitWidth: closeLabel.implicitWidth + 16
+                implicitHeight: 24
+                radius: 12
                 color: closeBtnMouse2.containsMouse ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.08)
 
                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
@@ -405,9 +639,9 @@ Item {
                 Text {
                     id: closeLabel
                     anchors.centerIn: parent
-                    text: "Cerrar"
+                    text: "Close"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 10
+                    font.pixelSize: 11
                     font.weight: Font.Medium
                     color: closeBtnMouse2.containsMouse ? "#ffffff" : Theme.textSecondary
                 }
@@ -424,9 +658,9 @@ Item {
             Repeater {
                 model: (root.currentToast && root.currentToast.actions) ? root.currentToast.actions : []
                 delegate: Rectangle {
-                    implicitWidth: actionLbl.implicitWidth + 14
-                    implicitHeight: 22
-                    radius: 6
+                    implicitWidth: actionLbl.implicitWidth + 16
+                    implicitHeight: 24
+                    radius: 12
                     color: actionMouse2.containsMouse ? Theme.wsActiveColor : Qt.rgba(1, 1, 1, 0.08)
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
@@ -434,9 +668,9 @@ Item {
                     Text {
                         id: actionLbl
                         anchors.centerIn: parent
-                        text: modelData.text || "Acción"
+                        text: modelData.text || "Action"
                         font.family: Theme.fontFamily
-                        font.pixelSize: 10
+                        font.pixelSize: 11
                         font.weight: Font.Medium
                         color: actionMouse2.containsMouse ? "#161616" : Theme.text
                     }
@@ -454,10 +688,10 @@ Item {
             }
 
             Rectangle {
-                visible: !root.currentToast || !root.currentToast.actions || root.currentToast.actions.length === 0
-                implicitWidth: openLbl.implicitWidth + 14
-                implicitHeight: 22
-                radius: 6
+                visible: (!root.currentToast || !root.currentToast.actions || root.currentToast.actions.length === 0) && !root.isScreenshot
+                implicitWidth: openLbl.implicitWidth + 16
+                implicitHeight: 24
+                radius: 12
                 color: openMouse2.containsMouse ? Qt.lighter(Theme.wsActiveColor, 1.1) : Theme.wsActiveColor
 
                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
@@ -465,9 +699,9 @@ Item {
                 Text {
                     id: openLbl
                     anchors.centerIn: parent
-                    text: "Abrir"
+                    text: "Open"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 10
+                    font.pixelSize: 11
                     font.weight: Font.DemiBold
                     color: "#161616"
                 }

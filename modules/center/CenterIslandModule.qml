@@ -13,11 +13,11 @@ Item {
     property bool isPillHovered: false
     readonly property bool isBatteryToast: notificationToastView.isBatteryToast && NotificationService.isToastActive
     readonly property bool isBatteryAlertActive: batteryAlertIslandView.isActive
-    readonly property bool isBatteryAlertDisplaying: batteryAlertIslandView.isActive && !LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible
+    readonly property bool isBatteryAlertDisplaying: batteryAlertIslandView.isActive && !ClipboardService.isOpen && !LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible
     readonly property color batteryBorderColor: batteryAlertIslandView.alertBorderColor
     readonly property color batteryBgColor: batteryAlertIslandView.alertBgColor
     readonly property real batteryBorderWidth: batteryAlertIslandView.alertBorderWidth
-    readonly property bool isMediaHovered: (!LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible && !batteryAlertIslandView.isActive) && (isPillHovered || mediaView.isHovered)
+    readonly property bool isMediaHovered: (!ClipboardService.isOpen && !LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible && !batteryAlertIslandView.isActive) && (isPillHovered || mediaView.isHovered)
 
     // Estados para control manual y temporizador de gracia
     property bool forceClock: false
@@ -134,6 +134,15 @@ Item {
         }
     }
 
+    Connections {
+        target: ClipboardService
+        function onIsOpenChanged() {
+            if (ClipboardService.isOpen) {
+                // Focus handled internally by ClipboardIslandView
+            }
+        }
+    }
+
     function wakeMedia() {
         if (MediaService.hasMedia && MediaService.title !== "") {
             root.forceClock = false;
@@ -151,7 +160,7 @@ Item {
     }
 
     function handleWheel() {
-        if (LauncherService.isOpen || NotificationService.isCenterOpen || OsdService.isVisible || batteryAlertIslandView.isActive) return;
+        if (ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen || OsdService.isVisible || batteryAlertIslandView.isActive) return;
         if (root._wheelLocked) return;
         root._wheelLocked = true;
         wheelCooldown.restart();
@@ -163,27 +172,30 @@ Item {
         }
     }
 
-    // WheelHandler a nivel superior que cubre toda la cápsula central
+    // WheelHandler a nivel superior que cubre toda la cápsula central (solo activo en reloj/media para conmutar)
     WheelHandler {
         target: null
         orientation: Qt.Vertical | Qt.Horizontal
+        enabled: !ClipboardService.isOpen && !LauncherService.isOpen && !NotificationService.isCenterOpen && !OsdService.isVisible && !batteryAlertIslandView.isActive
         onWheel: event => {
             root.handleWheel();
         }
     }
 
-    // Dimensiones optimizadas: más angosto (330px total) y altura calibrada para múltiplos exactos de ítems
-    readonly property int launcherWidth: 330 - (6 * 2)
-    readonly property int launcherHeight: 323
-    readonly property int notificationCenterWidth: 330 - (6 * 2)
-    readonly property int notificationCenterHeight: 330
+    // Dimensiones unificadas para las vistas modales de la Isla (Launcher, Notificaciones, Clipboard)
+    readonly property int modalWidth: 370 - (6 * 2) // 358px (+40px más ancho)
+    readonly property int modalHeight: 343
+
+    readonly property int launcherWidth: modalWidth
+    readonly property int launcherHeight: modalHeight
+    readonly property int notificationCenterWidth: modalWidth
+    readonly property int notificationCenterHeight: modalHeight
+    readonly property int clipboardWidth: modalWidth
+    readonly property int clipboardHeight: modalHeight
 
     implicitWidth: {
-        if (LauncherService.isOpen) {
-            return launcherWidth;
-        }
-        if (NotificationService.isCenterOpen) {
-            return notificationCenterWidth;
+        if (ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen) {
+            return modalWidth;
         }
         if (OsdService.isVisible) {
             return osdIslandView.implicitWidth;
@@ -198,11 +210,8 @@ Item {
     }
 
     implicitHeight: {
-        if (LauncherService.isOpen) {
-            return launcherHeight;
-        }
-        if (NotificationService.isCenterOpen) {
-            return notificationCenterHeight;
+        if (ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen) {
+            return modalHeight;
         }
         if (NotificationService.isToastActive && NotificationService.isToastExpanded) {
             return notificationToastView.implicitHeight;
@@ -215,7 +224,7 @@ Item {
     clip: true
 
     Behavior on implicitWidth {
-        enabled: !root.isMediaActive || root._modeChanging || LauncherService.isOpen || NotificationService.isCenterOpen || OsdService.isVisible || NotificationService.isToastActive || batteryAlertIslandView.isActive
+        enabled: !root.isMediaActive || root._modeChanging || ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen || OsdService.isVisible || NotificationService.isToastActive || batteryAlertIslandView.isActive
         NumberAnimation {
             duration: Theme.animNormal
             easing.type: Easing.OutCubic
@@ -267,7 +276,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         width: implicitWidth
         height: 28
-        opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible && !batteryAlertIslandView.isActive && root.height <= 36) ? (root.isMediaActive ? 0.0 : 1.0) : 0.0
+        opacity: (!ClipboardService.isOpen && !LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible && !batteryAlertIslandView.isActive && root.height <= 36) ? (root.isMediaActive ? 0.0 : 1.0) : 0.0
         scale: opacity > 0.8 ? 1.0 : 0.94
         transformOrigin: Item.Center
         visible: opacity > 0.01
@@ -298,7 +307,7 @@ Item {
         width: implicitWidth
         height: 28
         isContainerHovered: root.isPillHovered
-        opacity: (LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastActive || OsdService.isVisible || batteryAlertIslandView.isActive) ? 0.0 : (root.isMediaActive ? 1.0 : 0.0)
+        opacity: (ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastActive || OsdService.isVisible || batteryAlertIslandView.isActive) ? 0.0 : (root.isMediaActive ? 1.0 : 0.0)
         visible: opacity > 0.01
 
         onDismissToClockRequested: root.dismissToClock()
@@ -317,7 +326,7 @@ Item {
         id: batteryAlertIslandView
         anchors.centerIn: parent
         isHovered: root.isPillHovered
-        opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible && batteryAlertIslandView.isActive) ? 1.0 : 0.0
+        opacity: (!ClipboardService.isOpen && !LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible && batteryAlertIslandView.isActive) ? 1.0 : 0.0
         scale: opacity > 0.5 ? 1.0 : 0.94
         visible: opacity > 0.01
 
@@ -339,7 +348,7 @@ Item {
     OsdIslandView {
         id: osdIslandView
         anchors.centerIn: parent
-        opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && OsdService.isVisible) ? 1.0 : 0.0
+        opacity: (!ClipboardService.isOpen && !LauncherService.isOpen && !NotificationService.isCenterOpen && OsdService.isVisible) ? 1.0 : 0.0
         scale: opacity > 0.5 ? 1.0 : 0.94
         visible: opacity > 0.01
 
@@ -361,7 +370,7 @@ Item {
     NotificationToastView {
         id: notificationToastView
         anchors.fill: parent
-        opacity: (!LauncherService.isOpen && !NotificationService.isCenterOpen && NotificationService.isToastActive && !OsdService.isVisible) ? 1.0 : 0.0
+        opacity: (!ClipboardService.isOpen && !LauncherService.isOpen && !NotificationService.isCenterOpen && NotificationService.isToastActive && !OsdService.isVisible) ? 1.0 : 0.0
         visible: opacity > 0.01
 
         Behavior on opacity {
@@ -379,7 +388,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         width: root.notificationCenterWidth
         height: root.notificationCenterHeight
-        opacity: (!LauncherService.isOpen && NotificationService.isCenterOpen && root.width >= 260) ? 1.0 : 0.0
+        opacity: (!ClipboardService.isOpen && !LauncherService.isOpen && NotificationService.isCenterOpen && root.width >= 260) ? 1.0 : 0.0
         scale: opacity > 0.5 ? 1.0 : 0.96
         transformOrigin: Item.Top
         visible: NotificationService.isCenterOpen && opacity > 0.01
@@ -411,7 +420,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         width: root.launcherWidth
         height: root.launcherHeight
-        opacity: (LauncherService.isOpen && root.width >= 260) ? 1.0 : 0.0
+        opacity: (!ClipboardService.isOpen && LauncherService.isOpen && root.width >= 260) ? 1.0 : 0.0
         scale: opacity > 0.5 ? 1.0 : 0.96
         transformOrigin: Item.Top
         visible: LauncherService.isOpen && opacity > 0.01
@@ -491,7 +500,7 @@ Item {
                         }
 
                         Text {
-                            text: "Buscar aplicaciones..."
+                            text: "Search apps, math, >cmd, ?web..."
                             font.family: Theme.fontFamily
                             font.pixelSize: 12
                             color: Theme.textMuted
@@ -522,6 +531,27 @@ Item {
                             }
                         }
                     }
+
+                    // Botón para limpiar campo de búsqueda (idéntico al de Clipboard)
+                    MouseArea {
+                        implicitWidth: 16
+                        implicitHeight: 16
+                        visible: searchField.text !== ""
+                        cursorShape: Qt.PointingHandCursor
+                        Layout.alignment: Qt.AlignVCenter
+                        onClicked: {
+                            searchField.text = "";
+                            searchField.forceActiveFocus();
+                        }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰅖"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 11
+                            color: parent.containsMouse ? Theme.text : Theme.textMuted
+                        }
+                    }
                 }
             }
 
@@ -530,21 +560,21 @@ Item {
                 Layout.fillWidth: true
                 height: 1
                 color: Theme.dividerColor
-                visible: LauncherService.filteredApplications.length > 0
+                visible: LauncherService.filteredItems.length > 0
             }
 
-            // --- Lista de Aplicaciones con Scroll por Hardware (Exactamente 6 ítems sin recorte de texto) ---
+            // --- Lista de Aplicaciones y Spotlight con Scroll por Hardware ---
             Item {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 260
+                Layout.preferredHeight: 280
                 clip: true
 
                 Text {
                     anchors.centerIn: parent
-                    visible: LauncherService.filteredApplications.length === 0
+                    visible: LauncherService.filteredItems.length === 0
                     text: LauncherService.searchQuery !== ""
-                          ? `No se encontró "${LauncherService.searchQuery}"`
-                          : "Cargando aplicaciones..."
+                          ? `No matches for "${LauncherService.searchQuery}"`
+                          : "Loading applications..."
                     font.family: Theme.fontFamily
                     font.pixelSize: 12
                     color: Theme.textMuted
@@ -553,29 +583,33 @@ Item {
                 ListView {
                     id: appListView
                     anchors.fill: parent
-                    visible: LauncherService.filteredApplications.length > 0
-                    model: LauncherService.filteredApplications
+                    visible: LauncherService.filteredItems.length > 0
+                    model: LauncherService.filteredItems
                     currentIndex: LauncherService.selectedIndex
                     spacing: 4
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
                     snapMode: ListView.SnapToItem
 
-                    ScrollBar.vertical: ScrollBar {
-                        policy: ScrollBar.AsNeeded
-                        width: 4
-                        contentItem: Rectangle {
-                            implicitWidth: 4
-                            radius: 2
-                            color: parent.pressed ? "#555555" : (parent.hovered ? "#444444" : "#303030")
-                            Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                    WheelHandler {
+                        target: null
+                        orientation: Qt.Vertical
+                        onWheel: event => {
+                            let maxScroll = Math.max(0, appListView.contentHeight - appListView.height);
+                            if (maxScroll <= 0) return;
+                            let step = 44;
+                            if (event.angleDelta.y < 0) {
+                                appListView.contentY = Math.min(maxScroll, appListView.contentY + step);
+                            } else if (event.angleDelta.y > 0) {
+                                appListView.contentY = Math.max(0, appListView.contentY - step);
+                            }
                         }
                     }
 
                     delegate: Rectangle {
                         id: appItem
-                        width: appListView.width
-                        height: 40
+                        width: (appListView.contentHeight > appListView.height) ? (appListView.width - 12) : appListView.width
+                        height: 42
                         radius: 7
 
                         readonly property bool isSelected: index === LauncherService.selectedIndex
@@ -592,62 +626,75 @@ Item {
                             anchors.rightMargin: 8
                             spacing: 8
 
-                            IconImage {
+                            Item {
                                 implicitWidth: 24
                                 implicitHeight: 24
-                                source: root.resolveAppIcon(modelData.icon)
                                 Layout.alignment: Qt.AlignVCenter
+
+                                IconImage {
+                                    id: appIconImg
+                                    anchors.fill: parent
+                                    source: (!modelData.isSpecial && modelData.icon) ? root.resolveAppIcon(modelData.icon) : ""
+                                    visible: !modelData.isSpecial && source !== "" && status === Image.Ready
+                                }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: modelData.isSpecial ? modelData.iconGlyph : "󰘔"
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 16
+                                    color: {
+                                        if (modelData.specialType === "calc") return Theme.wsActiveColor;
+                                        if (modelData.specialType === "cmd") return Theme.warning;
+                                        if (modelData.specialType === "web") return Theme.highlight;
+                                        return Theme.textSecondary;
+                                    }
+                                    visible: modelData.isSpecial || !appIconImg.visible
+                                }
                             }
 
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                spacing: 0
+                                spacing: 1
                                 Layout.alignment: Qt.AlignVCenter
 
                                 Text {
-                                    Layout.fillWidth: true
-                                    text: modelData.name || "Aplicación"
+                                    text: modelData.name || ""
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 12
-                                    font.weight: isSelected ? Font.DemiBold : Font.Normal
-                                    color: isSelected ? "#ffffff" : Theme.text
+                                    font.weight: appItem.isSelected ? Font.Medium : Font.Normal
+                                    color: appItem.isSelected ? "#ffffff" : Theme.text
                                     elide: Text.ElideRight
+                                    Layout.fillWidth: true
                                 }
 
                                 Text {
-                                    Layout.fillWidth: true
-                                    visible: text !== ""
-                                    text: modelData.genericName || modelData.comment || ""
+                                    text: modelData.comment || modelData.genericName || "Application"
                                     font.family: Theme.fontFamily
-                                    font.pixelSize: 10
-                                    color: isSelected ? Qt.rgba(1, 1, 1, 0.70) : Theme.textSecondary
+                                    font.pixelSize: 9
+                                    color: modelData.isSpecial && modelData.specialType === "calc" ? Theme.wsActiveColor : Theme.textMuted
                                     elide: Text.ElideRight
+                                    Layout.fillWidth: true
                                 }
                             }
 
-                            // Badge sutil y discreto de ejecución rápida (no compite con el nombre de la app)
-                            RowLayout {
-                                spacing: 4
-                                visible: isSelected
+                            // Badge de acción rápida minimalista y neutro en selección
+                            Rectangle {
+                                implicitWidth: enterBadgeText.implicitWidth + 8
+                                implicitHeight: 16
+                                radius: 4
+                                color: Qt.rgba(255, 255, 255, 0.06)
+                                visible: appItem.isSelected
                                 Layout.alignment: Qt.AlignVCenter
 
-                                Rectangle {
-                                    implicitWidth: enterBadgeText.implicitWidth + 8
-                                    implicitHeight: 18
-                                    radius: 4
-                                    color: Qt.rgba(1, 1, 1, 0.05)
-                                    border.width: 1
-                                    border.color: Qt.rgba(1, 1, 1, 0.08)
-
-                                    Text {
-                                        id: enterBadgeText
-                                        anchors.centerIn: parent
-                                        text: "↵ abrir"
-                                        font.family: Theme.fontFamily
-                                        font.pixelSize: 9
-                                        font.weight: Font.Normal
-                                        color: Qt.rgba(1, 1, 1, 0.35)
-                                    }
+                                Text {
+                                    id: enterBadgeText
+                                    anchors.centerIn: parent
+                                    text: modelData.badge || "↵ Open"
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 9
+                                    font.weight: Font.Normal
+                                    color: Qt.rgba(1, 1, 1, 0.45)
                                 }
                             }
                         }
@@ -658,12 +705,126 @@ Item {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                LauncherService.launchApp(modelData);
+                                LauncherService.launchItem(modelData);
                             }
                         }
                     }
                 }
+
+                // --- Custom Minimal ScrollBar (Idéntico a Clipboard y Notificaciones) ---
+                Item {
+                    id: scrollTrack
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    anchors.right: parent.right
+                    anchors.rightMargin: 0
+                    anchors.topMargin: 2
+                    anchors.bottomMargin: 2
+                    width: 14
+                    visible: appListView.visible && (appListView.contentHeight > appListView.height)
+                    z: 20
+
+                    readonly property real maxContentY: Math.max(1, appListView.contentHeight - appListView.height)
+                    readonly property real maxThumbY: Math.max(0, height - scrollThumb.height)
+
+                    // Cápsula / Pastilla del Scrollbar (Minimalista, sutil y dockeada a la derecha)
+                    Rectangle {
+                        id: scrollThumb
+                        anchors.right: parent.right
+                        anchors.rightMargin: 0
+                        width: scrollMouse.containsMouse || scrollMouse.pressed ? 4 : 3
+                        radius: width / 2
+                        height: Math.max(28, Math.min(scrollTrack.height, (appListView.height / Math.max(appListView.height, appListView.contentHeight)) * scrollTrack.height))
+                        y: scrollTrack.maxThumbY > 0
+                           ? (Math.max(0, Math.min(1, appListView.contentY / scrollTrack.maxContentY)) * scrollTrack.maxThumbY)
+                           : 0
+
+                        // Color sutil integrado a la paleta oscura
+                        color: scrollMouse.pressed 
+                               ? Qt.rgba(1, 1, 1, 0.55) 
+                               : (scrollMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.35) : Qt.rgba(1, 1, 1, 0.18))
+
+                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                        Behavior on width { NumberAnimation { duration: Theme.animFast } }
+                    }
+
+                    // Interacción: Clic directo para saltar o arrastre fluido (drag)
+                    MouseArea {
+                        id: scrollMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+
+                        property real dragStartY: 0
+                        property real dragStartContentY: 0
+                        property bool dragging: false
+
+                        onPressed: mouse => {
+                            if (mouse.y >= scrollThumb.y && mouse.y <= scrollThumb.y + scrollThumb.height) {
+                                dragging = true;
+                                dragStartY = mouse.y;
+                                dragStartContentY = appListView.contentY;
+                            } else {
+                                let targetThumbY = mouse.y - (scrollThumb.height / 2);
+                                let ratio = Math.max(0, Math.min(1, targetThumbY / Math.max(1, scrollTrack.maxThumbY)));
+                                appListView.contentY = ratio * scrollTrack.maxContentY;
+                                dragging = true;
+                                dragStartY = mouse.y;
+                                dragStartContentY = appListView.contentY;
+                            }
+                        }
+
+                        onPositionChanged: mouse => {
+                            if (dragging && pressed && scrollTrack.maxThumbY > 0) {
+                                let dy = mouse.y - dragStartY;
+                                let deltaRatio = dy / scrollTrack.maxThumbY;
+                                let targetContentY = dragStartContentY + (deltaRatio * scrollTrack.maxContentY);
+                                appListView.contentY = Math.max(0, Math.min(scrollTrack.maxContentY, targetContentY));
+                            }
+                        }
+
+                        onReleased: {
+                            dragging = false;
+                        }
+
+                        onCanceled: {
+                            dragging = false;
+                        }
+                    }
+                }
             }
+        }
+    }
+
+    // 6. Vista Unificada del Portapapeles (Isla Metamorfoseada)
+    Item {
+        id: clipboardView
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: root.clipboardWidth
+        height: root.clipboardHeight
+        opacity: (ClipboardService.isOpen && root.width >= 260) ? 1.0 : 0.0
+        scale: opacity > 0.5 ? 1.0 : 0.96
+        transformOrigin: Item.Top
+        visible: ClipboardService.isOpen && opacity > 0.01
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: ClipboardService.isOpen ? 90 : 0
+                easing.type: Easing.OutQuad
+            }
+        }
+
+        Behavior on scale {
+            NumberAnimation {
+                duration: 90
+                easing.type: Easing.OutQuad
+            }
+        }
+
+        ClipboardIslandView {
+            id: clipboardIslandView
+            anchors.fill: parent
         }
     }
 }

@@ -10,7 +10,10 @@ Item {
     property bool isOpen: false
 
     function toggle() {
-        if (root.isOpen) {
+        let otherModalOpen = (typeof LauncherService !== "undefined" && LauncherService && LauncherService.isOpen) ||
+                             (typeof ClipboardService !== "undefined" && ClipboardService && ClipboardService.isOpen) ||
+                             (typeof NotificationService !== "undefined" && NotificationService && NotificationService.isCenterOpen);
+        if (root.isOpen && !otherModalOpen) {
             root.close();
         } else {
             root.open();
@@ -18,8 +21,14 @@ Item {
     }
 
     function open() {
-        if (LauncherService.isOpen) {
+        if (typeof LauncherService !== "undefined" && LauncherService && LauncherService.isOpen) {
             LauncherService.close();
+        }
+        if (typeof ClipboardService !== "undefined" && ClipboardService && ClipboardService.isOpen) {
+            ClipboardService.close();
+        }
+        if (typeof NotificationService !== "undefined" && NotificationService && NotificationService.isCenterOpen) {
+            NotificationService.closeCenter();
         }
         root.isOpen = true;
     }
@@ -119,7 +128,7 @@ Item {
                 root.wifiErrorMessage = "";
                 root.refreshSavedWifiConnections();
             } else if (!root.wifiErrorMessage) {
-                root.wifiErrorMessage = "Error al conectar con la red.";
+                root.wifiErrorMessage = "Failed to connect to network.";
             }
             root.wifiConnectionFinished();
         }
@@ -367,14 +376,14 @@ Item {
                 try {
                     let msg = JSON.parse(line);
                     if (msg.type === "request_confirmation") {
-                        root.promptDeviceName = msg.device || "Dispositivo";
+                        root.promptDeviceName = msg.device || "Device";
                         root.promptMac = msg.mac || "";
                         root.promptPasskey = msg.passkey || "";
                         root.promptType = "confirmation";
                         root.hasPasskeyPrompt = true;
                         root.open();
                     } else if (msg.type === "display_passkey" || msg.type === "display_pin") {
-                        root.promptDeviceName = msg.device || "Dispositivo";
+                        root.promptDeviceName = msg.device || "Device";
                         root.promptMac = msg.mac || "";
                         root.promptPasskey = msg.passkey || msg.pincode || "";
                         root.promptType = msg.type;

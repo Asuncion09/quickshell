@@ -7,8 +7,8 @@ Item {
     id: root
 
     implicitHeight: 28
-    // Ancho fijo calibrado para evitar jitter o saltos visuales (0% hasta 150% o Mute)
-    implicitWidth: 156
+    // Ancho calibrado según el modo para evitar jitter o saltos visuales
+    implicitWidth: (OsdService.mode === "power") ? 130 : 156
 
     readonly property bool isOver100: OsdService.mode === "volume" && OsdService.value > 100 && !OsdService.isMuted
     readonly property real maxRange: (OsdService.mode === "volume") ? 150.0 : 100.0
@@ -24,7 +24,7 @@ Item {
             font.family: Theme.fontFamily
             font.pixelSize: 13
             font.weight: Font.Medium
-            color: OsdService.isMuted ? Theme.critical : (root.isOver100 ? Theme.warning : Theme.highlight)
+            color: OsdService.isMuted ? Theme.critical : (OsdService.mode === "power" ? PowerProfileService.accentColor : (root.isOver100 ? Theme.warning : Theme.highlight))
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: Text.AlignHCenter
             Layout.alignment: Qt.AlignVCenter
@@ -35,10 +35,10 @@ Item {
             }
         }
 
-        // Barra de progreso (activa para volumen y brillo)
+        // Barra de progreso (activa solo para volumen y brillo)
         Rectangle {
             id: barBg
-            visible: OsdService.mode !== "mic"
+            visible: OsdService.mode !== "mic" && OsdService.mode !== "power"
             implicitWidth: 68
             implicitHeight: 5
             radius: 3
@@ -83,11 +83,14 @@ Item {
             }
         }
 
-        // Etiqueta de valor porcentual o estado (ancho reservado fijo de 36px para evitar saltos al pasar a 100%, 150% o Mute)
+        // Etiqueta de valor porcentual o estado
         Text {
             text: {
+                if (OsdService.mode === "power") {
+                    return PowerProfileService.label;
+                }
                 if (OsdService.mode === "mic") {
-                    return OsdService.isMuted ? "Silenciado" : "Activo";
+                    return OsdService.isMuted ? "Muted" : "Active";
                 }
                 if (OsdService.isMuted) return "Mute";
                 return OsdService.value + "%";
@@ -95,11 +98,11 @@ Item {
             font.family: Theme.fontFamily
             font.pixelSize: 11
             font.weight: Font.DemiBold
-            color: OsdService.isMuted ? Theme.critical : (root.isOver100 ? Theme.warning : Theme.text)
+            color: OsdService.isMuted ? Theme.critical : (OsdService.mode === "power" ? PowerProfileService.accentColor : (root.isOver100 ? Theme.warning : Theme.text))
             verticalAlignment: Text.AlignVCenter
-            horizontalAlignment: (OsdService.mode === "mic") ? Text.AlignHCenter : Text.AlignRight
+            horizontalAlignment: (OsdService.mode === "mic" || OsdService.mode === "power") ? Text.AlignHCenter : Text.AlignRight
             Layout.alignment: Qt.AlignVCenter
-            Layout.preferredWidth: (OsdService.mode === "mic") ? implicitWidth : 36
+            Layout.preferredWidth: (OsdService.mode === "mic" || OsdService.mode === "power") ? implicitWidth : 36
 
             Behavior on color {
                 ColorAnimation { duration: Theme.animFast }

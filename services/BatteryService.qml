@@ -125,9 +125,9 @@ Item {
                 root._notifiedFull = true;
                 if (typeof NotificationService !== "undefined" && NotificationService) {
                     NotificationService.postInternalNotification(
-                        "Batería",
-                        "⚡ Carga Completa",
-                        "La batería está al 100%. Ya puedes desconectar el cargador.",
+                        "Battery",
+                        "⚡ Fully Charged",
+                        "Battery is at 100%. You can unplug the charger.",
                         1,
                         Quickshell.iconPath("battery-full-charged") || root.icon,
                         "/usr/share/sounds/freedesktop/stereo/complete.oga"
@@ -144,9 +144,9 @@ Item {
                     root._notifiedLow = true;
                     if (typeof NotificationService !== "undefined" && NotificationService) {
                         NotificationService.postInternalNotification(
-                            "Batería",
-                            `${p}% restante`,
-                            "Conecta el cargador pronto.",
+                            "Battery",
+                            `${p}% remaining`,
+                            "Connect the charger soon.",
                             1,
                             Quickshell.iconPath("battery-low") || root.icon,
                             "/usr/share/sounds/freedesktop/stereo/dialog-warning.oga"
@@ -190,9 +190,9 @@ Item {
     }
 
     readonly property string tooltipText: {
-        if (isCharging) return `Batería: ${percentage}% (Cargando)`;
-        if (percentage === 100) return `Batería: ${percentage}% (Completa)`;
-        return `Batería: ${percentage}%`;
+        if (isCharging) return `Battery: ${percentage}% (Charging)`;
+        if (percentage === 100) return `Battery: ${percentage}% (Full)`;
+        return `Battery: ${percentage}%`;
     }
 }
 

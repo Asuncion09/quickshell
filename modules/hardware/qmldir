@@ -2,4 +2,5 @@ BluetoothModule 1.0 BluetoothModule.qml
 NetworkModule 1.0 NetworkModule.qml
 BatteryModule 1.0 BatteryModule.qml
 VolumeModule 1.0 VolumeModule.qml
+PowerProfileModule 1.0 PowerProfileModule.qml
 

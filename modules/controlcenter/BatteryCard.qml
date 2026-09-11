@@ -272,16 +272,16 @@ Item {
 
                 readonly property string hoveredHint: {
                     if (root.isPowerNavActive) {
-                        if (root.powerNavIndex === 0) return "Volver";
-                        if (root.powerNavIndex === 1) return "Suspender";
-                        if (root.powerNavIndex === 2) return "Salir";
-                        if (root.powerNavIndex === 3) return "Reiniciar";
-                        if (root.powerNavIndex === 4) return "Apagar";
+                        if (root.powerNavIndex === 0) return "Back";
+                        if (root.powerNavIndex === 1) return "Suspend";
+                        if (root.powerNavIndex === 2) return "Log Out";
+                        if (root.powerNavIndex === 3) return "Restart";
+                        if (root.powerNavIndex === 4) return "Shut Down";
                     }
-                    if (suspMouse.containsMouse) return "Suspender";
-                    if (exitMouse.containsMouse) return "Salir";
-                    if (rebootMouse.containsMouse) return "Reiniciar";
-                    if (shutMouse.containsMouse) return "Apagar";
+                    if (suspMouse.containsMouse) return "Suspend";
+                    if (exitMouse.containsMouse) return "Log Out";
+                    if (rebootMouse.containsMouse) return "Restart";
+                    if (shutMouse.containsMouse) return "Shut Down";
                     return "";
                 }
 

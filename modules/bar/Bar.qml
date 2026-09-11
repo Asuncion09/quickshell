@@ -41,7 +41,7 @@ PanelWindow {
 
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusiveZone: Theme.barHeight
-    WlrLayershell.keyboardFocus: (LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: (ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
 
     // Máscara de clics por hardware:
@@ -51,8 +51,8 @@ PanelWindow {
         Region {
             x: 0
             y: 0
-            width: (LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? (root.screen ? root.screen.width : 1920) : 0
-            height: (LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? (root.screen ? root.screen.height : 1080) : 0
+            width: (ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? (root.screen ? root.screen.width : 1920) : 0
+            height: (ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? (root.screen ? root.screen.height : 1080) : 0
         }
         Region { item: leftPill }
         Region { item: taskbarPill }
@@ -68,6 +68,7 @@ PanelWindow {
             if (!event) return;
             let n = event.name;
             if (n === "activewindow" || n === "activewindowv2" || n === "workspace") {
+                if (ClipboardService.isOpen) ClipboardService.close();
                 if (LauncherService.isOpen) LauncherService.close();
                 if (ControlCenterService.isOpen) ControlCenterService.close();
                 if (NotificationService.isCenterOpen) NotificationService.closeCenter();
@@ -85,11 +86,15 @@ PanelWindow {
         MouseArea {
             id: dismissArea
             anchors.fill: parent
-            visible: LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded
-            enabled: LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded
+            visible: ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded
+            enabled: ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded
             z: 90
             acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
             onPressed: {
+                if (ClipboardService.isOpen) {
+                    console.log("[Bar] Clic exterior detectado -> cerrando portapapeles");
+                    ClipboardService.close();
+                }
                 if (LauncherService.isOpen) {
                     console.log("[Bar] Clic exterior detectado -> cerrando lanzador");
                     LauncherService.close();
@@ -147,7 +152,7 @@ PanelWindow {
             Pill {
                 id: centerPill
                 animateSize: false
-                paddingHorizontal: (LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? 6 : ((NotificationService.isToastActive || OsdService.isVisible) ? (centerIsland.isBatteryToast ? 12 : 8) : (centerIsland.isBatteryAlertActive ? 13 : Theme.centerPillPaddingHorizontal))
+                paddingHorizontal: (ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? 6 : ((NotificationService.isToastActive || OsdService.isVisible) ? (centerIsland.isBatteryToast ? 12 : 8) : (centerIsland.isBatteryAlertActive ? 13 : Theme.centerPillPaddingHorizontal))
                 customBorderColor: {
                     if (centerIsland.isBatteryToast) return Theme.warning;
                     if (centerIsland.isBatteryAlertActive) return centerIsland.batteryBorderColor;
@@ -215,6 +220,10 @@ PanelWindow {
 
                 BatteryModule {
                     id: battery
+                }
+
+                PowerProfileModule {
+                    id: powerProfile
                 }
             }
         }

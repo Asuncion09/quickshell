@@ -20,27 +20,24 @@ Item {
     property bool isKeyNavActive: false
     property int passkeyNavIndex: 1 // 0: Rechazar, 1: Confirmar
 
-    HoverHandler {
-        onPointChanged: {
-            if (root.isKeyNavActive) root.isKeyNavActive = false;
-        }
-    }
-
     function scrollToIndex(idx) {
-        if (!devScroll || !devScroll.ScrollBar || !devScroll.ScrollBar.vertical) return;
-        if (idx < 3) {
-            devScroll.ScrollBar.vertical.position = 0;
+        if (!devScroll || idx < 3) {
+            if (devScroll && devScroll.ScrollBar && devScroll.ScrollBar.vertical) {
+                devScroll.ScrollBar.vertical.position = 0;
+            }
             return;
         }
         let devIdx = idx - 3;
-        let total = root.pairedDevices.length + root.availableDevices.length;
+        let total = (root.pairedDevices ? root.pairedDevices.length : 0) + (root.availableDevices ? root.availableDevices.length : 0);
         if (total <= 1) {
-            devScroll.ScrollBar.vertical.position = 0;
+            if (devScroll && devScroll.ScrollBar && devScroll.ScrollBar.vertical) {
+                devScroll.ScrollBar.vertical.position = 0;
+            }
             return;
         }
         let targetRatio = Math.max(0, Math.min(1, devIdx / (total - 1)));
         let maxPos = Math.max(0, 1.0 - (devScroll.height / Math.max(1, scrollCol.height)));
-        if (maxPos > 0) {
+        if (maxPos > 0 && devScroll.ScrollBar && devScroll.ScrollBar.vertical) {
             devScroll.ScrollBar.vertical.position = Math.max(0, Math.min(maxPos, targetRatio * maxPos));
         }
     }
@@ -116,60 +113,63 @@ Item {
             return false;
         }
 
-        let totalDevs = BluetoothService.isEnabled ? (root.pairedDevices.length + root.availableDevices.length) : 0;
+        let totalDevs = (root.pairedDevices ? root.pairedDevices.length : 0) + (root.availableDevices ? root.availableDevices.length : 0);
         let totalItems = 3 + totalDevs;
 
-        if (!root.isKeyNavActive) {
-            if (event.key === Qt.Key_Down || event.key === Qt.Key_Up || event.key === Qt.Key_Right || event.key === Qt.Key_Left || event.key === Qt.Key_Tab) {
-                root.isKeyNavActive = true;
-                root.navIndex = 0;
-                return true;
-            }
-        }
+        // Activa la navegación por teclado inmediatamente
+        root.isKeyNavActive = true;
 
         if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
-            root.isKeyNavActive = true;
             if (root.navIndex < 3) {
                 if (totalDevs > 0) root.navIndex = 3;
-                else root.navIndex = 0;
+                else root.navIndex = (root.navIndex + 1) % 3;
             } else {
-                root.navIndex = (root.navIndex - 3 + 1) % totalDevs + 3;
+                let devOffset = root.navIndex - 3;
+                if (devOffset + 1 < totalDevs) {
+                    root.navIndex++;
+                } else {
+                    root.navIndex = 0; // Wrap back to header
+                }
             }
             root.scrollToIndex(root.navIndex);
             return true;
         }
 
         if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab) {
-            root.isKeyNavActive = true;
             if (root.navIndex === 3) {
                 root.navIndex = 0;
                 root.scrollToIndex(0);
             } else if (root.navIndex > 3) {
                 root.navIndex--;
                 root.scrollToIndex(root.navIndex);
-            } else {
+            } else if (root.navIndex === 0) {
                 if (totalDevs > 0) {
-                    root.navIndex = totalItems - 1;
+                    root.navIndex = 3 + totalDevs - 1;
                     root.scrollToIndex(root.navIndex);
+                } else {
+                    root.navIndex = 2;
                 }
+            } else {
+                root.navIndex--;
             }
             return true;
         }
 
         if (event.key === Qt.Key_Right) {
-            root.isKeyNavActive = true;
             if (root.navIndex === 0) root.navIndex = 1;
             else if (root.navIndex === 1) root.navIndex = 2;
             else if (root.navIndex === 2) {
                 if (totalDevs > 0) root.navIndex = 3;
                 else root.navIndex = 0;
+            } else {
+                let devOffset = root.navIndex - 3;
+                if (devOffset + 1 < totalDevs) root.navIndex++;
             }
             root.scrollToIndex(root.navIndex);
             return true;
         }
 
         if (event.key === Qt.Key_Left) {
-            root.isKeyNavActive = true;
             if (root.navIndex === 2) root.navIndex = 1;
             else if (root.navIndex === 1) root.navIndex = 0;
             else if (root.navIndex === 0) {
@@ -183,6 +183,11 @@ Item {
 
         if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
             root.triggerCurrentItem();
+            return true;
+        }
+
+        if (event.key === Qt.Key_Escape) {
+            root.backRequested();
             return true;
         }
 
@@ -681,7 +686,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: ControlCenterService.promptDeviceName || "Dispositivo Bluetooth"
+                            text: ControlCenterService.promptDeviceName || "Bluetooth Device"
                             font.family: Theme.fontFamily
                             font.pixelSize: 12
                             font.weight: Font.DemiBold
@@ -691,7 +696,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: "Solicitud de vinculación"
+                            text: "Pairing Request"
                             font.family: Theme.fontFamily
                             font.pixelSize: 10
                             color: Theme.textMuted
@@ -732,8 +737,8 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     text: (ControlCenterService.promptType === "display_pin" || ControlCenterService.promptType === "display_passkey")
-                          ? "Introduce este código en el dispositivo"
-                          : "¿Coincide con el código en tu pantalla?"
+                          ? "Enter this code on the device"
+                          : "Does it match the code on your screen?"
                     font.family: Theme.fontFamily
                     font.pixelSize: 10
                     color: Theme.textSecondary
@@ -755,7 +760,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "Rechazar"
+                            text: "Decline"
                             font.family: Theme.fontFamily
                             font.pixelSize: 11
                             font.weight: Font.Medium
@@ -782,7 +787,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "Confirmar"
+                            text: "Confirm"
                             font.family: Theme.fontFamily
                             font.pixelSize: 11
                             font.weight: Font.Bold
@@ -828,7 +833,7 @@ Item {
                 }
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "Bluetooth desactivado"
+                    text: "Bluetooth disabled"
                     font.family: Theme.fontFamily
                     font.pixelSize: 11
                     color: Theme.textSecondary
@@ -858,7 +863,7 @@ Item {
                 }
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: (!root.hasCompletedScan || root.isScanning) ? "Buscando dispositivos..." : "No se encontraron dispositivos"
+                    text: (!root.hasCompletedScan || root.isScanning) ? "Searching for devices..." : "No devices found"
                     font.family: Theme.fontFamily
                     font.pixelSize: 11
                     color: Theme.textSecondary
@@ -888,7 +893,7 @@ Item {
                         visible: root.pairedDevices.length > 0
 
                         Text {
-                            text: "Mis dispositivos"
+                            text: "Paired devices"
                             font.family: Theme.fontFamily
                             font.pixelSize: 11
                             font.weight: Font.DemiBold
@@ -940,7 +945,7 @@ Item {
 
                                         Text {
                                             Layout.fillWidth: true
-                                            text: modelData.name || modelData.deviceName || modelData.address || "Dispositivo"
+                                            text: modelData.name || modelData.deviceName || modelData.address || "Device"
                                             font.family: Theme.fontFamily
                                             font.pixelSize: 11
                                             font.weight: modelData.connected ? Font.DemiBold : Font.Normal
@@ -952,7 +957,7 @@ Item {
                                         Text {
                                             Layout.fillWidth: true
                                             visible: ControlCenterService.connectingMac === modelData.address
-                                            text: "Conectando..."
+                                            text: "Connecting..."
                                             font.family: Theme.fontFamily
                                             font.pixelSize: 9
                                             color: Theme.wsActiveColor
@@ -1004,7 +1009,7 @@ Item {
                                         }
 
                                         Text {
-                                            text: "Conectado"
+                                            text: "Connected"
                                             font.family: Theme.fontFamily
                                             font.pixelSize: 10
                                             font.weight: Font.Medium
@@ -1073,7 +1078,7 @@ Item {
                         RowLayout {
                             Layout.fillWidth: true
                             Text {
-                                text: "Dispositivos disponibles"
+                                text: "Available devices"
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 11
                                 font.weight: Font.DemiBold
@@ -1083,7 +1088,7 @@ Item {
                             Item { Layout.fillWidth: true }
                             Text {
                                 visible: root.isScanning
-                                text: "Buscando..."
+                                text: "Searching..."
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 9
                                 color: Theme.wsActiveColor
@@ -1099,7 +1104,7 @@ Item {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: (!root.hasCompletedScan || root.isScanning) ? "Buscando dispositivos..." : "Sin dispositivos cerca"
+                                text: (!root.hasCompletedScan || root.isScanning) ? "Searching for devices..." : "No devices nearby"
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 10
                                 color: Theme.textSecondary
@@ -1144,7 +1149,7 @@ Item {
 
                                         Text {
                                             Layout.fillWidth: true
-                                            text: modelData.name || modelData.deviceName || modelData.address || "Dispositivo"
+                                            text: modelData.name || modelData.deviceName || modelData.address || "Device"
                                             font.family: Theme.fontFamily
                                             font.pixelSize: 11
                                             color: Theme.text
@@ -1154,7 +1159,7 @@ Item {
                                         Text {
                                             Layout.fillWidth: true
                                             visible: ControlCenterService.connectingMac === modelData.address
-                                            text: "Vinculando..."
+                                            text: "Pairing..."
                                             font.family: Theme.fontFamily
                                             font.pixelSize: 9
                                             color: Theme.wsActiveColor
@@ -1162,7 +1167,7 @@ Item {
                                     }
 
                                     Text {
-                                        text: ControlCenterService.connectingMac === modelData.address ? "..." : "Vincular"
+                                        text: ControlCenterService.connectingMac === modelData.address ? "..." : "Pair"
                                         font.family: Theme.fontFamily
                                         font.pixelSize: 10
                                         font.weight: Font.Medium

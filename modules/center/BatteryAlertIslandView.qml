@@ -191,9 +191,9 @@ Item {
 
         Text {
             text: {
-                if (root.isPluggedNotice) return `Cargador conectado · ${BatteryService.percentage}%`;
-                if (root.isUnpluggedNotice) return `Cargador desconectado · ${BatteryService.percentage}%`;
-                return `Conectar cargador · ${BatteryService.percentage}%`;
+                if (root.isPluggedNotice) return `Charger connected · ${BatteryService.percentage}%`;
+                if (root.isUnpluggedNotice) return `Charger disconnected · ${BatteryService.percentage}%`;
+                return `Connect charger · ${BatteryService.percentage}%`;
             }
             font.family: Theme.fontFamily
             font.pixelSize: 12

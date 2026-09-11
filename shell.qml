@@ -102,6 +102,22 @@ ShellRoot {
     }
 
     IpcHandler {
+        target: "clipboard"
+        function toggle(): void {
+            ClipboardService.toggle();
+        }
+        function open(): void {
+            ClipboardService.open();
+        }
+        function close(): void {
+            ClipboardService.close();
+        }
+        function clear(): void {
+            ClipboardService.clearAll();
+        }
+    }
+
+    IpcHandler {
         target: "notifications"
         function toggle(): void {
             NotificationService.toggleCenter();
@@ -130,6 +146,25 @@ ShellRoot {
         }
         function snooze(): void {
             BatteryService.snooze();
+        }
+    }
+
+    IpcHandler {
+        target: "power"
+        function set(profile: string): void {
+            PowerProfileService.setProfile(profile);
+        }
+        function cycle(): void {
+            PowerProfileService.cycleProfile();
+        }
+        function save(): void {
+            PowerProfileService.setProfile("power-save");
+        }
+        function balanced(): void {
+            PowerProfileService.setProfile("balanced");
+        }
+        function performance(): void {
+            PowerProfileService.setProfile("performance");
         }
     }
 
@@ -168,6 +203,11 @@ ShellRoot {
     Variants {
         model: Quickshell.screens
         Bar {}
+    }
+
+    Variants {
+        model: Quickshell.screens
+        FullscreenIslandOsd {}
     }
 
     Variants {

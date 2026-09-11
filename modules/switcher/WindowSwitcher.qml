@@ -209,33 +209,46 @@ PanelWindow {
                         anchors.fill: parent
                         radius: 12
 
-                        // Tonalidad limpia idéntica a los QuickToggles
+                        // Tonalidad elegante y neutra coherente con el lanzador y la barra (sin bordes azules)
                         color: cardDelegate.isCurrent
-                               ? Qt.rgba(Theme.wsActiveColor.r, Theme.wsActiveColor.g, Theme.wsActiveColor.b, 0.16)
+                               ? "#2c2c2c"
                                : (cardDelegate.isHovered ? Theme.surfaceHover : Theme.surfaceBase)
                         border.color: cardDelegate.isCurrent
-                                      ? Qt.rgba(Theme.wsActiveColor.r, Theme.wsActiveColor.g, Theme.wsActiveColor.b, 0.45)
-                                      : "transparent"
-                        border.width: cardDelegate.isCurrent ? 1 : 0
+                                      ? Qt.rgba(1, 1, 1, 0.18)
+                                      : (cardDelegate.isHovered ? Qt.rgba(1, 1, 1, 0.08) : "transparent")
+                        border.width: 1
 
                         Behavior on color {
-                            ColorAnimation { duration: 100 }
+                            ColorAnimation { duration: 110 }
                         }
                         Behavior on border.color {
-                            ColorAnimation { duration: 100 }
+                            ColorAnimation { duration: 110 }
                         }
 
-                        // Indicador de Workspace (texto limpio y sutil, sin cajas)
-                        Text {
+                        // Badge sutil de Workspace (estilo chip neutro)
+                        Rectangle {
                             anchors.top: parent.top
                             anchors.topMargin: 8
                             anchors.right: parent.right
-                            anchors.rightMargin: 10
-                            text: "WS " + cardDelegate.modelData.workspaceId
-                            font.family: Theme.fontFamily
-                            font.pixelSize: 10
-                            font.weight: Font.DemiBold
-                            color: cardDelegate.isCurrent ? Theme.highlight : Theme.textMuted
+                            anchors.rightMargin: 8
+                            implicitWidth: wsLabel.implicitWidth + 8
+                            implicitHeight: 16
+                            radius: 8
+                            color: cardDelegate.isCurrent ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(1, 1, 1, 0.04)
+
+                            Behavior on color {
+                                ColorAnimation { duration: 110 }
+                            }
+
+                            Text {
+                                id: wsLabel
+                                anchors.centerIn: parent
+                                text: "WS " + cardDelegate.modelData.workspaceId
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 9
+                                font.weight: Font.DemiBold
+                                color: cardDelegate.isCurrent ? Theme.text : Theme.textMuted
+                            }
                         }
 
                         // Icono centrado
@@ -266,7 +279,7 @@ PanelWindow {
                                 text: ""
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 32
-                                color: cardDelegate.isCurrent ? Theme.highlight : Theme.textMuted
+                                color: cardDelegate.isCurrent ? Theme.text : Theme.textMuted
                                 visible: !switcherIconImg.visible
                             }
                         }
@@ -282,9 +295,9 @@ PanelWindow {
                             anchors.rightMargin: 8
                             text: cardDelegate.modelData.appName
                             font.family: Theme.fontFamily
-                            font.weight: Font.DemiBold
+                            font.weight: cardDelegate.isCurrent ? Font.DemiBold : Font.Normal
                             font.pixelSize: 11
-                            color: cardDelegate.isCurrent ? Theme.text : Theme.textSecondary
+                            color: cardDelegate.isCurrent ? "#ffffff" : Theme.textSecondary
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
                         }
@@ -301,28 +314,9 @@ PanelWindow {
                             text: cardDelegate.modelData.title
                             font.family: Theme.fontFamily
                             font.pixelSize: 10
-                            color: cardDelegate.isCurrent ? Qt.rgba(221/255, 225/255, 231/255, 0.60) : Theme.textMuted
+                            color: cardDelegate.isCurrent ? Qt.rgba(221/255, 225/255, 231/255, 0.65) : Theme.textMuted
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
-                        }
-
-                        // Píldora activa en la parte inferior (indicador de selección estilo workspace activo)
-                        Rectangle {
-                            anchors.bottom: parent.bottom
-                            anchors.bottomMargin: 5
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            width: cardDelegate.isCurrent ? 22 : 0
-                            height: 3
-                            radius: 1.5
-                            color: Theme.highlight
-                            opacity: cardDelegate.isCurrent ? 1.0 : 0.0
-
-                            Behavior on width {
-                                NumberAnimation { duration: 120; easing.type: Easing.OutQuad }
-                            }
-                            Behavior on opacity {
-                                NumberAnimation { duration: 120; easing.type: Easing.OutQuad }
-                            }
                         }
 
                         MouseArea {

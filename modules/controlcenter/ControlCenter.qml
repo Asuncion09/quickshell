@@ -10,9 +10,13 @@ Item {
     id: root
 
     property bool _isOpen: false
-    property int currentView: 0 // 0 = Principal, 1 = Wi-Fi, 2 = Bluetooth
-    property int focusedIndex: 0 // 0..7 para los elementos del panel principal
+    property int currentView: 0 // 0 = Principal, 1 = Wi-Fi, 2 = Bluetooth, 3 = Sound
+    property int focusedIndex: 0 // 0..8 para los elementos del panel principal
     property bool isKeyNavActive: false // Solo se activa al presionar flechas o teclado
+
+    onCurrentViewChanged: {
+        Qt.callLater(() => mainCard.forceActiveFocus());
+    }
 
     implicitWidth: 318 + 8
     implicitHeight: mainCard.implicitHeight + 14
@@ -24,12 +28,13 @@ Item {
         switch (idx) {
             case 0: ControlCenterService.toggleWifi(); break;
             case 1: ControlCenterService.toggleBluetooth(); break;
-            case 2: NotificationService.toggleDnd(); break;
+            case 2: AudioService.toggleMute(); break;
             case 3: ControlCenterService.toggleMicMute(); break;
             case 4: AudioService.toggleMute(); break;
             case 5: break; // No hacer nada en el slider de brillo (solo flechas izquierda/derecha)
-            case 6: ControlCenterService.lockScreen(); break;
-            case 7:
+            case 6: powerProfiles.stepNext(); break;
+            case 7: ControlCenterService.lockScreen(); break;
+            case 8:
                 ControlCenterService.togglePowerMenu();
                 if (ControlCenterService.isPowerMenuOpen) {
                     batCard.powerNavIndex = 4;
@@ -43,12 +48,13 @@ Item {
         switch (idx) {
             case 0: root.currentView = 1; break;
             case 1: root.currentView = 2; break;
-            case 2: NotificationService.toggleDnd(); break;
+            case 2: root.currentView = 3; break;
             case 3: ControlCenterService.toggleMicMute(); break;
             case 4: AudioService.toggleMute(); break;
             case 5: break; // No hacer nada en el slider de brillo (solo flechas izquierda/derecha)
-            case 6: ControlCenterService.lockScreen(); break;
-            case 7:
+            case 6: powerProfiles.stepNext(); break;
+            case 7: ControlCenterService.lockScreen(); break;
+            case 8:
                 ControlCenterService.togglePowerMenu();
                 if (ControlCenterService.isPowerMenuOpen) {
                     batCard.powerNavIndex = 4;
@@ -190,6 +196,7 @@ Item {
             implicitHeight: {
                 if (root.currentView === 1) return wifiView.implicitHeight + 22;
                 if (root.currentView === 2) return btView.implicitHeight + 22;
+                if (root.currentView === 3) return audioView.implicitHeight + 22;
                 return contentColumn.implicitHeight + 22;
             }
 
@@ -269,6 +276,15 @@ Item {
                     return;
                 }
 
+                // --- GESTIÓN DE SUBVISTA AUDIO (currentView === 3) ---
+                if (root.currentView === 3) {
+                    if (audioView.handleKey(event)) {
+                        event.accepted = true;
+                        return;
+                    }
+                    return;
+                }
+
                 // --- GESTIÓN DE MENÚ DE APAGADO (isPowerMenuOpen) ---
                 if (ControlCenterService.isPowerMenuOpen) {
                     if (event.key === Qt.Key_Right || event.key === Qt.Key_Tab) {
@@ -289,7 +305,7 @@ Item {
                     if (event.key === Qt.Key_Up || event.key === Qt.Key_Down) {
                         event.accepted = true;
                         ControlCenterService.closePowerMenu();
-                        root.focusedIndex = 7;
+                        root.focusedIndex = 8;
                         return;
                     }
                     return;
@@ -322,15 +338,15 @@ Item {
                 if (event.key === Qt.Key_Tab) {
                     event.accepted = true;
                     if (event.modifiers & Qt.ShiftModifier) {
-                        root.focusedIndex = (root.focusedIndex + 7) % 8;
+                        root.focusedIndex = (root.focusedIndex + 8) % 9;
                     } else {
-                        root.focusedIndex = (root.focusedIndex + 1) % 8;
+                        root.focusedIndex = (root.focusedIndex + 1) % 9;
                     }
                     return;
                 }
                 if (event.key === Qt.Key_Backtab) {
                     event.accepted = true;
-                    root.focusedIndex = (root.focusedIndex + 7) % 8;
+                    root.focusedIndex = (root.focusedIndex + 8) % 9;
                     return;
                 }
 
@@ -341,9 +357,11 @@ Item {
                         sliderVol.stepUp();
                     } else if (root.focusedIndex === 5) {
                         sliderBri.stepUp();
+                    } else if (root.focusedIndex === 6) {
+                        powerProfiles.stepNext();
                     } else {
                         // Flujo continuo: Wi-Fi(0) -> BT(1) -> DND(2) -> Mic(3) -> Vol(4), etc.
-                        root.focusedIndex = (root.focusedIndex + 1) % 8;
+                        root.focusedIndex = (root.focusedIndex + 1) % 9;
                     }
                     return;
                 }
@@ -355,9 +373,11 @@ Item {
                         sliderVol.stepDown();
                     } else if (root.focusedIndex === 5) {
                         sliderBri.stepDown();
+                    } else if (root.focusedIndex === 6) {
+                        powerProfiles.stepPrev();
                     } else {
                         // Flujo continuo hacia atrás
-                        root.focusedIndex = (root.focusedIndex + 7) % 8;
+                        root.focusedIndex = (root.focusedIndex + 8) % 9;
                     }
                     return;
                 }
@@ -369,23 +389,25 @@ Item {
                     else if (root.focusedIndex === 1) root.focusedIndex = 3;  // BT -> Mic
                     else if (root.focusedIndex === 2 || root.focusedIndex === 3) root.focusedIndex = 4; // DND/Mic -> Slider Vol
                     else if (root.focusedIndex === 4) root.focusedIndex = 5;  // Slider Vol -> Slider Brillo
-                    else if (root.focusedIndex === 5) root.focusedIndex = 6;  // Slider Brillo -> Lock
-                    else if (root.focusedIndex === 6) root.focusedIndex = 0;  // Lock -> Wi-Fi (wrap)
-                    else if (root.focusedIndex === 7) root.focusedIndex = 1;  // Power -> BT (wrap)
+                    else if (root.focusedIndex === 5) root.focusedIndex = 6;  // Slider Brillo -> Perfiles de Energía
+                    else if (root.focusedIndex === 6) root.focusedIndex = 7;  // Perfiles -> Lock
+                    else if (root.focusedIndex === 7) root.focusedIndex = 0;  // Lock -> Wi-Fi (wrap)
+                    else if (root.focusedIndex === 8) root.focusedIndex = 1;  // Power -> BT (wrap)
                     return;
                 }
 
                 // Flecha Arriba (↑)
                 if (event.key === Qt.Key_Up) {
                     event.accepted = true;
-                    if (root.focusedIndex === 0) root.focusedIndex = 6;       // Wi-Fi -> Lock (wrap)
-                    else if (root.focusedIndex === 1) root.focusedIndex = 7;  // BT -> Power (wrap)
+                    if (root.focusedIndex === 0) root.focusedIndex = 7;       // Wi-Fi -> Lock (wrap)
+                    else if (root.focusedIndex === 1) root.focusedIndex = 8;  // BT -> Power (wrap)
                     else if (root.focusedIndex === 2) root.focusedIndex = 0;  // DND -> Wi-Fi
                     else if (root.focusedIndex === 3) root.focusedIndex = 1;  // Mic -> BT
                     else if (root.focusedIndex === 4) root.focusedIndex = 2;  // Slider Vol -> DND
                     else if (root.focusedIndex === 5) root.focusedIndex = 4;  // Slider Brillo -> Slider Vol
-                    else if (root.focusedIndex === 6) root.focusedIndex = 5;  // Lock -> Slider Brillo
-                    else if (root.focusedIndex === 7) root.focusedIndex = 5;  // Power -> Slider Brillo
+                    else if (root.focusedIndex === 6) root.focusedIndex = 5;  // Perfiles -> Slider Brillo
+                    else if (root.focusedIndex === 7) root.focusedIndex = 6;  // Lock -> Perfiles
+                    else if (root.focusedIndex === 8) root.focusedIndex = 6;  // Power -> Perfiles
                     return;
                 }
 
@@ -460,7 +482,10 @@ Item {
                                 loading: NetworkService.isWifiEnabled && !NetworkService.isConnected
                                 hasSubmenu: true
                                 onClicked: ControlCenterService.toggleWifi()
-                                onSubmenuClicked: root.currentView = 1
+                                onSubmenuClicked: {
+                                    root.currentView = 1;
+                                    Qt.callLater(() => mainCard.forceActiveFocus());
+                                }
                             }
 
                             // Toggle Bluetooth
@@ -472,18 +497,25 @@ Item {
                                 active: BluetoothService.isEnabled
                                 hasSubmenu: true
                                 onClicked: ControlCenterService.toggleBluetooth()
-                                onSubmenuClicked: root.currentView = 2
+                                onSubmenuClicked: {
+                                    root.currentView = 2;
+                                    Qt.callLater(() => mainCard.forceActiveFocus());
+                                }
                             }
 
-                            // Toggle No Molestar (DND)
+                            // Toggle Dispositivos de Audio / Salida (Reemplazo de DND)
                             QuickToggle {
-                                id: toggleDnd
+                                id: toggleAudio
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 2
-                                icon: NotificationService.dnd ? "󰂛" : "󰂚"
-                                title: "No Molestar"
-                                active: NotificationService.dnd
-                                hasSubmenu: false
-                                onClicked: NotificationService.toggleDnd()
+                                icon: AudioService.outputIcon
+                                title: "Sound"
+                                active: !AudioService.isMuted
+                                hasSubmenu: true
+                                onClicked: AudioService.toggleMute()
+                                onSubmenuClicked: {
+                                    root.currentView = 3;
+                                    Qt.callLater(() => mainCard.forceActiveFocus());
+                                }
                             }
 
                             // Toggle Micrófono
@@ -491,7 +523,7 @@ Item {
                                 id: toggleMic
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 3
                                 icon: ControlCenterService.isMicMuted ? "󰍭" : "󰍬"
-                                title: "Micrófono"
+                                title: "Microphone"
                                 active: !ControlCenterService.isMicMuted
                                 hasSubmenu: false
                                 onClicked: ControlCenterService.toggleMicMute()
@@ -548,12 +580,26 @@ Item {
                             color: Theme.dividerColor
                         }
 
-                        // 3. Fila de Utilidades (Batería compacta y Bloqueo de 32px)
+                        // 3. Selector Segmentado de Perfiles de Energía
+                        PowerProfileSegmentedControl {
+                            id: powerProfiles
+                            Layout.fillWidth: true
+                            focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 6
+                        }
+
+                        // Línea divisoria fina
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 1
+                            color: Theme.dividerColor
+                        }
+
+                        // 4. Fila de Utilidades (Batería compacta, Bloqueo y Menú de Apagado)
                         BatteryCard {
                             id: batCard
                             Layout.fillWidth: true
-                            lockFocused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 6
-                            powerFocused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 7
+                            lockFocused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 7
+                            powerFocused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 8
                         }
                     }
                 }
@@ -600,6 +646,36 @@ Item {
                     opacity: root.currentView === 2 ? 1.0 : 0.0
                     x: root.currentView === 2 ? 0 : 20
                     scale: root.currentView === 2 ? 1.0 : 0.98
+                    visible: opacity > 0.01
+
+                    onBackRequested: {
+                        root.currentView = 0;
+                        Qt.callLater(() => mainCard.forceActiveFocus());
+                    }
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+                    }
+                    Behavior on x {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+                    }
+                    Behavior on scale {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+                    }
+                }
+
+                // ==========================================
+                // VISTA 3: Detalle de Audio (Salida y Entrada)
+                // ==========================================
+                AudioDetailView {
+                    id: audioView
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+
+                    opacity: root.currentView === 3 ? 1.0 : 0.0
+                    x: root.currentView === 3 ? 0 : 20
+                    scale: root.currentView === 3 ? 1.0 : 0.98
                     visible: opacity > 0.01
 
                     onBackRequested: {

@@ -19,27 +19,24 @@ Item {
     property int navIndex: 0
     property bool isKeyNavActive: false
 
-    HoverHandler {
-        onPointChanged: {
-            if (root.isKeyNavActive) root.isKeyNavActive = false;
-        }
-    }
-
     function scrollToIndex(idx) {
-        if (!netScroll || !netScroll.ScrollBar || !netScroll.ScrollBar.vertical) return;
-        if (idx < 3) {
-            netScroll.ScrollBar.vertical.position = 0;
+        if (!netScroll || idx < 3) {
+            if (netScroll && netScroll.ScrollBar && netScroll.ScrollBar.vertical) {
+                netScroll.ScrollBar.vertical.position = 0;
+            }
             return;
         }
         let netIdx = idx - 3;
-        let total = root.savedNetworks.length + root.availableNetworks.length;
+        let total = (root.savedNetworks ? root.savedNetworks.length : 0) + (root.availableNetworks ? root.availableNetworks.length : 0);
         if (total <= 1) {
-            netScroll.ScrollBar.vertical.position = 0;
+            if (netScroll && netScroll.ScrollBar && netScroll.ScrollBar.vertical) {
+                netScroll.ScrollBar.vertical.position = 0;
+            }
             return;
         }
         let targetRatio = Math.max(0, Math.min(1, netIdx / (total - 1)));
         let maxPos = Math.max(0, 1.0 - (netScroll.height / Math.max(1, scrollCol.height)));
-        if (maxPos > 0) {
+        if (maxPos > 0 && netScroll.ScrollBar && netScroll.ScrollBar.vertical) {
             netScroll.ScrollBar.vertical.position = Math.max(0, Math.min(maxPos, targetRatio * maxPos));
         }
     }
@@ -99,60 +96,63 @@ Item {
     function handleKey(event) {
         if (root.selectedSsid !== "") return false;
 
-        let totalNets = (Networking.wifiEnabled || NetworkService.isConnected) ? (root.savedNetworks.length + root.availableNetworks.length) : 0;
+        let totalNets = (root.savedNetworks ? root.savedNetworks.length : 0) + (root.availableNetworks ? root.availableNetworks.length : 0);
         let totalItems = 3 + totalNets;
 
-        if (!root.isKeyNavActive) {
-            if (event.key === Qt.Key_Down || event.key === Qt.Key_Up || event.key === Qt.Key_Right || event.key === Qt.Key_Left || event.key === Qt.Key_Tab) {
-                root.isKeyNavActive = true;
-                root.navIndex = 0;
-                return true;
-            }
-        }
+        // Activa la navegación por teclado inmediatamente
+        root.isKeyNavActive = true;
 
         if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
-            root.isKeyNavActive = true;
             if (root.navIndex < 3) {
                 if (totalNets > 0) root.navIndex = 3;
-                else root.navIndex = 0;
+                else root.navIndex = (root.navIndex + 1) % 3;
             } else {
-                root.navIndex = (root.navIndex - 3 + 1) % totalNets + 3;
+                let netOffset = root.navIndex - 3;
+                if (netOffset + 1 < totalNets) {
+                    root.navIndex++;
+                } else {
+                    root.navIndex = 0; // Wrap back to header
+                }
             }
             root.scrollToIndex(root.navIndex);
             return true;
         }
 
         if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab) {
-            root.isKeyNavActive = true;
             if (root.navIndex === 3) {
                 root.navIndex = 0;
                 root.scrollToIndex(0);
             } else if (root.navIndex > 3) {
                 root.navIndex--;
                 root.scrollToIndex(root.navIndex);
-            } else {
+            } else if (root.navIndex === 0) {
                 if (totalNets > 0) {
-                    root.navIndex = totalItems - 1;
+                    root.navIndex = 3 + totalNets - 1;
                     root.scrollToIndex(root.navIndex);
+                } else {
+                    root.navIndex = 2;
                 }
+            } else {
+                root.navIndex--;
             }
             return true;
         }
 
         if (event.key === Qt.Key_Right) {
-            root.isKeyNavActive = true;
             if (root.navIndex === 0) root.navIndex = 1;
             else if (root.navIndex === 1) root.navIndex = 2;
             else if (root.navIndex === 2) {
                 if (totalNets > 0) root.navIndex = 3;
                 else root.navIndex = 0;
+            } else {
+                let netOffset = root.navIndex - 3;
+                if (netOffset + 1 < totalNets) root.navIndex++;
             }
             root.scrollToIndex(root.navIndex);
             return true;
         }
 
         if (event.key === Qt.Key_Left) {
-            root.isKeyNavActive = true;
             if (root.navIndex === 2) root.navIndex = 1;
             else if (root.navIndex === 1) root.navIndex = 0;
             else if (root.navIndex === 0) {
@@ -166,6 +166,15 @@ Item {
 
         if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
             root.triggerCurrentItem();
+            return true;
+        }
+
+        if (event.key === Qt.Key_Escape) {
+            if (root.selectedSsid !== "") {
+                root.cancelPassword();
+            } else {
+                root.backRequested();
+            }
             return true;
         }
 
@@ -377,9 +386,14 @@ Item {
                                    activeKey === "desactivado" ||
                                    activeKey === "buscando..." ||
                                    activeKey === "buscando" ||
+                                   activeKey === "disabled" ||
+                                   activeKey === "disconnected" ||
+                                   activeKey === "searching..." ||
+                                   activeKey === "searching" ||
                                    activeKey === "wifi" ||
                                    activeKey === "ethernet" ||
-                                   activeKey === "conectado";
+                                   activeKey === "conectado" ||
+                                   activeKey === "connected";
         let hasActive = isActuallyConnected && !isSpecialPlaceholder;
 
         let list = Array.from(map.values()).map(item => {
@@ -423,7 +437,7 @@ Item {
         let next = Object.assign({}, knownSavedMap);
         let changed = false;
 
-        let invalidKeys = ["buscando...", "buscando", "desconectado", "desactivado", "wifi", "ethernet", "conectado", ""];
+        let invalidKeys = ["buscando...", "buscando", "desconectado", "desactivado", "wifi", "ethernet", "conectado", "disabled", "disconnected", "searching...", "searching", "connected", ""];
         for (let k = 0; k < invalidKeys.length; k++) {
             if (next[invalidKeys[k]] !== undefined) {
                 delete next[invalidKeys[k]];
@@ -447,7 +461,7 @@ Item {
     function isNetworkSaved(name) {
         if (!name) return false;
         let nTrim = name.trim().toLowerCase();
-        let invalid = ["buscando...", "buscando", "desconectado", "desactivado", "wifi", "ethernet", "conectado", ""];
+        let invalid = ["buscando...", "buscando", "desconectado", "desactivado", "wifi", "ethernet", "conectado", "disabled", "disconnected", "searching...", "searching", "connected", ""];
         if (invalid.includes(nTrim)) return false;
         if (knownSavedMap[nTrim] === true) return true;
         return ControlCenterService.isWifiSaved(name);
@@ -456,7 +470,7 @@ Item {
     function markSaved(name) {
         if (!name) return;
         let nTrim = name.trim().toLowerCase();
-        let invalid = ["buscando...", "buscando", "desconectado", "desactivado", "wifi", "ethernet", "conectado", ""];
+        let invalid = ["buscando...", "buscando", "desconectado", "desactivado", "wifi", "ethernet", "conectado", "disabled", "disconnected", "searching...", "searching", "connected", ""];
         if (invalid.includes(nTrim)) return;
         if (knownSavedMap[nTrim] === true) return;
         let next = Object.assign({}, knownSavedMap);
@@ -710,9 +724,9 @@ Item {
                 implicitHeight: 22
                 radius: 11
                 readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 2
-                color: (Networking.wifiEnabled || NetworkService.isConnected) ? Theme.wsActiveColor : Theme.surfaceBase
+                color: NetworkService.isWifiEnabled ? Theme.wsActiveColor : Theme.surfaceBase
                 border.width: isKeyFocused ? 1.5 : 0
-                border.color: (Networking.wifiEnabled || NetworkService.isConnected) ? "#ffffff" : Theme.highlight
+                border.color: NetworkService.isWifiEnabled ? "#ffffff" : Theme.highlight
 
                 Behavior on border.width { NumberAnimation { duration: 40 } }
                 Behavior on border.color { ColorAnimation { duration: 40 } }
@@ -725,7 +739,7 @@ Item {
                     radius: 8
                     color: "#ffffff"
                     anchors.verticalCenter: parent.verticalCenter
-                    x: (Networking.wifiEnabled || NetworkService.isConnected) ? parent.width - width - 3 : 3
+                    x: NetworkService.isWifiEnabled ? parent.width - width - 3 : 3
 
                     Behavior on x {
                         NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuad }
@@ -812,7 +826,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: "Introduce la contraseña de red"
+                            text: "Enter network password"
                             font.family: Theme.fontFamily
                             font.pixelSize: 10
                             color: Theme.textMuted
@@ -867,7 +881,7 @@ Item {
                             }
 
                             Text {
-                                text: "Contraseña..."
+                                text: "Password..."
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 11
                                 color: Theme.textMuted
@@ -931,7 +945,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "Cancelar"
+                            text: "Cancel"
                             font.family: Theme.fontFamily
                             font.pixelSize: 11
                             color: Theme.textSecondary
@@ -957,7 +971,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: root.isConnectingNet(root.selectedSsid) ? "Conectando..." : "Conectar"
+                            text: root.isConnectingNet(root.selectedSsid) ? "Connecting..." : "Connect"
                             font.family: Theme.fontFamily
                             font.pixelSize: 11
                             font.weight: Font.Bold
@@ -983,7 +997,7 @@ Item {
         Item {
             Layout.fillWidth: true
             implicitHeight: {
-                let enabled = Networking.wifiEnabled || NetworkService.isConnected;
+                let enabled = NetworkService.isWifiEnabled;
                 if (!enabled) return 70;
                 if (root.displayNetworks.length === 0) return 70;
                 return Math.min(root.selectedSsid !== "" ? 150 : 270, scrollCol.implicitHeight);
@@ -994,7 +1008,7 @@ Item {
             ColumnLayout {
                 anchors.centerIn: parent
                 spacing: 4
-                visible: !Networking.wifiEnabled && !NetworkService.isConnected
+                visible: !NetworkService.isWifiEnabled
 
                 Text {
                     Layout.alignment: Qt.AlignHCenter
@@ -1005,7 +1019,7 @@ Item {
                 }
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "Wi-Fi desactivado"
+                    text: "Wi-Fi disabled"
                     font.family: Theme.fontFamily
                     font.pixelSize: 11
                     color: Theme.textSecondary
@@ -1016,7 +1030,7 @@ Item {
             ColumnLayout {
                 anchors.centerIn: parent
                 spacing: 6
-                visible: (Networking.wifiEnabled || NetworkService.isConnected) && root.displayNetworks.length === 0
+                visible: NetworkService.isWifiEnabled && root.displayNetworks.length === 0
 
                 Text {
                     Layout.alignment: Qt.AlignHCenter
@@ -1035,7 +1049,7 @@ Item {
                 }
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: (!root.hasCompletedScan || root.isScanning) ? "Buscando redes..." : "No se encontraron redes"
+                    text: (!root.hasCompletedScan || root.isScanning) ? "Searching for networks..." : "No networks found"
                     font.family: Theme.fontFamily
                     font.pixelSize: 11
                     color: Theme.textSecondary
@@ -1046,7 +1060,7 @@ Item {
             ScrollView {
                 id: netScroll
                 anchors.fill: parent
-                visible: (Networking.wifiEnabled || NetworkService.isConnected) && root.displayNetworks.length > 0
+                visible: NetworkService.isWifiEnabled && root.displayNetworks.length > 0
                 ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
                 ScrollBar.vertical.policy: ScrollBar.AsNeeded
                 contentWidth: availableWidth
@@ -1065,7 +1079,7 @@ Item {
                         visible: root.savedNetworks.length > 0
 
                         Text {
-                            text: "Mis redes"
+                            text: "Known networks"
                             font.family: Theme.fontFamily
                             font.pixelSize: 11
                             font.weight: Font.DemiBold
@@ -1130,7 +1144,7 @@ Item {
                                         Text {
                                             Layout.fillWidth: true
                                             visible: root.isConnectingNet(modelData.name)
-                                            text: "Conectando..."
+                                            text: "Connecting..."
                                             font.family: Theme.fontFamily
                                             font.pixelSize: 9
                                             color: Theme.wsActiveColor
@@ -1151,7 +1165,7 @@ Item {
                                         }
 
                                         Text {
-                                            text: "Conectado"
+                                            text: "Connected"
                                             font.family: Theme.fontFamily
                                             font.pixelSize: 10
                                             font.weight: Font.Medium
@@ -1216,12 +1230,12 @@ Item {
                     ColumnLayout {
                         Layout.fillWidth: true
                         spacing: 4
-                        visible: (Networking.wifiEnabled || NetworkService.isConnected)
+                        visible: NetworkService.isWifiEnabled
 
                         RowLayout {
                             Layout.fillWidth: true
                             Text {
-                                text: "Redes disponibles"
+                                text: "Available networks"
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 11
                                 font.weight: Font.DemiBold
@@ -1231,7 +1245,7 @@ Item {
                             Item { Layout.fillWidth: true }
                             Text {
                                 visible: root.isScanning
-                                text: "Buscando..."
+                                text: "Searching..."
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 9
                                 color: Theme.wsActiveColor
@@ -1247,7 +1261,7 @@ Item {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: (!root.hasCompletedScan || root.isScanning) ? "Buscando redes..." : "Sin redes cercanas"
+                                text: (!root.hasCompletedScan || root.isScanning) ? "Searching for networks..." : "No networks nearby"
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 10
                                 color: Theme.textSecondary
@@ -1302,7 +1316,7 @@ Item {
                                         Text {
                                             Layout.fillWidth: true
                                             visible: root.isConnectingNet(modelData.name)
-                                            text: "Conectando..."
+                                            text: "Connecting..."
                                             font.family: Theme.fontFamily
                                             font.pixelSize: 9
                                             color: Theme.wsActiveColor
@@ -1320,7 +1334,7 @@ Item {
                                     }
 
                                     Text {
-                                        text: root.isConnectingNet(modelData.name) ? "..." : "Conectar"
+                                        text: root.isConnectingNet(modelData.name) ? "..." : "Connect"
                                         font.family: Theme.fontFamily
                                         font.pixelSize: 10
                                         font.weight: Font.Medium

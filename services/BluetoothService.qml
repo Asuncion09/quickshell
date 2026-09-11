@@ -82,27 +82,27 @@ Item {
     }
 
     readonly property string deviceName: {
-        if (!isEnabled) return "Apagado";
-        if (!isConnected) return "Sin conexión";
+        if (!isEnabled) return "Off";
+        if (!isConnected) return "Disconnected";
         if (Bluetooth.devices && Bluetooth.devices.values) {
             let devs = Bluetooth.devices.values;
             for (let i = 0; i < devs.length; i++) {
-                if (devs[i] && devs[i].connected) return devs[i].name || devs[i].deviceName || "Conectado";
+                if (devs[i] && devs[i].connected) return devs[i].name || devs[i].deviceName || "Connected";
             }
         }
         if (Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.devices && Bluetooth.defaultAdapter.devices.values) {
             let devs = Bluetooth.defaultAdapter.devices.values;
             for (let i = 0; i < devs.length; i++) {
-                if (devs[i] && devs[i].connected) return devs[i].name || devs[i].deviceName || "Conectado";
+                if (devs[i] && devs[i].connected) return devs[i].name || devs[i].deviceName || "Connected";
             }
         }
-        return root._sysDeviceName || "Conectado";
+        return root._sysDeviceName || "Connected";
     }
 
     readonly property string tooltipText: {
-        if (isConnected) return `Bluetooth: Conectado (${root.deviceName})`;
-        if (isEnabled) return "Bluetooth: Encendido (sin conexión)";
-        return "Bluetooth: Apagado";
+        if (isConnected) return `Bluetooth: Connected (${root.deviceName})`;
+        if (isEnabled) return "Bluetooth: On (not connected)";
+        return "Bluetooth: Off";
     }
 }
 

@@ -49,11 +49,14 @@ Item {
     // Notificación actual para la Dynamic Island (Toast efímero)
     property var currentToast: null
     property bool isToastExpanded: false
-    readonly property bool isToastActive: currentToast !== null && !isCenterOpen && !isLauncherOpen
+    readonly property bool isToastActive: currentToast !== null && !isCenterOpen && !isLauncherOpen && !isClipboardOpen
 
-    // Comprobación segura de estado de Launcher
+    // Comprobación segura de estado de Launcher y Clipboard
     readonly property bool isLauncherOpen: {
         return (typeof LauncherService !== "undefined" && LauncherService && LauncherService.isOpen);
+    }
+    readonly property bool isClipboardOpen: {
+        return (typeof ClipboardService !== "undefined" && ClipboardService && ClipboardService.isOpen);
     }
 
     // Lista de notificaciones activas (más recientes al principio)
@@ -153,18 +156,57 @@ Item {
         // Mantener la notificación viva en el servidor hasta que se descarte
         notif.tracked = true;
 
-        let icon = resolveAppIcon(notif.appIcon, notif.desktopEntry, notif.appName);
+        let lowerApp = (notif.appName || "").toLowerCase();
+        let lowerSum = (notif.summary || "").toLowerCase();
+        let lowerBody = (notif.body || "").toLowerCase();
+
+        let isScreenshot = false;
+        if (lowerApp.includes("hyprshot") || lowerApp.includes("grimblast") || lowerApp.includes("screenshot") ||
+            lowerSum.includes("screenshot") || lowerSum.includes("captura") ||
+            lowerBody.includes("image saved") || lowerBody.includes("imagen guardada")) {
+            isScreenshot = true;
+        }
+
+        let screenshotPath = "";
+        if (notif.appIcon && (notif.appIcon.startsWith("/") || notif.appIcon.startsWith("file://"))) {
+            let cleanIcon = notif.appIcon.replace(/^file:\/\//, "");
+            if (cleanIcon.match(/\.(png|jpg|jpeg|webp)$/i)) {
+                screenshotPath = cleanIcon;
+            }
+        }
+        if (!screenshotPath && notif.image && (notif.image.startsWith("/") || notif.image.startsWith("file://"))) {
+            screenshotPath = notif.image.replace(/^file:\/\//, "");
+        }
+        if (!screenshotPath && notif.body) {
+            let m = notif.body.match(/<i>(.*?)<\/i>/);
+            if (m && m[1] && (m[1].startsWith("/") || m[1].startsWith("file://"))) {
+                screenshotPath = m[1].replace(/^file:\/\//, "");
+            } else {
+                let m2 = notif.body.match(/(\/[^\s<"']+\.(png|jpg|jpeg|webp))/i);
+                if (m2 && m2[1]) {
+                    screenshotPath = m2[1];
+                }
+            }
+        }
+
+        if (screenshotPath !== "") {
+            isScreenshot = true;
+        }
+
+        let icon = isScreenshot ? "󰹑" : resolveAppIcon(notif.appIcon, notif.desktopEntry, notif.appName);
         let item = {
             id: notif.id,
             ref: notif,
-            appName: notif.appName && notif.appName !== "" ? notif.appName : "Sistema",
+            appName: isScreenshot ? "Hyprshot" : (notif.appName && notif.appName !== "" ? notif.appName : "Sistema"),
             appIcon: icon,
             summary: notif.summary || "",
             body: notif.body || "",
             urgency: notif.urgency, // 0: Low, 1: Normal, 2: Critical
             image: notif.image || "",
             actions: notif.actions || [],
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            isScreenshot: isScreenshot,
+            screenshotPath: screenshotPath
         };
 
         // Escuchar si la aplicación emisora cierra la notificación externamente
@@ -189,9 +231,23 @@ Item {
         // Mostrar Toast si no está en modo DND (No Molestar) o si es urgente/crítica
         // También omitir si el centro de notificaciones ya está abierto
         if (!root.isCenterOpen && (!root.dnd || notif.urgency === 2)) {
-            root.isToastExpanded = false;
-            root.currentToast = item;
-            toastTimer.restart();
+            if (isScreenshot && screenshotPath !== "") {
+                root.isToastExpanded = true;
+                root.currentToast = item;
+                toastTimer.interval = 8000;
+                toastTimer.restart();
+            } else if (isScreenshot && screenshotPath === "") {
+                // Captura directa al portapapeles (--clipboard-only): píldora compacta de confirmación
+                root.isToastExpanded = false;
+                root.currentToast = item;
+                toastTimer.interval = 3500;
+                toastTimer.restart();
+            } else {
+                root.isToastExpanded = false;
+                root.currentToast = item;
+                toastTimer.interval = 4000;
+                toastTimer.restart();
+            }
         }
 
         // Reproducir sonido si está habilitado y no está en DND (o si es urgente/crítica)
@@ -208,7 +264,7 @@ Item {
         let item = {
             id: notifId,
             ref: null,
-            appName: appName || "Sistema",
+            appName: appName || "System",
             appIcon: icon || resolveAppIcon("", "", appName),
             summary: summary || "",
             body: body || "",
@@ -278,6 +334,37 @@ Item {
         }
         root.notifications = [];
         root.dismissToast();
+    }
+
+    Process {
+        id: screenshotProc
+    }
+
+    function openScreenshot(path) {
+        if (!path) return;
+        let p = path.replace(/^file:\/\//, "");
+        if (screenshotProc.running) screenshotProc.running = false;
+        screenshotProc.command = ["sh", "-c", "xdg-open \"" + p + "\" 2>/dev/null || loupe \"" + p + "\""];
+        screenshotProc.running = true;
+        root.dismissToast();
+    }
+
+    function copyScreenshotImage(path) {
+        if (!path) return;
+        let p = path.replace(/^file:\/\//, "");
+        if (screenshotProc.running) screenshotProc.running = false;
+        screenshotProc.command = ["sh", "-c", "wl-copy --type image/png < \"" + p + "\""];
+        screenshotProc.running = true;
+    }
+
+    function deleteScreenshot(id, path) {
+        if (path) {
+            let p = path.replace(/^file:\/\//, "");
+            if (screenshotProc.running) screenshotProc.running = false;
+            screenshotProc.command = ["sh", "-c", "rm -f \"" + p + "\""];
+            screenshotProc.running = true;
+        }
+        root.dismiss(id);
     }
 
     Process {
@@ -425,6 +512,11 @@ Item {
             return;
         }
 
+        if (notif.isScreenshot && notif.screenshotPath) {
+            root.openScreenshot(notif.screenshotPath);
+            return;
+        }
+
         let appName = notif.appName || "";
         let desktopEntry = (notif.ref && notif.ref.desktopEntry) ? notif.ref.desktopEntry : (notif.desktopEntry || "");
         let summary = notif.summary || "";
@@ -492,7 +584,10 @@ Item {
     }
 
     function toggleCenter() {
-        if (root.isCenterOpen) {
+        let otherModalOpen = (typeof LauncherService !== "undefined" && LauncherService && LauncherService.isOpen) ||
+                             (typeof ClipboardService !== "undefined" && ClipboardService && ClipboardService.isOpen) ||
+                             (typeof ControlCenterService !== "undefined" && ControlCenterService && ControlCenterService.isOpen);
+        if (root.isCenterOpen && !otherModalOpen) {
             root.closeCenter();
         } else {
             root.openCenter();
@@ -502,6 +597,9 @@ Item {
     function openCenter() {
         if (typeof LauncherService !== "undefined" && LauncherService && LauncherService.isOpen) {
             LauncherService.close();
+        }
+        if (typeof ClipboardService !== "undefined" && ClipboardService && ClipboardService.isOpen) {
+            ClipboardService.close();
         }
         if (typeof ControlCenterService !== "undefined" && ControlCenterService && ControlCenterService.isOpen) {
             ControlCenterService.close();
@@ -518,13 +616,13 @@ Item {
         // Usa root._ticker para forzar reactividad
         let _ = root._ticker;
         let diff = Math.floor((Date.now() - timestamp) / 1000);
-        if (diff < 30) return "ahora";
-        if (diff < 60) return "hace " + diff + "s";
+        if (diff < 30) return "now";
+        if (diff < 60) return diff + "s ago";
         let mins = Math.floor(diff / 60);
-        if (mins < 60) return "hace " + mins + "m";
+        if (mins < 60) return mins + "m ago";
         let hours = Math.floor(mins / 60);
-        if (hours < 24) return "hace " + hours + "h";
+        if (hours < 24) return hours + "h ago";
         let days = Math.floor(hours / 24);
-        return "hace " + days + "d";
+        return days + "d ago";
     }
 }

@@ -234,7 +234,7 @@ Item {
             let ipc = top.lastIpcObject || {};
             let windowWs = top.workspace ? top.workspace.id : (ipc.workspace ? ipc.workspace.id : -1);
             let appClass = ipc.class || (top.wayland ? top.wayland.appId : "") || "";
-            let title = top.title || ipc.title || appClass || "Ventana";
+            let title = top.title || ipc.title || appClass || "Window";
             let addr = top.address || "";
             let isFocused = top.activated || (root.activeAddress !== "" && root.activeAddress === addr);
             let isCurrentWs = windowWs === root.currentWorkspaceId;

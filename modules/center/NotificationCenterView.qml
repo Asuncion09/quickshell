@@ -90,9 +90,9 @@ Item {
                     }
 
                     Text {
-                        text: "Notificaciones"
+                        text: "Notifications"
                         font.family: Theme.fontFamily
-                        font.pixelSize: 12
+                        font.pixelSize: 13
                         font.weight: Font.DemiBold
                         color: "#ffffff"
                         Layout.alignment: Qt.AlignVCenter
@@ -100,11 +100,11 @@ Item {
 
                     Rectangle {
                         visible: NotificationService.count > 0
-                        implicitWidth: countText.implicitWidth + 8
+                        implicitWidth: Math.max(18, countText.implicitWidth + 8)
                         implicitHeight: 16
                         radius: 8
-                        color: Qt.rgba(120/255, 169/255, 255/255, 0.16)
-                        border.color: Qt.rgba(120/255, 169/255, 255/255, 0.32)
+                        color: "#242424"
+                        border.color: "#383838"
                         border.width: 1
                         Layout.alignment: Qt.AlignVCenter
 
@@ -114,8 +114,8 @@ Item {
                             text: NotificationService.count
                             font.family: Theme.fontFamily
                             font.pixelSize: 10
-                            font.weight: Font.Bold
-                            color: Theme.highlight
+                            font.weight: Font.DemiBold
+                            color: Theme.text
                         }
                     }
                 }
@@ -164,7 +164,7 @@ Item {
                     anchors.centerIn: parent
                     text: NotificationService.dnd ? "󰂛" : "󰂚"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 12
+                    font.pixelSize: 13
                     color: NotificationService.dnd ? Theme.warning : (dndMouse.containsMouse ? Theme.text : Theme.textSecondary)
                 }
 
@@ -195,7 +195,7 @@ Item {
                     anchors.centerIn: parent
                     text: "󰎟"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 12
+                    font.pixelSize: 13
                     color: clearMouse.containsMouse ? Theme.critical : Theme.textSecondary
                 }
 
@@ -231,24 +231,24 @@ Item {
                 Text {
                     text: "󰂚"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 28
+                    font.pixelSize: 32
                     color: Qt.rgba(1, 1, 1, 0.12)
                     Layout.alignment: Qt.AlignHCenter
                 }
 
                 Text {
-                    text: "Sin notificaciones pendientes"
+                    text: "No pending notifications"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 11
+                    font.pixelSize: 13
                     font.weight: Font.DemiBold
                     color: Theme.textSecondary
                     Layout.alignment: Qt.AlignHCenter
                 }
 
                 Text {
-                    text: "Todo está al día"
+                    text: "All caught up"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 10
+                    font.pixelSize: 11
                     color: Theme.textMuted
                     Layout.alignment: Qt.AlignHCenter
                 }
@@ -264,26 +264,30 @@ Item {
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
 
-                ScrollBar.vertical: ScrollBar {
-                    policy: ScrollBar.AsNeeded
-                    width: 4
-                    contentItem: Rectangle {
-                        implicitWidth: 4
-                        radius: 2
-                        color: parent.pressed ? Theme.highlight : (parent.hovered ? Qt.lighter(Theme.dark6, 1.3) : Qt.rgba(1, 1, 1, 0.22))
-                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                WheelHandler {
+                    target: null
+                    orientation: Qt.Vertical
+                    onWheel: event => {
+                        let maxScroll = Math.max(0, notifListView.contentHeight - notifListView.height);
+                        if (maxScroll <= 0) return;
+                        let step = 60;
+                        if (event.angleDelta.y < 0) {
+                            notifListView.contentY = Math.min(maxScroll, notifListView.contentY + step);
+                        } else if (event.angleDelta.y > 0) {
+                            notifListView.contentY = Math.max(0, notifListView.contentY - step);
+                        }
                     }
                 }
 
                 footer: Item {
                     width: notifListView.width
-                    height: 22
+                    height: 6
                 }
 
                 delegate: Item {
                     id: cardWrapper
                     readonly property var notifItem: modelData
-                    width: notifListView.width
+                    width: (notifListView.contentHeight > notifListView.height) ? (notifListView.width - 8) : notifListView.width
                     implicitHeight: cardBg.height + 8
                     height: implicitHeight
 
@@ -370,8 +374,8 @@ Item {
                                 spacing: 5
 
                                 Item {
-                                    implicitWidth: 16
-                                    implicitHeight: 16
+                                    implicitWidth: 18
+                                    implicitHeight: 18
                                     Layout.alignment: Qt.AlignVCenter
 
                                     IconImage {
@@ -390,16 +394,16 @@ Item {
                                             return "󰂚";
                                         }
                                         font.family: Theme.fontFamily
-                                        font.pixelSize: 12
+                                        font.pixelSize: 13
                                         color: modelData.urgency === 2 ? Theme.critical : Theme.wsActiveColor
                                         visible: !cardIconImg.visible
                                     }
                                 }
 
                                 Text {
-                                    text: modelData.appName || "Sistema"
+                                    text: modelData.appName || "System"
                                     font.family: Theme.fontFamily
-                                    font.pixelSize: 10
+                                    font.pixelSize: 11
                                     font.weight: Font.DemiBold
                                     color: modelData.urgency === 2 ? Theme.critical : Theme.wsActiveColor
                                     Layout.alignment: Qt.AlignVCenter
@@ -408,7 +412,7 @@ Item {
                                 Text {
                                     text: "•"
                                     font.family: Theme.fontFamily
-                                    font.pixelSize: 8
+                                    font.pixelSize: 9
                                     color: Theme.textMuted
                                     Layout.alignment: Qt.AlignVCenter
                                 }
@@ -416,7 +420,7 @@ Item {
                                 Text {
                                     text: NotificationService.formatRelativeTime(modelData.timestamp)
                                     font.family: Theme.fontFamily
-                                    font.pixelSize: 9
+                                    font.pixelSize: 11
                                     color: Theme.textMuted
                                     Layout.alignment: Qt.AlignVCenter
                                 }
@@ -435,9 +439,9 @@ Item {
 
                                 // Botón de descarte individual (píldora circular borderless)
                                 Rectangle {
-                                    implicitWidth: 18
-                                    implicitHeight: 18
-                                    radius: 9
+                                    implicitWidth: 20
+                                    implicitHeight: 20
+                                    radius: 10
                                     color: itemDismissMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.12) : "transparent"
                                     border.width: 0
                                     Layout.alignment: Qt.AlignVCenter
@@ -450,7 +454,7 @@ Item {
                                         anchors.centerIn: parent
                                         text: "󰅖"
                                         font.family: Theme.fontFamily
-                                        font.pixelSize: 10
+                                        font.pixelSize: 11
                                         color: itemDismissMouse.containsMouse ? Theme.critical : Theme.textMuted
                                     }
 
@@ -472,12 +476,126 @@ Item {
                                 visible: modelData.summary && modelData.summary !== "" && modelData.summary.toLowerCase() !== (modelData.appName || "").toLowerCase()
                                 text: (modelData.summary || "").trim().replace(/\r?\n|\r/g, " ").replace(/\s+/g, " ")
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 11
+                                font.pixelSize: 13
                                 font.weight: Font.DemiBold
                                 color: Theme.text
                                 wrapMode: Text.Wrap
                                 maximumLineCount: 2
                                 elide: Text.ElideRight
+                            }
+
+                            // Vista previa visual si es una captura de pantalla
+                            Rectangle {
+                                visible: modelData.isScreenshot && modelData.screenshotPath && modelData.screenshotPath !== ""
+                                Layout.fillWidth: true
+                                implicitHeight: 88
+                                radius: 6
+                                color: Qt.rgba(0, 0, 0, 0.4)
+                                clip: true
+
+                                Image {
+                                    anchors.fill: parent
+                                    source: (modelData.isScreenshot && modelData.screenshotPath) ? ("file://" + modelData.screenshotPath) : ""
+                                    fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                    cache: false
+                                    smooth: true
+                                }
+
+                                // Sombra inferior sutil para el nombre del archivo
+                                Rectangle {
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    anchors.bottom: parent.bottom
+                                    height: 24
+                                    gradient: Gradient {
+                                        GradientStop { position: 0.0; color: "transparent" }
+                                        GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.72) }
+                                    }
+                                }
+
+                                Text {
+                                    anchors.left: parent.left
+                                    anchors.bottom: parent.bottom
+                                    anchors.margins: 4
+                                    text: {
+                                        if (!modelData.screenshotPath) return "";
+                                        let parts = modelData.screenshotPath.split("/");
+                                        return parts[parts.length - 1];
+                                    }
+                                    font.family: "JetBrainsMono Nerd Font Propo"
+                                    font.pixelSize: 10
+                                    color: Qt.rgba(255, 255, 255, 0.9)
+                                    elide: Text.ElideMiddle
+                                    width: parent.width - 10
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        NotificationService.openScreenshot(modelData.screenshotPath);
+                                    }
+                                }
+                            }
+
+                            // Botones de acción para capturas en el centro de notificaciones
+                            RowLayout {
+                                visible: modelData.isScreenshot && modelData.screenshotPath && modelData.screenshotPath !== ""
+                                Layout.fillWidth: true
+                                spacing: 6
+
+                                Rectangle {
+                                    implicitWidth: copyCenterShotLbl.implicitWidth + 18
+                                    implicitHeight: 24
+                                    radius: 12
+                                    color: copyCenterShotM.containsMouse ? Qt.lighter(Theme.wsActiveColor, 1.1) : Theme.wsActiveColor
+
+                                    Text {
+                                        id: copyCenterShotLbl
+                                        anchors.centerIn: parent
+                                        text: "󰆏 Copiar imagen"
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: 10
+                                        font.weight: Font.DemiBold
+                                        color: "#161616"
+                                    }
+                                    MouseArea {
+                                        id: copyCenterShotM
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: NotificationService.copyScreenshotImage(modelData.screenshotPath)
+                                    }
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                Rectangle {
+                                    implicitWidth: delCenterShotLbl.implicitWidth + 16
+                                    implicitHeight: 24
+                                    radius: 12
+                                    color: delCenterShotM.containsMouse ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.08)
+                                    border.width: 1
+                                    border.color: delCenterShotM.containsMouse ? Qt.rgba(1, 1, 1, 0.22) : Qt.rgba(1, 1, 1, 0.08)
+
+                                    Text {
+                                        id: delCenterShotLbl
+                                        anchors.centerIn: parent
+                                        text: "󰅖 Borrar"
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: 10
+                                        font.weight: Font.Medium
+                                        color: delCenterShotM.containsMouse ? "#ffffff" : Theme.textSecondary
+                                    }
+                                    MouseArea {
+                                        id: delCenterShotM
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: NotificationService.deleteScreenshot(modelData.id, modelData.screenshotPath)
+                                    }
+                                }
                             }
 
                             // Cuerpo del mensaje (Body) - Formateo limpio sin bordes duros
@@ -488,7 +606,7 @@ Item {
                                 radius: 6
                                 color: isCmd ? Qt.rgba(0, 0, 0, 0.35) : "transparent"
                                 border.width: 0
-                                visible: modelData.body && modelData.body !== ""
+                                visible: (!modelData.isScreenshot || !modelData.screenshotPath) && modelData.body && modelData.body !== ""
 
                                 readonly property bool isCmd: {
                                     let b = (modelData.body || "");
@@ -508,7 +626,7 @@ Item {
                                         return b.replace(/\r?\n|\r/g, " ").replace(/\s+/g, " ");
                                     }
                                     font.family: bodyBox.isCmd ? "JetBrainsMono Nerd Font Propo" : Theme.fontFamily
-                                    font.pixelSize: 10
+                                    font.pixelSize: bodyBox.isCmd ? 11 : 12
                                     font.weight: Font.Normal
                                     color: bodyBox.isCmd ? Qt.rgba(1, 1, 1, 0.88) : Theme.textSecondary
                                     wrapMode: Text.WrapAtWordBoundaryOrAnywhere
@@ -521,16 +639,16 @@ Item {
                             RowLayout {
                                 Layout.fillWidth: true
                                 spacing: 6
-                                visible: modelData.actions && modelData.actions.length > 0
+                                visible: (!modelData.isScreenshot || !modelData.screenshotPath) && modelData.actions && modelData.actions.length > 0
 
                                 Item { Layout.fillWidth: true }
 
                                 Repeater {
                                     model: modelData.actions || []
                                     delegate: Rectangle {
-                                        implicitWidth: actionLabel.implicitWidth + 16
-                                        implicitHeight: 22
-                                        radius: 11
+                                        implicitWidth: actionLabel.implicitWidth + 18
+                                        implicitHeight: 24
+                                        radius: 12
                                         color: actionMouse.containsMouse ? Theme.wsActiveColor : Qt.rgba(1, 1, 1, 0.08)
                                         border.width: 0
 
@@ -541,9 +659,9 @@ Item {
                                         Text {
                                             id: actionLabel
                                             anchors.centerIn: parent
-                                            text: modelData.text || "Acción"
+                                            text: modelData.text || "Action"
                                             font.family: Theme.fontFamily
-                                            font.pixelSize: 10
+                                            font.pixelSize: 11
                                             font.weight: Font.Medium
                                             color: actionMouse.containsMouse ? "#161616" : Theme.text
                                         }
@@ -565,88 +683,84 @@ Item {
                 }
             }
 
-            // Desvanecimiento inferior para sugerir continuidad de contenido
-            Rectangle {
-                id: bottomFade
-                anchors.left: parent.left
+            // --- Custom Minimal ScrollBar ---
+            Item {
+                id: scrollTrack
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
                 anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                height: 28
-                z: 5
-                visible: opacity > 0.01
-                opacity: (NotificationService.count > 0 && notifListView.contentHeight > notifListView.height + 6 && !notifListView.atYEnd) ? 1.0 : 0.0
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: "transparent" }
-                    GradientStop { position: 1.0; color: Theme.bgDark }
-                }
-
-                Behavior on opacity {
-                    NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuad }
-                }
-            }
-
-            // Indicador interactivo flotante "... 󰅀" cuando hay más contenido debajo
-            Rectangle {
-                id: moreIndicator
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottom: parent.bottom
+                anchors.rightMargin: 0
+                anchors.topMargin: 2
                 anchors.bottomMargin: 2
-                z: 10
-                implicitWidth: moreRow.implicitWidth + 14
-                implicitHeight: 20
-                radius: 10
-                color: moreHover.containsMouse ? Theme.surfaceHover : Qt.rgba(24/255, 24/255, 24/255, 0.94)
-                border.color: moreHover.containsMouse ? Qt.lighter(Theme.highlight, 1.1) : Qt.rgba(1, 1, 1, 0.15)
-                border.width: 1
+                width: 14
+                visible: notifListView.visible && (notifListView.contentHeight > notifListView.height)
+                z: 20
 
-                visible: opacity > 0.01
-                opacity: (NotificationService.count > 0 && notifListView.contentHeight > notifListView.height + 6 && !notifListView.atYEnd) ? 1.0 : 0.0
+                readonly property real maxContentY: Math.max(1, notifListView.contentHeight - notifListView.height)
+                readonly property real maxThumbY: Math.max(0, height - scrollThumb.height)
 
-                scale: moreHover.pressed ? 0.92 : (moreHover.containsMouse ? 1.04 : 1.0)
+                // Cápsula / Pastilla del Scrollbar (Minimalista, sutil y dockeada a la derecha)
+                Rectangle {
+                    id: scrollThumb
+                    anchors.right: parent.right
+                    anchors.rightMargin: 0
+                    width: scrollMouse.containsMouse || scrollMouse.pressed ? 4 : 3
+                    radius: width / 2
+                    height: Math.max(28, Math.min(scrollTrack.height, (notifListView.height / Math.max(notifListView.height, notifListView.contentHeight)) * scrollTrack.height))
+                    y: scrollTrack.maxThumbY > 0
+                       ? (Math.max(0, Math.min(1, notifListView.contentY / scrollTrack.maxContentY)) * scrollTrack.maxThumbY)
+                       : 0
 
-                Behavior on opacity {
-                    NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuad }
-                }
-                Behavior on scale {
-                    NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuad }
-                }
-                Behavior on color {
-                    ColorAnimation { duration: Theme.animFast }
-                }
-                Behavior on border.color {
-                    ColorAnimation { duration: Theme.animFast }
-                }
+                    // Color sutil integrado a la paleta oscura
+                    color: scrollMouse.pressed 
+                           ? Qt.rgba(1, 1, 1, 0.55) 
+                           : (scrollMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.35) : Qt.rgba(1, 1, 1, 0.18))
 
-                Row {
-                    id: moreRow
-                    anchors.centerIn: parent
-                    spacing: 5
-
-                    Text {
-                        text: "•••"
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 11
-                        font.weight: Font.Bold
-                        color: moreHover.containsMouse ? Theme.text : Theme.textSecondary
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    Text {
-                        text: "󰅀"
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 11
-                        color: Theme.highlight
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                    Behavior on width { NumberAnimation { duration: Theme.animFast } }
                 }
 
+                // Interacción: Clic directo para saltar o arrastre fluido (drag)
                 MouseArea {
-                    id: moreHover
+                    id: scrollMouse
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        notifListView.contentY = Math.min(notifListView.contentHeight - notifListView.height, notifListView.contentY + 90);
+
+                    property real dragStartY: 0
+                    property real dragStartContentY: 0
+                    property bool dragging: false
+
+                    onPressed: mouse => {
+                        if (mouse.y >= scrollThumb.y && mouse.y <= scrollThumb.y + scrollThumb.height) {
+                            dragging = true;
+                            dragStartY = mouse.y;
+                            dragStartContentY = notifListView.contentY;
+                        } else {
+                            let targetThumbY = mouse.y - (scrollThumb.height / 2);
+                            let ratio = Math.max(0, Math.min(1, targetThumbY / Math.max(1, scrollTrack.maxThumbY)));
+                            notifListView.contentY = ratio * scrollTrack.maxContentY;
+                            dragging = true;
+                            dragStartY = mouse.y;
+                            dragStartContentY = notifListView.contentY;
+                        }
+                    }
+
+                    onPositionChanged: mouse => {
+                        if (dragging && pressed && scrollTrack.maxThumbY > 0) {
+                            let dy = mouse.y - dragStartY;
+                            let deltaRatio = dy / scrollTrack.maxThumbY;
+                            let targetContentY = dragStartContentY + (deltaRatio * scrollTrack.maxContentY);
+                            notifListView.contentY = Math.max(0, Math.min(scrollTrack.maxContentY, targetContentY));
+                        }
+                    }
+
+                    onReleased: {
+                        dragging = false;
+                    }
+
+                    onCanceled: {
+                        dragging = false;
                     }
                 }
             }
