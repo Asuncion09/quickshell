@@ -18,7 +18,7 @@ Item {
 
     property bool focused: false
 
-    readonly property bool isHovered: mouseArea.containsMouse || iconMouse.containsMouse
+    readonly property bool isHovered: mouseArea.containsMouse
     property bool wasHovered: false
     onIsHoveredChanged: {
         if (isHovered) wasHovered = true;
@@ -128,7 +128,7 @@ Item {
                         ColorAnimation { duration: (root.isHovered || root.wasHovered) ? Theme.animFast : 40 }
                     }
 
-                    scale: iconMouse.pressed ? 0.85 : 1.0
+                    scale: (mouseArea.pressed && mouseArea.pressX <= 40 && !mouseArea.isDragging) ? 0.85 : 1.0
                     Behavior on scale {
                         NumberAnimation {
                             duration: Theme.animFast
@@ -136,14 +136,6 @@ Item {
                             easing.overshoot: 1.2
                         }
                     }
-                }
-
-                MouseArea {
-                    id: iconMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.iconClicked()
                 }
             }
 
@@ -177,26 +169,55 @@ Item {
             }
         }
 
-        // Área de interacción para arrastrar el slider
+        // Área de interacción para arrastrar el slider por el 100% de la pista visual
         MouseArea {
             id: mouseArea
             anchors.fill: parent
-            anchors.leftMargin: 40 // Permite al icono recibir sus propios clics sin conflicto
             hoverEnabled: true
             cursorShape: pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
 
+            property real pressX: 0
+            property bool isDragging: false
+
             function updateFromMouse(posX) {
-                if (mouseArea.width <= 0) return;
-                let clamped = Math.max(0, Math.min(mouseArea.width, posX));
-                let rawPct = root.minValue + (clamped / mouseArea.width) * (root.maxValue - root.minValue);
-                let stepped = Math.round(rawPct / root.step) * root.step;
-                let finalVal = Math.max(root.minValue, Math.min(root.maxValue, stepped));
-                root.valueChangedByUser(finalVal);
+                if (trackBg.width <= 0) return;
+                let clamped = Math.max(0, Math.min(trackBg.width, posX));
+                let rawPct = root.minValue + (clamped / trackBg.width) * (root.maxValue - root.minValue);
+                let finalVal = Math.max(root.minValue, Math.min(root.maxValue, Math.round(rawPct)));
+                if (finalVal !== root.value) {
+                    root.valueChangedByUser(finalVal);
+                }
             }
 
-            onPressed: mouse => updateFromMouse(mouse.x)
+            onPressed: mouse => {
+                pressX = mouse.x;
+                isDragging = false;
+                // Si el clic es en la pista activa (> 40px), posicionar el valor inmediatamente
+                if (mouse.x > 40) {
+                    updateFromMouse(mouse.x);
+                }
+            }
+
             onPositionChanged: mouse => {
-                if (pressed) updateFromMouse(mouse.x);
+                if (pressed) {
+                    // Si se desplaza más de 4px, entra en modo arrastre
+                    if (!isDragging && Math.abs(mouse.x - pressX) > 4) {
+                        isDragging = true;
+                    }
+                    if (isDragging || mouse.x > 40) {
+                        updateFromMouse(mouse.x);
+                    }
+                }
+            }
+
+            onReleased: mouse => {
+                // Clic deliberado sobre el icono sin arrastrar activa su acción (ej. silenciar)
+                if (!isDragging && pressX <= 40 && mouse.x <= 40) {
+                    root.iconClicked();
+                } else if (isDragging || mouse.x > 40) {
+                    updateFromMouse(mouse.x);
+                }
+                isDragging = false;
             }
 
             onWheel: wheel => {

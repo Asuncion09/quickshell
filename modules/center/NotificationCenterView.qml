@@ -381,13 +381,14 @@ Item {
                                     IconImage {
                                         id: cardIconImg
                                         anchors.fill: parent
-                                        source: (modelData.appIcon && !modelData.appIcon.startsWith("")) ? modelData.appIcon : ""
+                                        source: (modelData.appIcon && modelData.appIcon.length > 2) ? modelData.appIcon : ""
                                         visible: source !== "" && status === Image.Ready
                                     }
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: {
+                                            if (modelData.appIcon && modelData.appIcon.length <= 2) return modelData.appIcon;
                                             let a = (modelData.appName || "").toLowerCase();
                                             if (a.includes("antigravity") || a.includes("code") || a.includes("vscode")) return "󰅩";
                                             if (a.includes("term") || a.includes("bash") || a.includes("shell") || a.includes("kitty") || a.includes("alacritty")) return "󰆍";

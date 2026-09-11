@@ -149,7 +149,7 @@ Item {
             IconImage {
                 id: toastIconImg
                 anchors.fill: parent
-                source: (!root.isScreenshot && !root.isColorPicker && root.currentToast && root.currentToast.appIcon && !root.currentToast.appIcon.startsWith("") && root.currentToast.appIcon.length > 2) ? root.currentToast.appIcon : ""
+                source: (!root.isScreenshot && !root.isColorPicker && root.currentToast && root.currentToast.appIcon && root.currentToast.appIcon.length > 2) ? root.currentToast.appIcon : ""
                 visible: !root.isScreenshot && !root.isColorPicker && source !== "" && status === Image.Ready
             }
 
@@ -294,7 +294,7 @@ Item {
                 IconImage {
                     id: expIconImg
                     anchors.fill: parent
-                    source: (!root.isScreenshot && !root.isColorPicker && root.currentToast && root.currentToast.appIcon && !root.currentToast.appIcon.startsWith("") && root.currentToast.appIcon.length > 2) ? root.currentToast.appIcon : ""
+                    source: (!root.isScreenshot && !root.isColorPicker && root.currentToast && root.currentToast.appIcon && root.currentToast.appIcon.length > 2) ? root.currentToast.appIcon : ""
                     visible: !root.isScreenshot && !root.isColorPicker && source !== "" && status === Image.Ready
                 }
 

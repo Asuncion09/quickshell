@@ -634,7 +634,7 @@ Item {
                                 IconImage {
                                     id: appIconImg
                                     anchors.fill: parent
-                                    source: (!modelData.isSpecial && modelData.icon && !modelData.icon.startsWith("")) ? root.resolveAppIcon(modelData.icon) : ""
+                                    source: (!modelData.isSpecial && modelData.icon) ? root.resolveAppIcon(modelData.icon) : ""
                                     visible: !modelData.isSpecial && source !== "" && status === Image.Ready
                                 }
 
