@@ -17,13 +17,23 @@ Item {
         "󰢟", "󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"
     ]
 
-    // Lectura de sysfs como respaldo garantizado
+    // Lectura de sysfs como respaldo y acelerador de eventos instantáneos
     property int _sysCapacity: 100
     property string _sysStatus: "Discharging"
+    property bool _sysAcOnline: false
+    property bool _pendingRead: false
+
+    function requestImmediateRead() {
+        if (!batReader.running) {
+            batReader.running = true;
+        } else {
+            root._pendingRead = true;
+        }
+    }
 
     Process {
         id: batReader
-        command: ["sh", "-c", "printf '%s:%s\\n' \"$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -n 1)\" \"$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -n 1)\""]
+        command: ["sh", "-c", "printf '%s:%s:%s\\n' \"$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -n 1)\" \"$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -n 1)\" \"$(cat /sys/class/power_supply/{AC,ACAD,ADP,A}*/online 2>/dev/null | head -n 1)\""]
         stdout: SplitParser {
             onRead: data => {
                 let parts = data.trim().split(":");
@@ -32,17 +42,48 @@ Item {
                     if (!isNaN(cap)) root._sysCapacity = cap;
                     if (parts[1]) root._sysStatus = parts[1].trim();
                 }
+                if (parts.length >= 3) {
+                    let online = parts[2].trim();
+                    root._sysAcOnline = (online === "1");
+                }
+            }
+        }
+        onExited: {
+            if (root._pendingRead) {
+                root._pendingRead = false;
+                batReader.running = true;
             }
         }
     }
 
+    // Monitor en tiempo real de eventos del kernel (udev) para detección en <10ms al enchufar/desenchufar
+    Process {
+        id: udevProc
+        command: ["udevadm", "monitor", "--kernel", "--subsystem-match=power_supply"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                root.requestImmediateRead();
+            }
+        }
+    }
+
+    // Reacción inmediata ante cambios del demonio UPower
+    Connections {
+        target: UPower
+        function onOnBatteryChanged() {
+            root.requestImmediateRead();
+        }
+    }
+
+    // Temporizador de respaldo periódico (reducido a 3s)
     Timer {
-        interval: 10000 // Actualiza cada 10 segundos
+        interval: 3000
         running: true
         repeat: true
         triggeredOnStart: true
         onTriggered: {
-            if (!batReader.running) batReader.running = true;
+            root.requestImmediateRead();
         }
     }
 
@@ -99,13 +140,22 @@ Item {
         return root._sysCapacity;
     }
 
-    // Estado de carga
+    // Estado de carga / conexión a corriente (reactivo e instantáneo)
     readonly property bool isCharging: {
         if (root.testCharging >= 0) return root.testCharging === 1;
+        // Prioridad 1: Detección por hardware a nivel de kernel/sysfs (/sys/class/power_supply/ACAD/online)
+        if (root._sysAcOnline) return true;
+        // Prioridad 2: Estado del demonio UPower (!OnBattery = conectado a corriente)
+        if (UPower.onBattery !== undefined && !UPower.onBattery) return true;
+        // Prioridad 3: Estado específico de la batería reportado por UPower
         if (UPower.displayDevice && UPower.displayDevice.isPresent) {
-            return UPower.displayDevice.state === UPowerDeviceState.Charging;
+            let s = UPower.displayDevice.state;
+            if (s === UPowerDeviceState.Charging || s === UPowerDeviceState.FullyCharged) {
+                return true;
+            }
         }
-        return root._sysStatus === "Charging";
+        // Prioridad 4: Respaldo de texto directo de sysfs
+        return root._sysStatus === "Charging" || root._sysStatus === "Full";
     }
 
     // Banderas de estado para evitar spam de notificaciones
