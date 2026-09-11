@@ -33,6 +33,18 @@ Item {
         root.isOpen = true;
     }
 
+    property int requestedView: 0
+
+    function openSettings() {
+        root.requestedView = 4;
+        root.open();
+    }
+
+    function openAudio() {
+        root.requestedView = 3;
+        root.open();
+    }
+
     function close() {
         root.isOpen = false;
         root.isPowerMenuOpen = false;
@@ -69,9 +81,15 @@ Item {
         }
     }
 
+    Component.onCompleted: {
+        root.refreshSavedWifiConnections();
+        root.checkCaffeine();
+    }
+
     onIsOpenChanged: {
         if (root.isOpen) {
             root.refreshSavedWifiConnections();
+            root.checkCaffeine();
         }
     }
 
@@ -141,9 +159,6 @@ Item {
         onExited: root.refreshSavedWifiConnections()
     }
 
-    Component.onCompleted: {
-        root.refreshSavedWifiConnections();
-    }
 
     function refreshSavedWifiConnections() {
         if (wifiSavedProc.running) wifiSavedProc.running = false;
@@ -435,6 +450,65 @@ Item {
 
     function toggleDnd() {
         NotificationService.toggleDnd();
+    }
+
+    // --- Control de Caffeine (Anti-reposo / Inhibidor de suspensión de pantalla) ---
+    property bool isCaffeineActive: false
+
+    Process {
+        id: caffeineCheckProc
+        command: ["sh", "-c", "pid=$(pgrep hypridle | head -n 1); if [ -n \"$pid\" ] && grep -q 'State:.*T (stopped)' /proc/$pid/status 2>/dev/null; then echo 'active'; else echo 'inactive'; fi"]
+        stdout: SplitParser {
+            onRead: data => {
+                root.isCaffeineActive = (data.trim() === "active");
+            }
+        }
+    }
+
+    function checkCaffeine() {
+        if (!caffeineCheckProc.running) caffeineCheckProc.running = true;
+    }
+
+    Process {
+        id: caffeineToggleProc
+    }
+
+    function toggleCaffeine() {
+        if (root.isCaffeineActive) {
+            root.isCaffeineActive = false;
+            if (caffeineToggleProc.running) caffeineToggleProc.running = false;
+            caffeineToggleProc.command = ["sh", "-c", "pkill -CONT hypridle 2>/dev/null"];
+            caffeineToggleProc.running = true;
+        } else {
+            root.isCaffeineActive = true;
+            if (caffeineToggleProc.running) caffeineToggleProc.running = false;
+            caffeineToggleProc.command = ["sh", "-c", "pkill -STOP hypridle 2>/dev/null"];
+            caffeineToggleProc.running = true;
+        }
+    }
+
+    // --- Herramienta de Gotero (Color Picker con hyprpicker) ---
+    Process {
+        id: colorPickerProc
+    }
+
+    function pickColor() {
+        root.close();
+        if (colorPickerProc.running) colorPickerProc.running = false;
+        colorPickerProc.command = ["sh", "-c", "sleep 0.2 && hyprpicker -a -n"];
+        colorPickerProc.running = true;
+    }
+
+    // --- Herramienta de Recorte Rápido de Región (Hyprshot) ---
+    Process {
+        id: quickShotProc
+    }
+
+    function captureRegion() {
+        root.close();
+        if (quickShotProc.running) quickShotProc.running = false;
+        quickShotProc.command = ["sh", "-c", "sleep 0.2 && hyprshot -m region"];
+        quickShotProc.running = true;
     }
 
     // --- Acciones de Sistema y Energía ---

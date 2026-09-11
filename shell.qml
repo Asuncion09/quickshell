@@ -74,6 +74,12 @@ ShellRoot {
         function open(): void {
             ControlCenterService.open();
         }
+        function openSettings(): void {
+            ControlCenterService.openSettings();
+        }
+        function openAudio(): void {
+            ControlCenterService.openAudio();
+        }
         function close(): void {
             ControlCenterService.close();
         }
@@ -133,6 +139,9 @@ ShellRoot {
         }
         function dnd(): void {
             NotificationService.toggleDnd();
+        }
+        function expand(): void {
+            NotificationService.expandToast();
         }
     }
 

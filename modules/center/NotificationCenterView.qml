@@ -381,7 +381,7 @@ Item {
                                     IconImage {
                                         id: cardIconImg
                                         anchors.fill: parent
-                                        source: modelData.appIcon || ""
+                                        source: (modelData.appIcon && !modelData.appIcon.startsWith("")) ? modelData.appIcon : ""
                                         visible: source !== "" && status === Image.Ready
                                     }
 
@@ -473,7 +473,7 @@ Item {
                             // Título de la notificación (Summary)
                             Text {
                                 Layout.fillWidth: true
-                                visible: modelData.summary && modelData.summary !== "" && modelData.summary.toLowerCase() !== (modelData.appName || "").toLowerCase()
+                                visible: !modelData.isColorPicker && modelData.summary && modelData.summary !== "" && modelData.summary.toLowerCase() !== (modelData.appName || "").toLowerCase()
                                 text: (modelData.summary || "").trim().replace(/\r?\n|\r/g, " ").replace(/\s+/g, " ")
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 13
@@ -598,6 +598,78 @@ Item {
                                 }
                             }
 
+                            // Muestra de color si es un selector de color
+                            Rectangle {
+                                visible: modelData.isColorPicker && modelData.pickedColor && modelData.pickedColor !== ""
+                                Layout.fillWidth: true
+                                implicitHeight: 52
+                                radius: 8
+                                color: Qt.rgba(0, 0, 0, 0.35)
+                                border.width: 1
+                                border.color: Qt.rgba(255, 255, 255, 0.08)
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.margins: 8
+                                    spacing: 10
+
+                                    Rectangle {
+                                        implicitWidth: 36
+                                        implicitHeight: 36
+                                        radius: 6
+                                        color: modelData.pickedColor || "transparent"
+                                        border.width: 1
+                                        border.color: Qt.rgba(255, 255, 255, 0.25)
+                                    }
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 2
+
+                                        Text {
+                                            text: modelData.pickedColor || ""
+                                            font.family: "JetBrainsMono Nerd Font Propo"
+                                            font.pixelSize: 13
+                                            font.weight: Font.Bold
+                                            color: "#ffffff"
+                                        }
+
+                                        Text {
+                                            text: modelData.pickedRgb !== "" ? modelData.pickedRgb : "Color copiado al portapapeles"
+                                            font.family: "JetBrainsMono Nerd Font Propo"
+                                            font.pixelSize: 10
+                                            color: Theme.textMuted
+                                        }
+                                    }
+
+                                    // Botón rápido copiar HEX
+                                    Rectangle {
+                                        implicitWidth: 30
+                                        implicitHeight: 30
+                                        radius: 15
+                                        color: copyHexHistMouse.containsMouse ? Theme.wsActiveColor : Qt.rgba(1, 1, 1, 0.08)
+
+                                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: "󰆏"
+                                            font.family: Theme.fontFamily
+                                            font.pixelSize: 12
+                                            color: copyHexHistMouse.containsMouse ? "#161616" : Theme.text
+                                        }
+
+                                        MouseArea {
+                                            id: copyHexHistMouse
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: NotificationService.copyText(modelData.pickedColor)
+                                        }
+                                    }
+                                }
+                            }
+
                             // Cuerpo del mensaje (Body) - Formateo limpio sin bordes duros
                             Rectangle {
                                 id: bodyBox
@@ -606,7 +678,7 @@ Item {
                                 radius: 6
                                 color: isCmd ? Qt.rgba(0, 0, 0, 0.35) : "transparent"
                                 border.width: 0
-                                visible: (!modelData.isScreenshot || !modelData.screenshotPath) && modelData.body && modelData.body !== ""
+                                visible: (!modelData.isScreenshot || !modelData.screenshotPath) && !modelData.isColorPicker && modelData.body && modelData.body !== ""
 
                                 readonly property bool isCmd: {
                                     let b = (modelData.body || "");
@@ -639,7 +711,7 @@ Item {
                             RowLayout {
                                 Layout.fillWidth: true
                                 spacing: 6
-                                visible: (!modelData.isScreenshot || !modelData.screenshotPath) && modelData.actions && modelData.actions.length > 0
+                                visible: (!modelData.isScreenshot || !modelData.screenshotPath) && !modelData.isColorPicker && modelData.actions && modelData.actions.length > 0
 
                                 Item { Layout.fillWidth: true }
 

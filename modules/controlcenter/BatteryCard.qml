@@ -10,11 +10,18 @@ Item {
     implicitHeight: 32
     Layout.fillWidth: true
 
+    property bool settingsFocused: false
     property bool lockFocused: false
     property bool powerFocused: false
 
+    signal settingsClicked()
+
     property int powerNavIndex: 4 // 0: Volver, 1: Suspender, 2: Salir, 3: Reiniciar, 4: Apagar
     property bool isPowerNavActive: false
+
+    function triggerSettings() {
+        root.settingsClicked();
+    }
 
     function triggerLock() {
         ControlCenterService.lockScreen();
@@ -109,6 +116,51 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
+                }
+            }
+
+            // Botón de Configuración (32x32) al lado de la batería
+            Rectangle {
+                id: settingsBtn
+                implicitWidth: 32
+                implicitHeight: 32
+                radius: 8
+                color: root.settingsFocused ? "#2c2c2c" : (settingsMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                border.width: root.settingsFocused ? 1.5 : 0
+                border.color: Theme.highlight
+
+                scale: settingsMouse.pressed ? 0.92 : 1.0
+                Behavior on scale {
+                    NumberAnimation { duration: Theme.animFast }
+                }
+                Behavior on border.width {
+                    NumberAnimation { duration: 40 }
+                }
+                Behavior on border.color {
+                    ColorAnimation { duration: 40 }
+                }
+                Behavior on color {
+                    ColorAnimation { duration: (settingsMouse.containsMouse || root.settingsFocused) ? Theme.animFast : 40 }
+                }
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "󰒓"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 14
+                    color: (settingsMouse.containsMouse || root.settingsFocused) ? Theme.highlight : Theme.textSecondary
+
+                    Behavior on color {
+                        ColorAnimation { duration: (settingsMouse.containsMouse || root.settingsFocused) ? Theme.animFast : 40 }
+                    }
+                }
+
+                MouseArea {
+                    id: settingsMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.settingsClicked()
                 }
             }
 

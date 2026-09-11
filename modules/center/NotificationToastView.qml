@@ -21,7 +21,21 @@ Item {
         (currentToast.summary && currentToast.summary.toLowerCase().includes("screenshot"))
     )
     readonly property string screenshotPath: currentToast ? (currentToast.screenshotPath || "") : ""
+    readonly property bool isColorPicker: currentToast !== null && (
+        currentToast.isColorPicker === true ||
+        (currentToast.appName && (currentToast.appName.toLowerCase().includes("hyprpicker") || currentToast.appName.toLowerCase().includes("color picker"))) ||
+        (currentToast.summary && (currentToast.summary.toLowerCase().includes("color picker") || currentToast.summary.toLowerCase().includes("hyprpicker")))
+    )
+    readonly property string pickedColor: currentToast ? (currentToast.pickedColor || "") : ""
+    readonly property string pickedRgb: currentToast ? (currentToast.pickedRgb || "") : ""
+    property int copiedColorFeedback: 0 // 0: none, 1: hex, 2: rgb
     property bool copiedPathFeedback: false
+
+    Timer {
+        id: colorFeedbackTimer
+        interval: 2000
+        onTriggered: root.copiedColorFeedback = 0
+    }
 
     Timer {
         id: copiedFeedbackTimer
@@ -50,6 +64,9 @@ Item {
             if (root.isScreenshot && root.screenshotPath !== "") {
                 return Math.min(270, Math.max(120, expandedCol.implicitHeight + 14));
             }
+            if (root.isColorPicker) {
+                return Math.min(200, Math.max(100, expandedCol.implicitHeight + 16));
+            }
             return Math.min(240, Math.max(80, expandedCol.implicitHeight + 14));
         }
         return 26;
@@ -66,9 +83,10 @@ Item {
         let baseW = 8 + 16 + 6;
         let urgencyW = (currentToast && currentToast.urgency === 2) ? 11 : 0;
         let appW = appNameText.implicitWidth + 5;
+        let colorDotW = (root.isColorPicker && root.pickedColor !== "") ? 16 : 0;
         let dotW = 8 + 5;
         let msgW = Math.min(240, messageLabel.implicitWidth);
-        return Math.min(380, Math.max(120, Math.round(baseW + urgencyW + appW + dotW + msgW)));
+        return Math.min(380, Math.max(120, Math.round(baseW + urgencyW + appW + colorDotW + dotW + msgW + 8)));
     }
 
     // Absorbedor de clics cuando está expandida para evitar que pasen a dismissArea
@@ -131,8 +149,8 @@ Item {
             IconImage {
                 id: toastIconImg
                 anchors.fill: parent
-                source: (root.currentToast && root.currentToast.appIcon && root.currentToast.appIcon.length > 2) ? root.currentToast.appIcon : ""
-                visible: !root.isScreenshot && source !== "" && status === Image.Ready
+                source: (!root.isScreenshot && !root.isColorPicker && root.currentToast && root.currentToast.appIcon && !root.currentToast.appIcon.startsWith("") && root.currentToast.appIcon.length > 2) ? root.currentToast.appIcon : ""
+                visible: !root.isScreenshot && !root.isColorPicker && source !== "" && status === Image.Ready
             }
 
             Text {
@@ -140,6 +158,7 @@ Item {
                 text: {
                     if (!root.currentToast) return "󰂚";
                     if (root.isScreenshot) return "󰹑";
+                    if (root.isColorPicker) return "󰈊";
                     if (root.currentToast.appIcon && root.currentToast.appIcon.length <= 2) {
                         return root.currentToast.appIcon;
                     }
@@ -151,8 +170,8 @@ Item {
                 }
                 font.family: Theme.fontFamily
                 font.pixelSize: 12
-                color: root.isScreenshot ? Theme.wsActiveColor : ((!root.isExpanded && root.isBatteryToast) ? "#161616" : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
-                visible: !toastIconImg.visible || root.isScreenshot
+                color: (root.isScreenshot || root.isColorPicker) ? Theme.wsActiveColor : ((!root.isExpanded && root.isBatteryToast) ? "#161616" : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
+                visible: !toastIconImg.visible || root.isScreenshot || root.isColorPicker
             }
         }
 
@@ -174,11 +193,22 @@ Item {
 
             Text {
                 id: appNameText
-                text: root.currentToast ? (root.isScreenshot ? "Hyprshot" : (root.currentToast.appName || "Notice")) : ""
+                text: root.currentToast ? (root.isScreenshot ? "Hyprshot" : (root.isColorPicker ? "Color Picker" : (root.currentToast.appName || "Notice"))) : ""
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
                 font.weight: Font.DemiBold
-                color: root.isScreenshot ? Theme.wsActiveColor : ((!root.isExpanded && root.isBatteryToast) ? "#161616" : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
+                color: (root.isScreenshot || root.isColorPicker) ? Theme.wsActiveColor : ((!root.isExpanded && root.isBatteryToast) ? "#161616" : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
+                Layout.alignment: Qt.AlignVCenter
+            }
+
+            Rectangle {
+                implicitWidth: 10
+                implicitHeight: 10
+                radius: 5
+                color: root.pickedColor || "transparent"
+                border.width: 1
+                border.color: Qt.rgba(255, 255, 255, 0.35)
+                visible: root.isColorPicker && root.pickedColor !== ""
                 Layout.alignment: Qt.AlignVCenter
             }
 
@@ -196,6 +226,9 @@ Item {
                     if (!root.currentToast) return "";
                     if (root.isScreenshot) {
                         return root.screenshotPath !== "" ? "Captura guardada" : "Captura en portapapeles";
+                    }
+                    if (root.isColorPicker) {
+                        return root.pickedColor !== "" ? (root.pickedColor + " copiado") : "Color copiado";
                     }
                     let s = (root.currentToast.summary || "").trim();
                     let b = (root.currentToast.body || "").trim();
@@ -261,8 +294,8 @@ Item {
                 IconImage {
                     id: expIconImg
                     anchors.fill: parent
-                    source: (root.currentToast && root.currentToast.appIcon && root.currentToast.appIcon.length > 2) ? root.currentToast.appIcon : ""
-                    visible: !root.isScreenshot && source !== "" && status === Image.Ready
+                    source: (!root.isScreenshot && !root.isColorPicker && root.currentToast && root.currentToast.appIcon && !root.currentToast.appIcon.startsWith("") && root.currentToast.appIcon.length > 2) ? root.currentToast.appIcon : ""
+                    visible: !root.isScreenshot && !root.isColorPicker && source !== "" && status === Image.Ready
                 }
 
                 Text {
@@ -270,6 +303,7 @@ Item {
                     text: {
                         if (!root.currentToast) return "󰂚";
                         if (root.isScreenshot) return "󰹑";
+                        if (root.isColorPicker) return "󰈊";
                         if (root.currentToast.appIcon && root.currentToast.appIcon.length <= 2) {
                             return root.currentToast.appIcon;
                         }
@@ -281,17 +315,17 @@ Item {
                     }
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
-                    color: root.isScreenshot ? Theme.wsActiveColor : (root.isBatteryToast ? Theme.warning : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
-                    visible: !expIconImg.visible || root.isScreenshot
+                    color: (root.isScreenshot || root.isColorPicker) ? Theme.wsActiveColor : (root.isBatteryToast ? Theme.warning : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
+                    visible: !expIconImg.visible || root.isScreenshot || root.isColorPicker
                 }
             }
 
             Text {
-                text: root.currentToast ? (root.isScreenshot ? "Hyprshot" : (root.currentToast.appName || "Notice")) : ""
+                text: root.currentToast ? (root.isScreenshot ? "Hyprshot" : (root.isColorPicker ? "Color Picker" : (root.currentToast.appName || "Notice"))) : ""
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
                 font.weight: Font.DemiBold
-                color: root.isScreenshot ? Theme.wsActiveColor : (root.isBatteryToast ? Theme.warning : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
+                color: (root.isScreenshot || root.isColorPicker) ? Theme.wsActiveColor : (root.isBatteryToast ? Theme.warning : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
                 Layout.alignment: Qt.AlignVCenter
             }
 
@@ -454,9 +488,101 @@ Item {
             }
         }
 
-        // 2b. Contenido completo del mensaje para notificaciones normales o avisos sin archivo
+        // 2b. Tarjeta de vista previa dedicada para el Selector de Color (Color Picker Card)
+        Rectangle {
+            id: colorPickerCard
+            visible: root.isColorPicker && root.pickedColor !== ""
+            Layout.fillWidth: true
+            implicitHeight: 74
+            radius: 10
+            color: Qt.rgba(0, 0, 0, 0.40)
+            border.width: 1
+            border.color: Qt.rgba(255, 255, 255, 0.08)
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 12
+
+                // Muestra de color (Color Swatch)
+                Rectangle {
+                    implicitWidth: 50
+                    implicitHeight: 50
+                    radius: 8
+                    color: root.pickedColor
+                    border.width: 1.5
+                    border.color: Qt.rgba(255, 255, 255, 0.25)
+
+                    // Brillo sutil superior
+                    Rectangle {
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        height: 25
+                        radius: 8
+                        gradient: Gradient {
+                            GradientStop { position: 0.0; color: Qt.rgba(255, 255, 255, 0.15) }
+                            GradientStop { position: 1.0; color: "transparent" }
+                        }
+                    }
+                }
+
+                // Información tipográfica del color
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+
+                    RowLayout {
+                        spacing: 6
+                        Text {
+                            text: root.pickedColor
+                            font.family: "JetBrainsMono Nerd Font Propo"
+                            font.pixelSize: 15
+                            font.weight: Font.Bold
+                            color: "#ffffff"
+                        }
+
+                        // Badge sutil de copiado
+                        Rectangle {
+                            implicitHeight: 18
+                            implicitWidth: copyBadgeLayout.implicitWidth + 10
+                            radius: 9
+                            color: Qt.rgba(129/255, 199/255, 132/255, 0.16)
+
+                            RowLayout {
+                                id: copyBadgeLayout
+                                anchors.centerIn: parent
+                                spacing: 3
+                                Text {
+                                    text: "󰄬"
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 9
+                                    color: "#81c784"
+                                }
+                                Text {
+                                    text: "Copiado"
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 9
+                                    font.weight: Font.Medium
+                                    color: "#81c784"
+                                }
+                            }
+                        }
+                    }
+
+                    Text {
+                        text: root.pickedRgb !== "" ? root.pickedRgb : "Formato HEX"
+                        font.family: "JetBrainsMono Nerd Font Propo"
+                        font.pixelSize: 11
+                        color: Theme.textSecondary
+                    }
+                }
+            }
+        }
+
+        // 2c. Contenido completo del mensaje para notificaciones normales o avisos sin archivo
         Item {
-            visible: !root.isScreenshot || root.screenshotPath === ""
+            visible: (!root.isScreenshot || root.screenshotPath === "") && !root.isColorPicker
             Layout.fillWidth: true
             implicitHeight: visible ? fullTextCol.implicitHeight : 0
 
@@ -513,7 +639,7 @@ Item {
 
         // 3. Imagen adjunta para notificaciones normales si existe
         Item {
-            visible: !(root.isScreenshot && root.screenshotPath !== "") && root.currentToast && root.currentToast.image && root.currentToast.image !== ""
+            visible: !(root.isScreenshot && root.screenshotPath !== "") && !root.isColorPicker && root.currentToast && root.currentToast.image && root.currentToast.image !== ""
             Layout.fillWidth: true
             implicitHeight: expNotifImg.visible ? Math.min(80, expNotifImg.implicitHeight) : 0
 
@@ -620,9 +746,107 @@ Item {
             }
         }
 
-        // 4b. Botones de acción estándar para notificaciones normales
+        // 4b. Botones de acción dedicados para Selector de Color (Color Picker)
         RowLayout {
-            visible: !(root.isScreenshot && root.screenshotPath !== "")
+            visible: root.isColorPicker
+            Layout.fillWidth: true
+            spacing: 8
+
+            // Botón 1: Copiar HEX
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 28
+                radius: 14
+                color: root.copiedColorFeedback === 1 ? Qt.rgba(76/255, 175/255, 80/255, 0.28) : (copyHexMouse.containsMouse ? Qt.lighter(Theme.wsActiveColor, 1.1) : Theme.wsActiveColor)
+                border.width: root.copiedColorFeedback === 1 ? 1 : 0
+                border.color: root.copiedColorFeedback === 1 ? "#81c784" : "transparent"
+
+                scale: copyHexMouse.pressed ? 0.94 : 1.0
+                Behavior on scale { NumberAnimation { duration: Theme.animFast } }
+                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
+
+                RowLayout {
+                    anchors.centerIn: parent
+                    spacing: 6
+                    Text {
+                        text: root.copiedColorFeedback === 1 ? "󰄬" : "󰆏"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        color: root.copiedColorFeedback === 1 ? "#81c784" : "#161616"
+                    }
+                    Text {
+                        text: root.copiedColorFeedback === 1 ? "¡HEX Copiado!" : "Copiar HEX"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 11
+                        font.weight: Font.DemiBold
+                        color: root.copiedColorFeedback === 1 ? "#81c784" : "#161616"
+                    }
+                }
+
+                MouseArea {
+                    id: copyHexMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        NotificationService.copyText(root.pickedColor);
+                        root.copiedColorFeedback = 1;
+                        colorFeedbackTimer.restart();
+                    }
+                }
+            }
+
+            // Botón 2: Copiar RGB (si está disponible)
+            Rectangle {
+                visible: root.pickedRgb !== ""
+                Layout.fillWidth: true
+                implicitHeight: 28
+                radius: 14
+                color: root.copiedColorFeedback === 2 ? Qt.rgba(76/255, 175/255, 80/255, 0.28) : (copyRgbMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.08))
+                border.width: 1
+                border.color: root.copiedColorFeedback === 2 ? "#81c784" : (copyRgbMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.25) : Qt.rgba(1, 1, 1, 0.12))
+
+                scale: copyRgbMouse.pressed ? 0.94 : 1.0
+                Behavior on scale { NumberAnimation { duration: Theme.animFast } }
+                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
+
+                RowLayout {
+                    anchors.centerIn: parent
+                    spacing: 6
+                    Text {
+                        text: root.copiedColorFeedback === 2 ? "󰄬" : "󰆏"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        color: root.copiedColorFeedback === 2 ? "#81c784" : (copyRgbMouse.containsMouse ? "#ffffff" : Theme.text)
+                    }
+                    Text {
+                        text: root.copiedColorFeedback === 2 ? "¡RGB Copiado!" : "Copiar RGB"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 11
+                        font.weight: Font.Medium
+                        color: root.copiedColorFeedback === 2 ? "#81c784" : (copyRgbMouse.containsMouse ? "#ffffff" : Theme.text)
+                    }
+                }
+
+                MouseArea {
+                    id: copyRgbMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        NotificationService.copyText(root.pickedRgb);
+                        root.copiedColorFeedback = 2;
+                        colorFeedbackTimer.restart();
+                    }
+                }
+            }
+        }
+
+        // 4c. Botones de acción estándar para notificaciones normales
+        RowLayout {
+            visible: !(root.isScreenshot && root.screenshotPath !== "") && !root.isColorPicker
             Layout.fillWidth: true
             spacing: 6
 

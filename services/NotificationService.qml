@@ -193,20 +193,53 @@ Item {
             isScreenshot = true;
         }
 
-        let icon = isScreenshot ? "󰹑" : resolveAppIcon(notif.appIcon, notif.desktopEntry, notif.appName);
+        // Detección de Selector de Color (hyprpicker / color picker)
+        let isColorPicker = false;
+        let pickedColor = "";
+
+        if (lowerApp.includes("hyprpicker") || lowerApp.includes("color picker") || lowerApp.includes("colorpicker") ||
+            lowerSum.includes("color picker") || lowerSum.includes("colorpicker") || lowerSum.includes("hyprpicker") ||
+            lowerSum.includes("gotero") || lowerSum.includes("selector de color") ||
+            lowerBody.includes("color picker") || lowerBody.includes("hyprpicker")) {
+            isColorPicker = true;
+        }
+
+        let hexMatch = (notif.body || "").match(/#([0-9a-fA-F]{6}|[0-9a-fA-F]{8}|[0-9a-fA-F]{3})\b/) ||
+                       (notif.summary || "").match(/#([0-9a-fA-F]{6}|[0-9a-fA-F]{8}|[0-9a-fA-F]{3})\b/);
+        if (hexMatch) {
+            pickedColor = hexMatch[0].toUpperCase();
+            isColorPicker = true;
+        } else if (isColorPicker) {
+            let bodyTrimmed = (notif.body || "").trim();
+            if (bodyTrimmed.startsWith("#") || bodyTrimmed.startsWith("rgb")) {
+                pickedColor = bodyTrimmed;
+            } else {
+                let sumTrimmed = (notif.summary || "").trim();
+                if (sumTrimmed.startsWith("#") || sumTrimmed.startsWith("rgb")) {
+                    pickedColor = sumTrimmed;
+                }
+            }
+        }
+
+        let pickedRgb = root.hexToRgb(pickedColor);
+
+        let icon = isScreenshot ? "󰹑" : (isColorPicker ? "󰈊" : resolveAppIcon(notif.appIcon, notif.desktopEntry, notif.appName));
         let item = {
             id: notif.id,
             ref: notif,
-            appName: isScreenshot ? "Hyprshot" : (notif.appName && notif.appName !== "" ? notif.appName : "Sistema"),
+            appName: isScreenshot ? "Hyprshot" : (isColorPicker ? "Color Picker" : (notif.appName && notif.appName !== "" ? notif.appName : "Sistema")),
             appIcon: icon,
-            summary: notif.summary || "",
+            summary: isColorPicker ? (pickedColor !== "" ? pickedColor : "Color copiado") : (notif.summary || ""),
             body: notif.body || "",
             urgency: notif.urgency, // 0: Low, 1: Normal, 2: Critical
             image: notif.image || "",
-            actions: notif.actions || [],
+            actions: isColorPicker ? [] : (notif.actions || []),
             timestamp: Date.now(),
             isScreenshot: isScreenshot,
-            screenshotPath: screenshotPath
+            screenshotPath: screenshotPath,
+            isColorPicker: isColorPicker,
+            pickedColor: pickedColor,
+            pickedRgb: pickedRgb
         };
 
         // Escuchar si la aplicación emisora cierra la notificación externamente
@@ -365,6 +398,34 @@ Item {
             screenshotProc.running = true;
         }
         root.dismiss(id);
+    }
+
+    function hexToRgb(hex) {
+        if (!hex || typeof hex !== "string") return "";
+        let clean = hex.trim().replace(/^#/, "");
+        if (clean.length === 3) {
+            clean = clean[0] + clean[0] + clean[1] + clean[1] + clean[2] + clean[2];
+        }
+        if (clean.length >= 6) {
+            let r = parseInt(clean.substring(0, 2), 16);
+            let g = parseInt(clean.substring(2, 4), 16);
+            let b = parseInt(clean.substring(4, 6), 16);
+            if (!isNaN(r) && !isNaN(g) && !isNaN(b)) {
+                return "rgb(" + r + ", " + g + ", " + b + ")";
+            }
+        }
+        return "";
+    }
+
+    Process {
+        id: clipCopyProc
+    }
+
+    function copyText(text) {
+        if (!text) return;
+        if (clipCopyProc.running) clipCopyProc.running = false;
+        clipCopyProc.command = ["wl-copy", text];
+        clipCopyProc.running = true;
     }
 
     Process {

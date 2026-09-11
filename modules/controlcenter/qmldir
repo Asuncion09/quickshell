@@ -1,9 +1,10 @@
 ControlCenter 1.0 ControlCenter.qml
 QuickToggle 1.0 QuickToggle.qml
+QuickIconButton 1.0 QuickIconButton.qml
 SliderControl 1.0 SliderControl.qml
 PowerProfileSegmentedControl 1.0 PowerProfileSegmentedControl.qml
 BatteryCard 1.0 BatteryCard.qml
 WifiDetailView 1.0 WifiDetailView.qml
 BluetoothDetailView 1.0 BluetoothDetailView.qml
 AudioDetailView 1.0 AudioDetailView.qml
-
+SettingsView 1.0 SettingsView.qml
