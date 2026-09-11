@@ -1,16 +1,16 @@
 # Graph Report - quickshell  (2026-09-11)
 
 ## Corpus Check
-- 11 files · ~14,474 words
+- 11 files · ~14,593 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 131 nodes · 142 edges · 30 communities (5 shown, 25 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.88)
+- 132 nodes · 144 edges · 30 communities (5 shown, 25 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `89840faf`
+- Built from commit: `34434302`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -74,8 +74,8 @@ Cohesion: 0.24
 Nodes (3): ClipboardDaemon, Reads JSON commands from Quickshell via standard input, Check if there is an existing clipboard item at startup
 
 ### Community 4 - "clip_daemon.py"
-Cohesion: 0.36
-Nodes (5): get_cache_path(), get_sock_path(), main(), Single-shot client invoked by wl-paste --watch, send_client()
+Cohesion: 0.31
+Nodes (6): get_cache_path(), get_sock_path(), main(), Single-shot client invoked by wl-paste --watch, send_client(), _set_pdeathsig()
 
 ### Community 6 - "Unused Code Report"
 Cohesion: 0.06
@@ -100,7 +100,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `🚀 Quickshell Desktop Shell para Hyprland` connect `🚀 Quickshell Desktop Shell para Hyprland` to `📸 Demostración Visual`?**
   _High betweenness centrality (0.025) - this node is a cross-community bridge._
 - **Why does `ClipboardDaemon` connect `ClipboardDaemon` to `clip_daemon.py`?**
-  _High betweenness centrality (0.022) - this node is a cross-community bridge._
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
 - **What connects `apply-profile.sh script`, `ryzenadj-balanced.sh script`, `ryzenadj-gaming.sh script` to the rest of the system?**
   _73 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Unused Code Report` be split into smaller, more focused modules?**

@@ -30,16 +30,16 @@
     "semantic_hash": "09c096cf3ce85a5b6bfde04ff0fea636"
   },
   "services/bt_agent.py": {
-    "mtime": 1788972626.8270423,
-    "seen": 1789140307.308454,
-    "ast_hash": "a5bfd4f0575392cdeb52abc2482f3b41",
-    "semantic_hash": "a5bfd4f0575392cdeb52abc2482f3b41"
+    "mtime": 1789169326.4988585,
+    "seen": 1789169656.43861,
+    "ast_hash": "dd87a975b9eb4d93d50bd4edd160795d",
+    "semantic_hash": ""
   },
   "services/clip_daemon.py": {
-    "mtime": 1789084408.029601,
-    "seen": 1789140307.3084555,
-    "ast_hash": "decf61f5b0361eff6e384649555d8277",
-    "semantic_hash": "decf61f5b0361eff6e384649555d8277"
+    "mtime": 1789169631.663085,
+    "seen": 1789169656.438612,
+    "ast_hash": "389de71937ebd828dd70c3e73c8c39fc",
+    "semantic_hash": ""
   },
   ".agents/rules/graphify.md": {
     "mtime": 1789139795.2055588,
@@ -66,8 +66,8 @@
     "semantic_hash": "da7017866984cb65dba87583990fc3ff"
   },
   "state/power_profile.txt": {
-    "mtime": 1789096017.5030932,
-    "seen": 1789140307.3084617,
+    "mtime": 1789163599.5408466,
+    "seen": 1789165600.2184722,
     "ast_hash": "9bdf9bc213e0c26c63f33081dfa5e3b2",
     "semantic_hash": "9bdf9bc213e0c26c63f33081dfa5e3b2"
   },

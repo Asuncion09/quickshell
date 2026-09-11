@@ -1,97 +1,109 @@
 # Graph Report - quickshell  (2026-09-11)
 
 ## Corpus Check
-- Corpus is ~14,474 words - fits in a single context window. You may not need a graph.
+- 11 files · ~14,559 words
+- Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 81 nodes · 112 edges · 11 communities (5 shown, 6 thin omitted)
-- Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 12 edges (avg confidence: 0.91)
-- Token cost: 1,250 input · 850 output
+- 131 nodes · 142 edges · 30 communities (5 shown, 25 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.88)
+- Token cost: 0 input · 0 output
+
+## Graph Freshness
+- Built from commit: `34434302`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- Dynamic Island & UI Modules
-- Clipboard Daemon Operations
-- Bluetooth D-Bus Pairing Agent
-- Shell Architecture & Navigation
-- Clipboard Daemon Service Runtime
-- Control Center & Hardware Profiles
-- Agent Knowledge System
-- RyzenAdj Balanced Profile
-- RyzenAdj Gaming Profile
-- RyzenAdj Power Save Profile
-- Network Management Integration
+- Quickshell Top Bar Screenshot
+- ClipboardDaemon
+- BluezAgent
+- main
+- clip_daemon.py
+- apply-profile.sh
+- Unused Code Report
+- ryzenadj-balanced.sh
+- ryzenadj-gaming.sh
+- ryzenadj-power-save.sh
+- 🚀 Quickshell Desktop Shell para Hyprland
+- 📸 Demostración Visual
+- rules/graphify.md
+- workflows/graphify.md
+- Btop Activity Monitor Icon
+- Htop Activity Monitor Icon
+- Quick Settings Control Center Screenshot
+- Dynamic Island Clock Screenshot
+- Dynamic Island Media Controls Screenshot
+- Dynamic Island Media Screenshot
+- Spotlight App Launcher Screenshot
+- Notification Center Screenshot
+- Critical Battery Alert Screenshot
+- Brightness OSD Screenshot
+- Microphone OSD Screenshot
+- Volume OSD Screenshot
+- Window Switcher Screenshot
+- System Tray and Hardware Indicators Screenshot
+- Workspaces and Taskbar Screenshot
+- Active Wallpaper State Path
 
 ## God Nodes (most connected - your core abstractions)
-1. `ClipboardDaemon` - 16 edges
+1. `Unused Code Report` - 33 edges
 2. `BluezAgent` - 14 edges
-3. `Quickshell Desktop Shell for Hyprland` - 9 edges
-4. `Dynamic Island Top Bar Architecture` - 7 edges
-5. `On-Screen Display System and Critical Battery Alert` - 6 edges
-6. `main()` - 4 edges
-7. `send_client()` - 4 edges
-8. `main()` - 4 edges
-9. `get_sock_path()` - 3 edges
-10. `Quick Settings Control Center` - 3 edges
+3. `ClipboardDaemon` - 12 edges
+4. `run()` - 7 edges
+5. `🚀 Quickshell Desktop Shell para Hyprland` - 7 edges
+6. `_set_pdeathsig()` - 5 edges
+7. `📸 Demostración Visual` - 5 edges
+8. `Paneles Desplegables` - 5 edges
+9. `📦 Instalación desde Cero en Fedora` - 5 edges
+10. `main()` - 4 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Btop Activity Monitor Icon` --references--> `Quickshell Desktop Shell for Hyprland`  [EXTRACTED]
-  assets/icons/btop.svg → README.md
-- `Htop Activity Monitor Icon` --references--> `Quickshell Desktop Shell for Hyprland`  [EXTRACTED]
-  assets/icons/htop.svg → README.md
-- `Workspaces and Taskbar Screenshot` --references--> `Quickshell Desktop Shell for Hyprland`  [EXTRACTED]
-  assets/screenshots/workspaces_taskbar.png → README.md
-- `Quickshell Top Bar Screenshot` --references--> `Dynamic Island Top Bar Architecture`  [EXTRACTED]
-  assets/screenshots/bar.png → README.md
-- `Dynamic Island Clock Screenshot` --references--> `Dynamic Island Top Bar Architecture`  [EXTRACTED]
-  assets/screenshots/island_clock.png → README.md
+- `main()` --calls--> `BluezAgent`  [EXTRACTED]
+  services/bt_agent.py → services/bt_agent.py  _Bridges community 2 → community 3_
+- `main()` --calls--> `ClipboardDaemon`  [EXTRACTED]
+  services/clip_daemon.py → services/clip_daemon.py  _Bridges community 1 → community 4_
 
 ## Import Cycles
 - None detected.
 
-## Hyperedges (group relationships)
-- **Dynamic Island Experience Suite** — readme_dynamic_island, readme_launcher_spotlight, readme_notification_center, readme_osd_system [INFERRED 0.85]
+## Communities (30 total, 25 thin omitted)
 
-## Communities (11 total, 6 thin omitted)
+### Community 1 - "ClipboardDaemon"
+Cohesion: 0.23
+Nodes (7): ClipboardDaemon, Reads JSON commands from Quickshell via standard input, _set_pdeathsig(), cleanup(), initial_check(), run(), start_watcher()
 
-### Community 0 - "Dynamic Island & UI Modules"
-Cohesion: 0.12
-Nodes (16): Quickshell Top Bar Screenshot, Dynamic Island Clock Screenshot, Dynamic Island Media Controls Screenshot, Dynamic Island Media Screenshot, Spotlight App Launcher Screenshot, Notification Center Screenshot, Critical Battery Alert Screenshot, Brightness OSD Screenshot (+8 more)
-
-### Community 1 - "Clipboard Daemon Operations"
-Cohesion: 0.24
-Nodes (3): ClipboardDaemon, Reads JSON commands from Quickshell via standard input, Check if there is an existing clipboard item at startup
-
-### Community 3 - "Shell Architecture & Navigation"
-Cohesion: 0.18
-Nodes (10): Btop Activity Monitor Icon, Htop Activity Monitor Icon, Window Switcher Screenshot, Workspaces and Taskbar Screenshot, Quickshell Desktop Shell for Hyprland, Window Switcher Alt-Tab, Unused Code and Dead Symbol Audit, main() (+2 more)
-
-### Community 4 - "Clipboard Daemon Service Runtime"
+### Community 4 - "clip_daemon.py"
 Cohesion: 0.36
 Nodes (5): get_cache_path(), get_sock_path(), main(), Single-shot client invoked by wl-paste --watch, send_client()
 
-### Community 5 - "Control Center & Hardware Profiles"
-Cohesion: 0.33
-Nodes (5): Quick Settings Control Center Screenshot, System Tray and Hardware Indicators Screenshot, Quick Settings Control Center, apply-profile.sh script, Active Power Profile State
+### Community 6 - "Unused Code Report"
+Cohesion: 0.06
+Nodes (33): components/BarButton.qml, components/BarToolTip.qml, components/Pill.qml, components/TrayMenu.qml, modules/bar/Bar.qml, modules/center/CenterIslandModule.qml, modules/center/ClockView.qml, modules/center/MediaView.qml (+25 more)
+
+### Community 10 - "🚀 Quickshell Desktop Shell para Hyprland"
+Cohesion: 0.12
+Nodes (15): 1. Habilitar Copr e Instalar Quickshell, 2. Paquetes y Dependencias del Sistema, 3. Tipografía e Iconos, 4. Permisos de Usuario (Control de Brillo), Atajos de Teclado Recomendados, Autoinicio, Descarga e instalación de la fuente:, 📋 Detalle de para qué sirve cada dependencia: (+7 more)
+
+### Community 11 - "📸 Demostración Visual"
+Cohesion: 0.22
+Nodes (9): Barra Superior Completa (Top Bar), ⚙️ Centro de Control (Quick Settings), 🔔 Centro de Notificaciones, 🔀 Conmutador de Ventanas (Alt + Tab), 📸 Demostración Visual, 🔍 Lanzador de Aplicaciones (Spotlight), Módulos Principales, 🎛️ Notificaciones en Pantalla (OSD) y Alertas (+1 more)
 
 ## Knowledge Gaps
-- **27 isolated node(s):** `apply-profile.sh script`, `ryzenadj-balanced.sh script`, `ryzenadj-gaming.sh script`, `ryzenadj-power-save.sh script`, `PipeWire WirePlumber Audio Management` (+22 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 36 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **6 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **73 isolated node(s):** `apply-profile.sh script`, `ryzenadj-balanced.sh script`, `ryzenadj-gaming.sh script`, `ryzenadj-power-save.sh script`, `graphify` (+68 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 85 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **25 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Quickshell Desktop Shell for Hyprland` connect `Shell Architecture & Navigation` to `Dynamic Island & UI Modules`, `Control Center & Hardware Profiles`?**
-  _High betweenness centrality (0.251) - this node is a cross-community bridge._
-- **Why does `Dynamic Island Top Bar Architecture` connect `Dynamic Island & UI Modules` to `Shell Architecture & Navigation`?**
-  _High betweenness centrality (0.179) - this node is a cross-community bridge._
-- **Why does `BluezAgent` connect `Bluetooth D-Bus Pairing Agent` to `Shell Architecture & Navigation`?**
-  _High betweenness centrality (0.152) - this node is a cross-community bridge._
-- **Are the 3 inferred relationships involving `Quickshell Desktop Shell for Hyprland` (e.g. with `Dynamic Island Top Bar Architecture` and `Window Switcher Alt-Tab`) actually correct?**
-  _`Quickshell Desktop Shell for Hyprland` has 3 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 5 inferred relationships involving `Dynamic Island Top Bar Architecture` (e.g. with `Quickshell Desktop Shell for Hyprland` and `Spotlight Application Launcher`) actually correct?**
-  _`Dynamic Island Top Bar Architecture` has 5 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `🚀 Quickshell Desktop Shell para Hyprland` connect `🚀 Quickshell Desktop Shell para Hyprland` to `📸 Demostración Visual`?**
+  _High betweenness centrality (0.025) - this node is a cross-community bridge._
+- **Why does `📸 Demostración Visual` connect `📸 Demostración Visual` to `🚀 Quickshell Desktop Shell para Hyprland`?**
+  _High betweenness centrality (0.017) - this node is a cross-community bridge._
 - **What connects `apply-profile.sh script`, `ryzenadj-balanced.sh script`, `ryzenadj-gaming.sh script` to the rest of the system?**
-  _27 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Dynamic Island & UI Modules` be split into smaller, more focused modules?**
+  _73 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Unused Code Report` be split into smaller, more focused modules?**
+  _Cohesion score 0.058823529411764705 - nodes in this community are weakly interconnected._
+- **Should `🚀 Quickshell Desktop Shell para Hyprland` be split into smaller, more focused modules?**
   _Cohesion score 0.125 - nodes in this community are weakly interconnected._

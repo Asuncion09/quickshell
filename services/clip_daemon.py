@@ -10,6 +10,14 @@ import signal
 import hashlib
 import subprocess
 import threading
+import ctypes
+
+def _set_pdeathsig():
+    try:
+        libc = ctypes.CDLL("libc.so.6")
+        libc.prctl(1, 15)  # PR_SET_PDEATHSIG = 1, SIGTERM = 15
+    except Exception:
+        pass
 
 def get_sock_path():
     runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
@@ -73,6 +81,10 @@ class ClipboardDaemon:
 
     def make_item(self, text):
         clean_text = text.rstrip("\r\n")
+        # Limitar longitud máxima de texto para proteger memoria y el canal IPC de Quickshell
+        if len(clean_text) > 30000:
+            clean_text = clean_text[:30000]
+
         item_type, color_val = self.classify(clean_text)
         preview = clean_text.strip().split("\n")[0].strip()
         if len(preview) > 120:
@@ -97,6 +109,9 @@ class ClipboardDaemon:
                 with open(self.cache_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     if isinstance(data, list):
+                        for item in data:
+                            if len(item.get("text", "")) > 30000:
+                                item["text"] = item["text"][:30000]
                         self.history = data[:50]
             except Exception as e:
                 self.history = []
@@ -228,13 +243,7 @@ class ClipboardDaemon:
             except Exception:
                 pass
 
-def _set_pdeathsig():
-    try:
-        import ctypes
-        libc = ctypes.CDLL("libc.so.6")
-        libc.prctl(1, 15)  # PR_SET_PDEATHSIG = 1, SIGTERM = 15
-    except Exception:
-        pass
+
 
     def start_watcher(self):
         script_path = os.path.abspath(__file__)
@@ -301,8 +310,12 @@ def main():
     if "--send" in sys.argv:
         send_client()
     else:
-        # Ignore SIGPIPE
+        # Ignore SIGPIPE and auto-reap child processes to prevent <defunct> zombies
         signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+        try:
+            signal.signal(signal.SIGCHLD, signal.SIG_IGN)
+        except Exception:
+            pass
         daemon = ClipboardDaemon()
         def sig_handler(signum, frame):
             daemon.cleanup()

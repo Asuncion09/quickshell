@@ -271,18 +271,12 @@ Item {
     }
 
     Timer {
-        interval: 4000
+        interval: 10000
         running: true
         repeat: true
-        triggeredOnStart: true
+        triggeredOnStart: false
         onTriggered: {
-            if (!root.hasDdcutil && !whichDdcProc.running) {
-                whichDdcProc.running = true;
-            }
             root.refresh();
-            if (root.hasDdcutil && root.hasExternalMonitor && root.selectedDisplay === "external") {
-                root.readDdcBrightness();
-            }
         }
     }
 }
