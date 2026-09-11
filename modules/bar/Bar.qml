@@ -41,7 +41,7 @@ PanelWindow {
 
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusiveZone: Theme.barHeight
-    WlrLayershell.keyboardFocus: (ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: (PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
 
     // Máscara de clics por hardware:
@@ -51,8 +51,8 @@ PanelWindow {
         Region {
             x: 0
             y: 0
-            width: (ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? (root.screen ? root.screen.width : 1920) : 0
-            height: (ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? (root.screen ? root.screen.height : 1080) : 0
+            width: (PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? (root.screen ? root.screen.width : 1920) : 0
+            height: (PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? (root.screen ? root.screen.height : 1080) : 0
         }
         Region { item: leftPill }
         Region { item: taskbarPill }
@@ -86,11 +86,16 @@ PanelWindow {
         MouseArea {
             id: dismissArea
             anchors.fill: parent
-            visible: ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded
-            enabled: ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded
+            visible: PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded
+            enabled: PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded
             z: 90
             acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
             onPressed: {
+                if (PolkitService.isActive) {
+                    console.log("[Bar] Clic exterior detectado -> cancelando solicitud Polkit");
+                    PolkitService.cancel();
+                    return;
+                }
                 if (ClipboardService.isOpen) {
                     console.log("[Bar] Clic exterior detectado -> cerrando portapapeles");
                     ClipboardService.close();
@@ -152,8 +157,9 @@ PanelWindow {
             Pill {
                 id: centerPill
                 animateSize: false
-                paddingHorizontal: (ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? 6 : ((NotificationService.isToastActive || OsdService.isVisible) ? (centerIsland.isBatteryToast ? 12 : 8) : (centerIsland.isBatteryAlertActive ? 13 : Theme.centerPillPaddingHorizontal))
+                paddingHorizontal: (PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? 6 : ((NotificationService.isToastActive || OsdService.isVisible) ? (centerIsland.isBatteryToast ? 12 : 8) : (centerIsland.isBatteryAlertActive ? 13 : Theme.centerPillPaddingHorizontal))
                 customBorderColor: {
+                    if (PolkitService.isActive) return PolkitService.isSuccess ? Theme.success : (PolkitService.authFailed ? Theme.critical : Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.4));
                     if (centerIsland.isBatteryToast) return Theme.warning;
                     if (centerIsland.isBatteryAlertActive) return centerIsland.batteryBorderColor;
                     if (OsdService.isVisible && OsdService.mode === "volume" && OsdService.value > 100 && !OsdService.isMuted) return Qt.rgba(241/255, 196/255, 15/255, 0.45);

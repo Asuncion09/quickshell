@@ -11,4 +11,6 @@ singleton OsdService 1.0 OsdService.qml
 singleton SwitcherService 1.0 SwitcherService.qml
 singleton PowerProfileService 1.0 PowerProfileService.qml
 singleton ClipboardService 1.0 ClipboardService.qml
-
+singleton WallpaperService 1.0 WallpaperService.qml
+singleton LockService 1.0 LockService.qml
+singleton PolkitService 1.0 PolkitService.qml

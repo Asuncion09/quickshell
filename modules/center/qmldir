@@ -6,3 +6,4 @@ NotificationCenterView 1.0 NotificationCenterView.qml
 OsdIslandView 1.0 OsdIslandView.qml
 BatteryAlertIslandView 1.0 BatteryAlertIslandView.qml
 ClipboardIslandView 1.0 ClipboardIslandView.qml
+PolkitIslandView 1.0 PolkitIslandView.qml

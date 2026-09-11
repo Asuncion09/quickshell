@@ -10,7 +10,7 @@ Item {
     id: root
 
     property bool _isOpen: false
-    property int currentView: 0 // 0 = Principal, 1 = Wi-Fi, 2 = Bluetooth, 3 = Sound, 4 = Settings
+    property int currentView: 0 // 0 = Principal, 1 = Wi-Fi, 2 = Bluetooth, 3 = Sound, 4 = Settings, 5 = Wallpaper
     property int focusedIndex: 0 // 0..11 para los elementos del panel principal
     property bool isKeyNavActive: false // Solo se activa al presionar flechas o teclado
 
@@ -217,6 +217,7 @@ Item {
                 if (root.currentView === 2) return btView.implicitHeight + 22;
                 if (root.currentView === 3) return audioView.implicitHeight + 22;
                 if (root.currentView === 4) return settingsView.implicitHeight + 22;
+                if (root.currentView === 5) return wallpaperView.implicitHeight + 22;
                 return contentColumn.implicitHeight + 22;
             }
 
@@ -317,6 +318,15 @@ Item {
                 // --- GESTIÓN DE SUBVISTA CONFIGURACIÓN (currentView === 4) ---
                 if (root.currentView === 4) {
                     if (settingsView.handleKey(event)) {
+                        event.accepted = true;
+                        return;
+                    }
+                    return;
+                }
+
+                // --- GESTIÓN DE SUBVISTA WALLPAPER (currentView === 5) ---
+                if (root.currentView === 5) {
+                    if (wallpaperView.handleKey(event)) {
                         event.accepted = true;
                         return;
                     }
@@ -772,6 +782,41 @@ Item {
 
                     onSoundRequested: {
                         root.currentView = 3;
+                        Qt.callLater(() => mainCard.forceActiveFocus());
+                    }
+
+                    onWallpaperRequested: {
+                        root.currentView = 5;
+                        Qt.callLater(() => mainCard.forceActiveFocus());
+                    }
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+                    }
+                    Behavior on x {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+                    }
+                    Behavior on scale {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+                    }
+                }
+
+                // ==========================================
+                // VISTA 5: Galería y Selección de Wallpaper
+                // ==========================================
+                WallpaperDetailView {
+                    id: wallpaperView
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+
+                    opacity: root.currentView === 5 ? 1.0 : 0.0
+                    x: root.currentView === 5 ? 0 : 20
+                    scale: root.currentView === 5 ? 1.0 : 0.98
+                    visible: opacity > 0.01
+
+                    onBackRequested: {
+                        root.currentView = 4;
                         Qt.callLater(() => mainCard.forceActiveFocus());
                     }
 

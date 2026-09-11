@@ -45,6 +45,11 @@ Item {
         root.open();
     }
 
+    function openWallpaper() {
+        root.requestedView = 5;
+        root.open();
+    }
+
     function close() {
         root.isOpen = false;
         root.isPowerMenuOpen = false;
@@ -555,9 +560,7 @@ Item {
     function lockScreen() {
         root.close();
         root.isPowerMenuOpen = false;
-        if (!lockProc.running) {
-            lockProc.running = true;
-        }
+        LockService.lock();
     }
 
     function suspend() {

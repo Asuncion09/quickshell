@@ -9,6 +9,8 @@ import "services"
 import "modules/bar"
 import "modules/osd"
 import "modules/switcher"
+import "modules/wallpaper"
+import "modules/lock"
 
 ShellRoot {
     NotificationServer {
@@ -79,6 +81,9 @@ ShellRoot {
         }
         function openAudio(): void {
             ControlCenterService.openAudio();
+        }
+        function openWallpaper(): void {
+            ControlCenterService.openWallpaper();
         }
         function close(): void {
             ControlCenterService.close();
@@ -207,6 +212,49 @@ ShellRoot {
         function preview(): void {
             SwitcherService.preview();
         }
+    }
+
+    IpcHandler {
+        target: "wallpaper"
+        function set(path: string): void {
+            WallpaperService.setWallpaper(path);
+        }
+        function next(): void {
+            WallpaperService.next();
+        }
+        function prev(): void {
+            WallpaperService.prev();
+        }
+        function scan(): void {
+            WallpaperService.scanWallpapers();
+        }
+    }
+
+    IpcHandler {
+        target: "lock"
+        function lock(): void {
+            LockService.lock();
+        }
+        function unlock(): void {
+            LockService.triggerUnlockAnimation();
+        }
+    }
+
+    IpcHandler {
+        target: "polkit"
+        function submit(password: string): void {
+            PolkitService.submit(password);
+        }
+        function cancel(): void {
+            PolkitService.cancel();
+        }
+    }
+
+    LockWindow {}
+
+    Variants {
+        model: Quickshell.screens
+        WallpaperWindow {}
     }
 
     Variants {

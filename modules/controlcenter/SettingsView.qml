@@ -14,6 +14,7 @@ Item {
 
     signal backRequested()
     signal soundRequested()
+    signal wallpaperRequested()
 
     property int navIndex: 0
     property bool isKeyNavActive: false
@@ -32,10 +33,14 @@ Item {
             root.soundRequested();
             return;
         }
+        if (root.navIndex === 2) {
+            root.wallpaperRequested();
+            return;
+        }
     }
 
     function handleKey(event) {
-        let totalItems = 2; // 0: Botón Volver, 1: Tarjeta Sound
+        let totalItems = 3; // 0: Volver, 1: Sound, 2: Wallpaper
 
         if (!root.isKeyNavActive) {
             if (event.key === Qt.Key_Down || event.key === Qt.Key_Up || event.key === Qt.Key_Right || event.key === Qt.Key_Left || event.key === Qt.Key_Tab) {
@@ -150,7 +155,7 @@ Item {
         }
 
         // ==========================================
-        // 2. SECCIÓN DE CONFIGURACIONES
+        // 2. SECCIÓN DE CONFIGURACIONES DEL SISTEMA
         // ==========================================
         Text {
             text: "SYSTEM"
@@ -162,7 +167,7 @@ Item {
             Layout.topMargin: 2
         }
 
-        // Tarjeta Interactiva: Sound (Sonido)
+        // Tarjeta Interactiva 1: Sound (Sonido)
         Rectangle {
             id: soundSettingCard
             Layout.fillWidth: true
@@ -244,6 +249,108 @@ Item {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: root.soundRequested()
+            }
+        }
+
+        // Tarjeta Interactiva 2: Wallpaper (Fondo de pantalla)
+        Rectangle {
+            id: wallpaperSettingCard
+            Layout.fillWidth: true
+            implicitHeight: 48
+            radius: 10
+
+            readonly property bool isFocused: root.isKeyNavActive && root.navIndex === 2
+            readonly property bool isHovered: wallpaperMouse.containsMouse
+
+            color: isFocused ? "#2c2c2c" : (isHovered ? Theme.surfaceHover : Theme.surfaceBase)
+            border.width: isFocused ? 1.5 : 0
+            border.color: Theme.highlight
+
+            scale: wallpaperMouse.pressed ? 0.98 : 1.0
+            Behavior on scale { NumberAnimation { duration: Theme.animFast } }
+            Behavior on color { ColorAnimation { duration: Theme.animFast } }
+            Behavior on border.width { NumberAnimation { duration: 40 } }
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 10
+                anchors.rightMargin: 12
+                spacing: 10
+
+                // Miniatura o icono de Wallpaper
+                Rectangle {
+                    implicitWidth: 32
+                    implicitHeight: 32
+                    radius: 8
+                    clip: true
+                    color: Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.16)
+
+                    Image {
+                        id: thumbPreview
+                        anchors.fill: parent
+                        fillMode: Image.PreserveAspectCrop
+                        source: WallpaperService.currentWallpaper ? ("file://" + WallpaperService.currentWallpaper) : ""
+                        sourceSize.width: 64
+                        sourceSize.height: 64
+                        visible: WallpaperService.currentWallpaper !== ""
+                    }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "󰸉"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 16
+                        color: Theme.highlight
+                        visible: !thumbPreview.visible || thumbPreview.status !== Image.Ready
+                    }
+                }
+
+                // Textos (Título y Fondo activo)
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+
+                    Text {
+                        text: "Wallpaper"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        font.weight: Font.DemiBold
+                        color: "#ffffff"
+                    }
+
+                    Text {
+                        text: {
+                            let p = WallpaperService.currentWallpaper;
+                            if (!p) return "Select wallpaper";
+                            let parts = p.split("/");
+                            return parts[parts.length - 1];
+                        }
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 10
+                        font.weight: Font.Normal
+                        color: Theme.textMuted
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
+                    }
+                }
+
+                // Chevron indicador de submenú
+                Text {
+                    text: "󰅂"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 13
+                    color: wallpaperSettingCard.isHovered || wallpaperSettingCard.isFocused ? "#ffffff" : Theme.textMuted
+
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                }
+            }
+
+            MouseArea {
+                id: wallpaperMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.wallpaperRequested()
             }
         }
     }

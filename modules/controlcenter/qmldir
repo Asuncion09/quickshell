@@ -8,3 +8,4 @@ WifiDetailView 1.0 WifiDetailView.qml
 BluetoothDetailView 1.0 BluetoothDetailView.qml
 AudioDetailView 1.0 AudioDetailView.qml
 SettingsView 1.0 SettingsView.qml
+WallpaperDetailView 1.0 WallpaperDetailView.qml
