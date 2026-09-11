@@ -11,13 +11,22 @@ Item {
     id: root
 
     property bool isPillHovered: false
+    property bool isFocusedMonitor: true
+    property string monitorName: ""
+
+    readonly property bool isLauncherActive: LauncherService.isOpen && root.isFocusedMonitor
+    readonly property bool isClipboardActive: ClipboardService.isOpen && root.isFocusedMonitor
+    readonly property bool isNotificationCenterActive: NotificationService.isCenterOpen && root.isFocusedMonitor
+    readonly property bool isPolkitActive: PolkitService.isActive && root.isFocusedMonitor
+    readonly property bool isAnyModalActive: isLauncherActive || isClipboardActive || isNotificationCenterActive || isPolkitActive
+
     readonly property bool isBatteryToast: notificationToastView.isBatteryToast && NotificationService.isToastActive
     readonly property bool isBatteryAlertActive: batteryAlertIslandView.isActive
-    readonly property bool isBatteryAlertDisplaying: batteryAlertIslandView.isActive && !PolkitService.isActive && !ClipboardService.isOpen && !LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible
+    readonly property bool isBatteryAlertDisplaying: batteryAlertIslandView.isActive && !root.isAnyModalActive && !NotificationService.isToastActive && !OsdService.isVisible
     readonly property color batteryBorderColor: batteryAlertIslandView.alertBorderColor
     readonly property color batteryBgColor: batteryAlertIslandView.alertBgColor
     readonly property real batteryBorderWidth: batteryAlertIslandView.alertBorderWidth
-    readonly property bool isMediaHovered: (!PolkitService.isActive && !ClipboardService.isOpen && !LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible && !batteryAlertIslandView.isActive) && (isPillHovered || mediaView.isHovered)
+    readonly property bool isMediaHovered: (!root.isAnyModalActive && !NotificationService.isToastActive && !OsdService.isVisible && !batteryAlertIslandView.isActive) && (isPillHovered || mediaView.isHovered)
 
     // Estados para control manual y temporizador de gracia
     property bool forceClock: false
@@ -110,7 +119,7 @@ Item {
     Connections {
         target: LauncherService
         function onIsOpenChanged() {
-            if (LauncherService.isOpen) {
+            if (LauncherService.isOpen && root.isFocusedMonitor) {
                 searchField.text = "";
                 Qt.callLater(() => {
                     searchField.forceActiveFocus();
@@ -119,14 +128,16 @@ Item {
             }
         }
         function onSelectedIndexChanged() {
-            root.ensureItemVisible(LauncherService.selectedIndex);
+            if (root.isFocusedMonitor) {
+                root.ensureItemVisible(LauncherService.selectedIndex);
+            }
         }
     }
 
     Connections {
         target: NotificationService
         function onIsCenterOpenChanged() {
-            if (NotificationService.isCenterOpen) {
+            if (NotificationService.isCenterOpen && root.isFocusedMonitor) {
                 Qt.callLater(() => {
                     notifCenterView.forceActiveFocus();
                 });
@@ -160,7 +171,7 @@ Item {
     }
 
     function handleWheel() {
-        if (PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen || OsdService.isVisible || batteryAlertIslandView.isActive) return;
+        if (root.isAnyModalActive || OsdService.isVisible || batteryAlertIslandView.isActive) return;
         if (root._wheelLocked) return;
         root._wheelLocked = true;
         wheelCooldown.restart();
@@ -176,7 +187,7 @@ Item {
     WheelHandler {
         target: null
         orientation: Qt.Vertical | Qt.Horizontal
-        enabled: !PolkitService.isActive && !ClipboardService.isOpen && !LauncherService.isOpen && !NotificationService.isCenterOpen && !OsdService.isVisible && !batteryAlertIslandView.isActive
+        enabled: !root.isAnyModalActive && !OsdService.isVisible && !batteryAlertIslandView.isActive
         onWheel: event => {
             root.handleWheel();
         }
@@ -194,10 +205,10 @@ Item {
     readonly property int clipboardHeight: modalHeight
 
     implicitWidth: {
-        if (PolkitService.isActive) {
+        if (root.isPolkitActive) {
             return polkitIslandView.implicitWidth;
         }
-        if (ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen) {
+        if (root.isClipboardActive || root.isLauncherActive || root.isNotificationCenterActive) {
             return modalWidth;
         }
         if (OsdService.isVisible) {
@@ -213,10 +224,10 @@ Item {
     }
 
     implicitHeight: {
-        if (PolkitService.isActive) {
+        if (root.isPolkitActive) {
             return polkitIslandView.implicitHeight;
         }
-        if (ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen) {
+        if (root.isClipboardActive || root.isLauncherActive || root.isNotificationCenterActive) {
             return modalHeight;
         }
         if (NotificationService.isToastActive && NotificationService.isToastExpanded) {
@@ -230,7 +241,7 @@ Item {
     clip: true
 
     Behavior on implicitWidth {
-        enabled: !root.isMediaActive || root._modeChanging || PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen || OsdService.isVisible || NotificationService.isToastActive || batteryAlertIslandView.isActive
+        enabled: !root.isMediaActive || root._modeChanging || root.isAnyModalActive || OsdService.isVisible || NotificationService.isToastActive || batteryAlertIslandView.isActive
         NumberAnimation {
             duration: Theme.animNormal
             easing.type: Easing.OutCubic
@@ -238,6 +249,7 @@ Item {
     }
 
     Behavior on implicitHeight {
+        enabled: !root.isMediaActive || root._modeChanging || root.isAnyModalActive || (NotificationService.isToastActive && NotificationService.isToastExpanded)
         NumberAnimation {
             duration: Theme.animNormal
             easing.type: Easing.OutCubic
@@ -282,7 +294,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         width: implicitWidth
         height: 28
-        opacity: (!PolkitService.isActive && !ClipboardService.isOpen && !LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible && !batteryAlertIslandView.isActive && root.height <= 36) ? (root.isMediaActive ? 0.0 : 1.0) : 0.0
+        opacity: (!root.isAnyModalActive && !NotificationService.isToastActive && !OsdService.isVisible && !batteryAlertIslandView.isActive && root.height <= 36) ? (root.isMediaActive ? 0.0 : 1.0) : 0.0
         scale: opacity > 0.8 ? 1.0 : 0.94
         transformOrigin: Item.Center
         visible: opacity > 0.01
@@ -313,7 +325,7 @@ Item {
         width: implicitWidth
         height: 28
         isContainerHovered: root.isPillHovered
-        opacity: (PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastActive || OsdService.isVisible || batteryAlertIslandView.isActive) ? 0.0 : (root.isMediaActive ? 1.0 : 0.0)
+        opacity: (root.isAnyModalActive || NotificationService.isToastActive || OsdService.isVisible || batteryAlertIslandView.isActive) ? 0.0 : (root.isMediaActive ? 1.0 : 0.0)
         visible: opacity > 0.01
 
         onDismissToClockRequested: root.dismissToClock()
@@ -332,7 +344,7 @@ Item {
         id: batteryAlertIslandView
         anchors.centerIn: parent
         isHovered: root.isPillHovered
-        opacity: (!PolkitService.isActive && !ClipboardService.isOpen && !LauncherService.isOpen && !NotificationService.isCenterOpen && !NotificationService.isToastActive && !OsdService.isVisible && batteryAlertIslandView.isActive) ? 1.0 : 0.0
+        opacity: (!root.isAnyModalActive && !NotificationService.isToastActive && !OsdService.isVisible && batteryAlertIslandView.isActive) ? 1.0 : 0.0
         scale: opacity > 0.5 ? 1.0 : 0.94
         visible: opacity > 0.01
 
@@ -354,7 +366,7 @@ Item {
     OsdIslandView {
         id: osdIslandView
         anchors.centerIn: parent
-        opacity: (!PolkitService.isActive && !ClipboardService.isOpen && !LauncherService.isOpen && !NotificationService.isCenterOpen && OsdService.isVisible) ? 1.0 : 0.0
+        opacity: (!root.isAnyModalActive && OsdService.isVisible) ? 1.0 : 0.0
         scale: opacity > 0.5 ? 1.0 : 0.94
         visible: opacity > 0.01
 
@@ -376,7 +388,7 @@ Item {
     NotificationToastView {
         id: notificationToastView
         anchors.fill: parent
-        opacity: (!PolkitService.isActive && !ClipboardService.isOpen && !LauncherService.isOpen && !NotificationService.isCenterOpen && NotificationService.isToastActive && !OsdService.isVisible) ? 1.0 : 0.0
+        opacity: (!root.isAnyModalActive && NotificationService.isToastActive && !OsdService.isVisible) ? 1.0 : 0.0
         visible: opacity > 0.01
 
         Behavior on opacity {
@@ -394,14 +406,14 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         width: root.notificationCenterWidth
         height: root.notificationCenterHeight
-        opacity: (!PolkitService.isActive && !ClipboardService.isOpen && !LauncherService.isOpen && NotificationService.isCenterOpen && root.width >= 260) ? 1.0 : 0.0
+        opacity: (root.isNotificationCenterActive && root.width >= 260) ? 1.0 : 0.0
         scale: opacity > 0.5 ? 1.0 : 0.96
         transformOrigin: Item.Top
-        visible: NotificationService.isCenterOpen && opacity > 0.01
+        visible: root.isNotificationCenterActive && opacity > 0.01
 
         Behavior on opacity {
             NumberAnimation {
-                duration: NotificationService.isCenterOpen ? 90 : 0
+                duration: root.isNotificationCenterActive ? 90 : 0
                 easing.type: Easing.OutQuad
             }
         }
@@ -426,10 +438,10 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         width: root.launcherWidth
         height: root.launcherHeight
-        opacity: (!PolkitService.isActive && !ClipboardService.isOpen && LauncherService.isOpen && root.width >= 260) ? 1.0 : 0.0
+        opacity: (root.isLauncherActive && root.width >= 260) ? 1.0 : 0.0
         scale: opacity > 0.5 ? 1.0 : 0.96
         transformOrigin: Item.Top
-        visible: LauncherService.isOpen && opacity > 0.01
+        visible: root.isLauncherActive && opacity > 0.01
 
         // Absorbe clics dentro de la isla del lanzador para evitar que se propaguen a dismissArea
         MouseArea {
@@ -441,7 +453,7 @@ Item {
 
         Behavior on opacity {
             NumberAnimation {
-                duration: LauncherService.isOpen ? 90 : 0
+                duration: root.isLauncherActive ? 90 : 0
                 easing.type: Easing.OutQuad
             }
         }
@@ -809,14 +821,14 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         width: root.clipboardWidth
         height: root.clipboardHeight
-        opacity: (!PolkitService.isActive && ClipboardService.isOpen && root.width >= 260) ? 1.0 : 0.0
+        opacity: (root.isClipboardActive && root.width >= 260) ? 1.0 : 0.0
         scale: opacity > 0.5 ? 1.0 : 0.96
         transformOrigin: Item.Top
-        visible: ClipboardService.isOpen && opacity > 0.01
+        visible: root.isClipboardActive && opacity > 0.01
 
         Behavior on opacity {
             NumberAnimation {
-                duration: ClipboardService.isOpen ? 90 : 0
+                duration: root.isClipboardActive ? 90 : 0
                 easing.type: Easing.OutQuad
             }
         }
@@ -841,14 +853,14 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         width: polkitIslandView.implicitWidth
         height: polkitIslandView.implicitHeight
-        opacity: PolkitService.isActive ? 1.0 : 0.0
+        opacity: root.isPolkitActive ? 1.0 : 0.0
         scale: opacity > 0.5 ? 1.0 : 0.96
         transformOrigin: Item.Top
-        visible: PolkitService.isActive && opacity > 0.01
+        visible: root.isPolkitActive && opacity > 0.01
 
         Behavior on opacity {
             NumberAnimation {
-                duration: PolkitService.isActive ? 90 : 0
+                duration: root.isPolkitActive ? 90 : 0
                 easing.type: Easing.OutQuad
             }
         }

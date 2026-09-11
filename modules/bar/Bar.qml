@@ -39,20 +39,63 @@ PanelWindow {
     implicitHeight: root.screen ? root.screen.height : 1080
     color: "transparent"
 
+    readonly property bool isFocusedMonitor: {
+        let screensCount = (Hyprland.monitors && Hyprland.monitors.values && Hyprland.monitors.values.length > 0)
+            ? Hyprland.monitors.values.length : (Quickshell.screens ? Quickshell.screens.length : 1);
+        if (screensCount <= 1) return true;
+        if (!root.screen) return true;
+
+        if (Hyprland.focusedMonitor && Hyprland.focusedMonitor.name) {
+            return Hyprland.focusedMonitor.name === root.screen.name;
+        }
+
+        if (Hyprland.monitors && Hyprland.monitors.values) {
+            for (let i = 0; i < Hyprland.monitors.values.length; i++) {
+                let m = Hyprland.monitors.values[i];
+                if (m && m.focused && m.name) {
+                    return m.name === root.screen.name;
+                }
+            }
+        }
+
+        if (Hyprland.focusedWorkspace) {
+            if (Hyprland.focusedWorkspace.monitor && Hyprland.focusedWorkspace.monitor.name) {
+                return Hyprland.focusedWorkspace.monitor.name === root.screen.name;
+            }
+            let wsId = Hyprland.focusedWorkspace.id;
+            if (root.screen.name === "HDMI-A-1" && (wsId === 4 || wsId === 5)) return true;
+            if (root.screen.name === "eDP-1" && (wsId >= 1 && wsId <= 3)) return true;
+        }
+
+        return false;
+    }
+
+    // Modal abierto específicamente en este monitor:
+    readonly property bool isControlCenterTarget: {
+        if (!ControlCenterService.isOpen) return false;
+        let target = ControlCenterService.targetMonitor;
+        return (target !== "") ? (target === (root.screen ? root.screen.name : "")) : root.isFocusedMonitor;
+    }
+
+    readonly property bool isIslandModalActive: root.isFocusedMonitor && (PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen)
+
+    readonly property bool isModalOpen: root.isIslandModalActive || root.isControlCenterTarget
+
+    readonly property bool isDismissActive: root.isModalOpen || (root.isFocusedMonitor && NotificationService.isToastExpanded)
+
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusiveZone: Theme.barHeight
-    WlrLayershell.keyboardFocus: (PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-
+    WlrLayershell.keyboardFocus: root.isModalOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     // Máscara de clics por hardware:
     // Cerrado: Solo las 5 cápsulas físicas reciben clics (100% permeable al escritorio).
-    // Abierto: Se expande a pantalla completa para capturar cualquier clic exterior y cerrar el lanzador o el centro de control.
+    // Abierto: Se expande a pantalla completa únicamente en el monitor enfocado para capturar clics exteriores sin bloquear la otra pantalla.
     mask: Region {
         Region {
             x: 0
             y: 0
-            width: (PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? (root.screen ? root.screen.width : 1920) : 0
-            height: (PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? (root.screen ? root.screen.height : 1080) : 0
+            width: root.isDismissActive ? (root.screen ? root.screen.width : 1920) : 0
+            height: root.isDismissActive ? (root.screen ? root.screen.height : 1080) : 0
         }
         Region { item: leftPill }
         Region { item: taskbarPill }
@@ -61,13 +104,13 @@ PanelWindow {
         Region { item: hardwarePill }
     }
 
-    // Cierra automáticamente el lanzador, centro de control o centro de notificaciones si el usuario cambia de ventana activa o de workspace en Hyprland
+    // Cierra automáticamente el lanzador, centro de control o centro de notificaciones si el usuario cambia de ventana activa, workspace o monitor enfocado
     Connections {
         target: Hyprland
         function onRawEvent(event) {
             if (!event) return;
             let n = event.name;
-            if (n === "activewindow" || n === "activewindowv2" || n === "workspace") {
+            if (n === "activewindow" || n === "activewindowv2" || n === "workspace" || n === "focusedmon") {
                 if (ClipboardService.isOpen) ClipboardService.close();
                 if (LauncherService.isOpen) LauncherService.close();
                 if (ControlCenterService.isOpen) ControlCenterService.close();
@@ -81,13 +124,13 @@ PanelWindow {
     Item {
         anchors.fill: parent
 
-        // Área de captura exterior invisible a pantalla completa (activa solo con lanzador, centro de control o notificaciones abierto)
+        // Área de captura exterior invisible a pantalla completa (activa solo con lanzador, centro de control o notificaciones abierto en este monitor)
         // z: 90 cubre el fondo y las cápsulas laterales (z: 1), pero queda debajo de centerPill y controlCenter (z: 100).
         MouseArea {
             id: dismissArea
             anchors.fill: parent
-            visible: PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded
-            enabled: PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || ControlCenterService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded
+            visible: root.isDismissActive
+            enabled: root.isDismissActive
             z: 90
             acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
             onPressed: {
@@ -158,9 +201,9 @@ PanelWindow {
             Pill {
                 id: centerPill
                 animateSize: false
-                paddingHorizontal: (PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen || NotificationService.isToastExpanded) ? 6 : ((NotificationService.isToastActive || OsdService.isVisible) ? (centerIsland.isBatteryToast ? 12 : 8) : (centerIsland.isBatteryAlertActive ? 13 : Theme.centerPillPaddingHorizontal))
+                paddingHorizontal: (root.isIslandModalActive || (root.isFocusedMonitor && NotificationService.isToastExpanded)) ? 6 : ((NotificationService.isToastActive || OsdService.isVisible) ? (centerIsland.isBatteryToast ? 12 : 8) : (centerIsland.isBatteryAlertActive ? 13 : Theme.centerPillPaddingHorizontal))
                 customBorderColor: {
-                    if (PolkitService.isActive) return PolkitService.isSuccess ? Theme.success : (PolkitService.authFailed ? Theme.critical : Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.4));
+                    if (root.isFocusedMonitor && PolkitService.isActive) return PolkitService.isSuccess ? Theme.success : (PolkitService.authFailed ? Theme.critical : Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.4));
                     if (centerIsland.isBatteryToast) return Theme.warning;
                     if (centerIsland.isBatteryAlertActive) return centerIsland.batteryBorderColor;
                     if (OsdService.isVisible && OsdService.mode === "volume" && OsdService.value > 100 && !OsdService.isMuted) return Qt.rgba(241/255, 196/255, 15/255, 0.45);
@@ -180,6 +223,8 @@ PanelWindow {
                 CenterIslandModule {
                     id: centerIsland
                     isPillHovered: centerPill.containsMouse
+                    isFocusedMonitor: root.isFocusedMonitor
+                    monitorName: root.screen ? root.screen.name : ""
                 }
             }
         }
@@ -211,7 +256,10 @@ PanelWindow {
                 spacing: 6
                 paddingHorizontal: 8
                 clickable: true
-                onClicked: controlCenter.toggle()
+                onClicked: {
+                    ControlCenterService.targetMonitor = root.screen ? root.screen.name : "";
+                    controlCenter.toggle();
+                }
 
                 BluetoothModule {
                     id: bluetooth
@@ -243,6 +291,8 @@ PanelWindow {
             anchors.right: parent.right
             anchors.rightMargin: 4
             z: 100
+            isFocusedMonitor: root.isFocusedMonitor
+            monitorName: root.screen ? root.screen.name : ""
         }
     }
 }

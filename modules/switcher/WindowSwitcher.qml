@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import Quickshell.Widgets
 import "../../theme"
 import "../../services"
@@ -13,8 +14,39 @@ PanelWindow {
     required property var modelData
     screen: modelData
 
+    readonly property bool isFocusedMonitor: {
+        let screensCount = (Hyprland.monitors && Hyprland.monitors.values && Hyprland.monitors.values.length > 0)
+            ? Hyprland.monitors.values.length : (Quickshell.screens ? Quickshell.screens.length : 1);
+        if (screensCount <= 1) return true;
+        if (!root.screen) return true;
+
+        if (Hyprland.focusedMonitor && Hyprland.focusedMonitor.name) {
+            return Hyprland.focusedMonitor.name === root.screen.name;
+        }
+
+        if (Hyprland.monitors && Hyprland.monitors.values) {
+            for (let i = 0; i < Hyprland.monitors.values.length; i++) {
+                let m = Hyprland.monitors.values[i];
+                if (m && m.focused && m.name) {
+                    return m.name === root.screen.name;
+                }
+            }
+        }
+
+        if (Hyprland.focusedWorkspace) {
+            if (Hyprland.focusedWorkspace.monitor && Hyprland.focusedWorkspace.monitor.name) {
+                return Hyprland.focusedWorkspace.monitor.name === root.screen.name;
+            }
+            let wsId = Hyprland.focusedWorkspace.id;
+            if (root.screen.name === "HDMI-A-1" && (wsId === 4 || wsId === 5)) return true;
+            if (root.screen.name === "eDP-1" && (wsId >= 1 && wsId <= 3)) return true;
+        }
+
+        return false;
+    }
+
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: SwitcherService.isOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: (root.isFocusedMonitor && SwitcherService.isOpen) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     WlrLayershell.exclusiveZone: -1
 
     anchors {
@@ -57,11 +89,12 @@ PanelWindow {
         }
     }
 
-    // Receptor de eventos de teclado
+    // Receptor de eventos de teclado (activo únicamente en el monitor enfocado para evitar duplicar pulsaciones)
     Item {
         id: keyHandler
         anchors.fill: parent
-        focus: SwitcherService.isOpen
+        focus: root.isFocusedMonitor && SwitcherService.isOpen
+        enabled: root.isFocusedMonitor
 
         Keys.onPressed: event => {
             if (event.key === Qt.Key_Tab) {
@@ -105,7 +138,7 @@ PanelWindow {
         interval: 20
         repeat: false
         onTriggered: {
-            if (SwitcherService.isOpen) {
+            if (SwitcherService.isOpen && root.isFocusedMonitor) {
                 keyHandler.forceActiveFocus();
             }
         }
@@ -114,22 +147,23 @@ PanelWindow {
     Connections {
         target: SwitcherService
         function onIsOpenChanged() {
-            if (SwitcherService.isOpen) {
+            if (SwitcherService.isOpen && root.isFocusedMonitor) {
                 keyHandler.forceActiveFocus();
                 focusTimer.restart();
             }
         }
         function onSelectedIndexChanged() {
-            if (windowListView.count > 0 && SwitcherService.selectedIndex >= 0) {
+            if (root.isFocusedMonitor && windowListView.count > 0 && SwitcherService.selectedIndex >= 0) {
                 windowListView.positionViewAtIndex(SwitcherService.selectedIndex, ListView.Contain);
             }
         }
     }
 
-    // Contenedor animado con elevación y sombra
+    // Contenedor animado con elevación y sombra (visible únicamente en el monitor enfocado)
     Item {
         id: cardWrapper
         anchors.centerIn: parent
+        visible: root.isFocusedMonitor
 
         readonly property int cardItemWidth: 128
         readonly property int cardItemSpacing: 10

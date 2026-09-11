@@ -43,14 +43,39 @@ PanelWindow {
         }
     }
 
+    readonly property string monitorName: root.screen ? root.screen.name : ""
     property bool isFullscreen: false
 
     function checkFullscreen() {
         let found = false;
-        let reason = "none";
-        let activeWsId = Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1;
+        let mon = root.monitorName;
+        let screenActiveWsId = -1;
 
-        // 1. Revisar si alguna ventana en el workspace activo está en fullscreen
+        // 1. Identificar el workspace activo asignado a esta pantalla física
+        if (Hyprland.monitors && Hyprland.monitors.values) {
+            for (let i = 0; i < Hyprland.monitors.values.length; i++) {
+                let m = Hyprland.monitors.values[i];
+                if (m && m.name === mon && m.activeWorkspace) {
+                    screenActiveWsId = m.activeWorkspace.id;
+                    break;
+                }
+            }
+        }
+
+        // Fallback para pantalla única o si m.activeWorkspace aún no se ha poblado
+        if (screenActiveWsId === -1) {
+            if (mon === "HDMI-A-1") {
+                screenActiveWsId = 4;
+            } else if (mon === "eDP-1") {
+                screenActiveWsId = 1;
+            } else if (Hyprland.focusedWorkspace) {
+                screenActiveWsId = Hyprland.focusedWorkspace.id;
+            } else {
+                screenActiveWsId = 1;
+            }
+        }
+
+        // 2. Revisar si alguna ventana en el workspace activo de esta pantalla está en fullscreen
         if (Hyprland.toplevels && Hyprland.toplevels.values) {
             for (let i = 0; i < Hyprland.toplevels.values.length; i++) {
                 let top = Hyprland.toplevels.values[i];
@@ -58,31 +83,49 @@ PanelWindow {
                 let ipc = top.lastIpcObject || {};
                 let windowWs = top.workspace ? top.workspace.id : (ipc.workspace ? ipc.workspace.id : -1);
 
-                if (windowWs === activeWsId && (ipc.fullscreen === 1 || ipc.fullscreen === 2 || ipc.fullscreen === true)) {
+                if (windowWs === screenActiveWsId) {
+                    let isFs = (ipc.fullscreen === 1 || ipc.fullscreen === 2 || ipc.fullscreen === true || top.fullscreen === true || top.fullscreen === 1);
+                    if (isFs) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 3. Comprobar si el workspace de esta pantalla reporta hasFullscreen en Hyprland.workspaces
+        if (!found && Hyprland.workspaces && Hyprland.workspaces.values) {
+            for (let i = 0; i < Hyprland.workspaces.values.length; i++) {
+                let ws = Hyprland.workspaces.values[i];
+                if (ws && ws.id === screenActiveWsId && ws.hasFullscreen) {
                     found = true;
-                    reason = "toplevel on active ws:" + (ipc.title || top.title || ipc.class);
                     break;
                 }
             }
         }
 
-        // 2. Comprobar si el workspace enfocado reporta hasFullscreen
-        if (!found && Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.hasFullscreen) {
+        // 4. Comprobar si este monitor es el enfocado y focusedWorkspace reporta hasFullscreen
+        if (!found && Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id === screenActiveWsId && Hyprland.focusedWorkspace.hasFullscreen) {
             found = true;
-            reason = "focusedWorkspace.hasFullscreen";
         }
 
         root.isFullscreen = found;
 
-        // 3. Proceso asíncrono con hyprctl y jq como confirmación de respaldo
-        if (!fsProc.running) {
-            fsProc.running = true;
+        // 5. Proceso asíncrono con hyprctl y jq como confirmación de respaldo contextualizada por monitor
+        if (mon !== "") {
+            fsProc.command = [
+                "sh",
+                "-c",
+                "WS=$(hyprctl monitors -j | jq -r --arg M '" + mon + "' '.[] | select(.name==$M) | .activeWorkspace.id'); [ -n \"$WS\" ] && hyprctl workspaces -j | jq -r --argjson W \"$WS\" '.[] | select(.id==$W) | .hasfullscreen'"
+            ];
+            if (!fsProc.running) {
+                fsProc.running = true;
+            }
         }
     }
 
     Process {
         id: fsProc
-        command: ["sh", "-c", "hyprctl activeworkspace -j | jq -r .hasfullscreen"]
         stdout: SplitParser {
             onRead: data => {
                 let s = data.trim();
@@ -100,10 +143,7 @@ PanelWindow {
         function onRawEvent(event) {
             if (!event) return;
             let n = event.name;
-            if (n === "fullscreen") {
-                let val = (event.data || "").trim();
-                root.isFullscreen = (val === "1" || val === "true");
-            } else if (n === "activewindow" || n === "activewindowv2" || n === "workspace") {
+            if (n === "fullscreen" || n === "activewindow" || n === "activewindowv2" || n === "workspace" || n === "focusedmon") {
                 root.checkFullscreen();
             }
         }

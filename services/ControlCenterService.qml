@@ -8,6 +8,7 @@ Item {
     id: root
 
     property bool isOpen: false
+    property string targetMonitor: ""
 
     function toggle() {
         let otherModalOpen = (typeof LauncherService !== "undefined" && LauncherService && LauncherService.isOpen) ||
@@ -53,6 +54,7 @@ Item {
     function close() {
         root.isOpen = false;
         root.isPowerMenuOpen = false;
+        root.targetMonitor = "";
     }
 
     // --- Control de Micrófono con Pipewire (enlazado a AudioService) ---

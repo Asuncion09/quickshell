@@ -10,6 +10,8 @@ Item {
     id: root
 
     property bool _isOpen: false
+    property bool isFocusedMonitor: true
+    property string monitorName: ""
     property int currentView: 0 // 0 = Principal, 1 = Wi-Fi, 2 = Bluetooth, 3 = Sound, 4 = Settings, 5 = Wallpaper
     property int focusedIndex: 0 // 0..11 para los elementos del panel principal
     property bool isKeyNavActive: false // Solo se activa al presionar flechas o teclado
@@ -128,22 +130,33 @@ Item {
     Connections {
         target: ControlCenterService
         function onIsOpenChanged() {
+            let target = ControlCenterService.targetMonitor;
+            let shouldOpen = (target !== "") ? (target === root.monitorName) : root.isFocusedMonitor;
+
             if (ControlCenterService.isOpen && !root._isOpen) {
-                root.open();
+                if (shouldOpen) {
+                    root.open();
+                }
             } else if (!ControlCenterService.isOpen && root._isOpen) {
                 root.close();
             }
         }
         function onHasPasskeyPromptChanged() {
-            if (ControlCenterService.hasPasskeyPrompt) {
+            let target = ControlCenterService.targetMonitor;
+            let shouldOpen = (target !== "") ? (target === root.monitorName) : root.isFocusedMonitor;
+            if (ControlCenterService.hasPasskeyPrompt && shouldOpen) {
                 root.currentView = 2;
                 root.open();
             }
         }
         function onRequestedViewChanged() {
             if (ControlCenterService.requestedView > 0) {
-                root.currentView = ControlCenterService.requestedView;
-                root.open();
+                let target = ControlCenterService.targetMonitor;
+                let shouldOpen = (target !== "") ? (target === root.monitorName) : root.isFocusedMonitor;
+                if (shouldOpen) {
+                    root.currentView = ControlCenterService.requestedView;
+                    root.open();
+                }
                 ControlCenterService.requestedView = 0;
             }
         }
@@ -619,19 +632,22 @@ Item {
                                 onIconClicked: AudioService.toggleMute()
                             }
 
-                            // Slider de Brillo
+                            // Slider de Brillo Contextual (regula automáticamente la pantalla donde se encuentra este panel)
                             SliderControl {
                                 id: sliderBri
                                 focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 7
-                                icon: BrightnessService.icon
-                                value: BrightnessService.brightnessPercent
+                                icon: BrightnessService.getIcon(root.monitorName)
+                                value: BrightnessService.getBrightness(root.monitorName)
                                 isMuted: false
                                 accentColor: Theme.wsActiveColor
                                 minValue: 5
                                 maxValue: 100
                                 step: 5
-                                onValueChangedByUser: pct => BrightnessService.setBrightness(pct)
-                                onIconClicked: BrightnessService.setBrightness(BrightnessService.brightnessPercent > 10 ? 10 : 100)
+                                onValueChangedByUser: pct => BrightnessService.setBrightness(pct, root.monitorName)
+                                onIconClicked: {
+                                    let cur = BrightnessService.getBrightness(root.monitorName);
+                                    BrightnessService.setBrightness(cur > 10 ? 10 : 100, root.monitorName);
+                                }
                             }
                         }
 

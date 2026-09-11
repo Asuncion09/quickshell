@@ -15,6 +15,7 @@ Item {
     property bool authSucceeded: false
     property string errorMessage: ""
     property bool capsLockActive: false
+    property string currentInput: ""
 
     property string pendingPassword: ""
 
@@ -104,6 +105,7 @@ Item {
             root.authSucceeded = false;
             root.errorMessage = "";
             root.pendingPassword = "";
+            root.currentInput = "";
             root.capsLockActive = false;
         }
     }
@@ -123,6 +125,7 @@ Item {
         root.isAuthenticating = false;
         root.errorMessage = "";
         root.pendingPassword = "";
+        root.currentInput = "";
 
         checkCapsLock();
 

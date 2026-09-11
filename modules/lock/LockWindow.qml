@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import "../../theme"
 import "../../services"
 
@@ -17,6 +18,21 @@ WlSessionLock {
             id: surfaceContent
             anchors.fill: parent
             clip: true
+
+            readonly property bool isInitiallyFocusedScreen: {
+                let screensCount = (Hyprland.monitors && Hyprland.monitors.values && Hyprland.monitors.values.length > 0)
+                    ? Hyprland.monitors.values.length : (Quickshell.screens ? Quickshell.screens.length : 1);
+                if (screensCount <= 1) return true;
+                if (!lockSurface.screen) return true;
+
+                if (Hyprland.focusedMonitor && Hyprland.focusedMonitor.name) {
+                    return Hyprland.focusedMonitor.name === lockSurface.screen.name;
+                }
+                if (Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.monitor && Hyprland.focusedWorkspace.monitor.name) {
+                    return Hyprland.focusedWorkspace.monitor.name === lockSurface.screen.name;
+                }
+                return lockSurface.screen.name === "eDP-1";
+            }
 
             property var timeDate: new Date()
 
@@ -71,7 +87,9 @@ WlSessionLock {
                         surfaceContent.enterProgress = 0.0;
                         lockIntroAnim.restart();
                         pwdInput.text = "";
-                        Qt.callLater(() => pwdInput.forceActiveFocus());
+                        if (surfaceContent.isInitiallyFocusedScreen) {
+                            Qt.callLater(() => pwdInput.forceActiveFocus());
+                        }
                     }
                 }
                 function onIsUnlockingChanged() {
@@ -83,7 +101,14 @@ WlSessionLock {
                 function onAuthFailedChanged() {
                     if (LockService.authFailed) {
                         pwdInput.text = "";
-                        Qt.callLater(() => pwdInput.forceActiveFocus());
+                        if (surfaceContent.isInitiallyFocusedScreen || pwdInput.activeFocus) {
+                            Qt.callLater(() => pwdInput.forceActiveFocus());
+                        }
+                    }
+                }
+                function onCurrentInputChanged() {
+                    if (pwdInput.text !== LockService.currentInput) {
+                        pwdInput.text = LockService.currentInput;
                     }
                 }
             }
@@ -362,10 +387,14 @@ WlSessionLock {
                                         color: "#ffffff"
                                         selectionColor: "#454545"
                                         selectedTextColor: "#ffffff"
-                                        focus: true
+                                        focus: surfaceContent.isInitiallyFocusedScreen
                                         clip: true
 
                                         Keys.onPressed: LockService.checkCapsLock()
+
+                                        onTextEdited: {
+                                            LockService.currentInput = pwdInput.text;
+                                        }
 
                                         onTextChanged: {
                                             if (LockService.authFailed && pwdInput.text.length > 0) {
