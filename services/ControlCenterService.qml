@@ -517,78 +517,36 @@ Item {
     }
 
     // --- Acciones de Sistema y Energía ---
-    property bool isPowerMenuOpen: false
+    property bool isPowerMenuOpen: SessionService.isOpen
 
     function togglePowerMenu() {
-        root.isPowerMenuOpen = !root.isPowerMenuOpen;
+        root.close();
+        SessionService.toggle();
     }
 
     function closePowerMenu() {
-        root.isPowerMenuOpen = false;
-    }
-
-    Process {
-        id: lockProc
-        command: ["hyprlock"]
-    }
-
-    Process {
-        id: sysActionProc
-        stderr: SplitParser {
-            onRead: data => {
-                let text = data.trim();
-                if (text) {
-                    console.warn("ControlCenterService: sysActionProc error:", text);
-                }
-            }
-        }
-        onExited: exitCode => {
-            if (exitCode !== 0) {
-                console.warn("ControlCenterService: sysActionProc exited with code:", exitCode);
-            }
-        }
-    }
-
-    function runSysCommand(cmd) {
-        root.close();
-        root.isPowerMenuOpen = false;
-        if (sysActionProc.running) sysActionProc.running = false;
-        sysActionProc.command = cmd;
-        sysActionProc.running = true;
+        SessionService.close();
     }
 
     function lockScreen() {
         root.close();
-        root.isPowerMenuOpen = false;
-        LockService.lock();
+        SessionService.lock();
     }
 
     function suspend() {
-        runSysCommand(["systemctl", "suspend"]);
+        SessionService.suspend();
     }
 
     function reboot() {
-        runSysCommand(["systemctl", "reboot"]);
+        SessionService.reboot();
     }
 
     function shutdown() {
-        runSysCommand(["systemctl", "poweroff"]);
+        SessionService.shutdown();
     }
 
     function logout() {
-        runSysCommand([
-            "sh",
-            "-c",
-            "if command -v uwsm >/dev/null 2>&1 && uwsm check is-active 2>/dev/null; then " +
-            "uwsm stop; " +
-            "elif command -v hyprctl >/dev/null 2>&1; then " +
-            "hyprctl dispatch 'hl.dsp.exit()' 2>/dev/null || hyprctl dispatch exit; " +
-            "elif [ -n \"$XDG_SESSION_ID\" ]; then " +
-            "loginctl terminate-session \"$XDG_SESSION_ID\"; " +
-            "else " +
-            "loginctl terminate-user \"$USER\"; " +
-            "fi"
-        ]);
+        SessionService.logout();
     }
 }
 

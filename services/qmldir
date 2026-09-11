@@ -14,3 +14,4 @@ singleton ClipboardService 1.0 ClipboardService.qml
 singleton WallpaperService 1.0 WallpaperService.qml
 singleton LockService 1.0 LockService.qml
 singleton PolkitService 1.0 PolkitService.qml
+singleton SessionService 1.0 SessionService.qml

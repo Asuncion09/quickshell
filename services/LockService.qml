@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Pam
 import "../theme"
 
@@ -13,8 +14,35 @@ Item {
     property bool authFailed: false
     property bool authSucceeded: false
     property string errorMessage: ""
+    property bool capsLockActive: false
 
     property string pendingPassword: ""
+
+    // Monitoreo de estado de Bloq Mayús (Caps Lock) en Linux sysfs
+    Process {
+        id: capsProc
+        command: ["sh", "-c", "cat /sys/class/leds/*capslock*/brightness 2>/dev/null | head -n1"]
+        stdout: SplitParser {
+            onRead: data => {
+                let val = data.trim();
+                root.capsLockActive = (val === "1");
+            }
+        }
+    }
+
+    Timer {
+        id: capsTimer
+        interval: 350
+        repeat: true
+        running: root.isLocked
+        onTriggered: {
+            if (!capsProc.running) capsProc.running = true;
+        }
+    }
+
+    function checkCapsLock() {
+        if (!capsProc.running) capsProc.running = true;
+    }
 
     // Contexto nativo de autenticación PAM de Linux
     PamContext {
@@ -76,6 +104,7 @@ Item {
             root.authSucceeded = false;
             root.errorMessage = "";
             root.pendingPassword = "";
+            root.capsLockActive = false;
         }
     }
 
@@ -94,6 +123,8 @@ Item {
         root.isAuthenticating = false;
         root.errorMessage = "";
         root.pendingPassword = "";
+
+        checkCapsLock();
 
         if (pam.active) pam.abort();
         pam.start();

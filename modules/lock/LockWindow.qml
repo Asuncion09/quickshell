@@ -161,110 +161,93 @@ WlSessionLock {
                     anchors.leftMargin: 28
                     anchors.rightMargin: 28
 
-                    // Píldora de estado de bloqueo (estilo Quickshell)
-                    Rectangle {
-                        implicitHeight: 28
-                        implicitWidth: lockRow.implicitWidth + 24
-                        radius: Theme.pillRadius
-                        color: Qt.rgba(0.12, 0.12, 0.12, 0.65)
-                        border.width: 1
-                        border.color: Theme.dividerColor
+                    // Estado de bloqueo limpio (sin píldora)
+                    RowLayout {
+                        spacing: 8
+                        Layout.alignment: Qt.AlignVCenter
 
-                        RowLayout {
-                            id: lockRow
-                            anchors.centerIn: parent
-                            spacing: 8
+                        Text {
+                            text: "󰌾"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 14
+                            color: Theme.highlight
+                            Layout.alignment: Qt.AlignVCenter
+                        }
 
-                            Text {
-                                text: "󰌾"
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 13
-                                color: Theme.highlight
-                                Layout.alignment: Qt.AlignVCenter
-                            }
-
-                            Text {
-                                text: "Bloqueado"
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 12
-                                font.weight: Font.DemiBold
-                                color: Theme.text
-                                Layout.alignment: Qt.AlignVCenter
-                            }
+                        Text {
+                            text: "Bloqueado"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 12
+                            font.weight: Font.Medium
+                            color: Theme.textSecondary
+                            Layout.alignment: Qt.AlignVCenter
                         }
                     }
 
                     Item { Layout.fillWidth: true }
 
-                    // Cápsula de estado: Red y Batería (estilo Quickshell idéntico al Topbar)
-                    Rectangle {
-                        implicitHeight: 28
-                        implicitWidth: statusRow.implicitWidth + 22
-                        radius: Theme.pillRadius
-                        color: Qt.rgba(0.12, 0.12, 0.12, 0.65)
-                        border.width: 1
-                        border.color: Theme.dividerColor
+                    // Estado de Red y Batería limpio (sin píldora)
+                    RowLayout {
+                        spacing: 12
+                        Layout.alignment: Qt.AlignVCenter
 
+                        // Icono de Red
+                        Text {
+                            text: NetworkService.icon
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 14
+                            color: NetworkService.color
+                            Layout.alignment: Qt.AlignVCenter
+                        }
+
+                        // Divisor ultra-sutil
+                        Rectangle {
+                            implicitWidth: 1
+                            implicitHeight: 12
+                            color: Qt.rgba(1, 1, 1, 0.15)
+                            Layout.alignment: Qt.AlignVCenter
+                        }
+
+                        // Estado de Batería
                         RowLayout {
-                            id: statusRow
-                            anchors.centerIn: parent
-                            spacing: 10
+                            spacing: 6
+                            Layout.alignment: Qt.AlignVCenter
 
-                            // Icono de Red idéntico al Topbar
                             Text {
-                                text: NetworkService.icon
+                                text: BatteryService.isCharging ? "󰂄" : BatteryService.icon
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 14
-                                color: NetworkService.color
+                                color: BatteryService.color
                                 Layout.alignment: Qt.AlignVCenter
                             }
 
-                            // Divisor ultra-sutil
-                            Rectangle {
-                                implicitWidth: 1
-                                implicitHeight: 12
-                                color: Theme.dividerColor
+                            Text {
+                                text: BatteryService.percentage + "%"
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 12
+                                font.weight: Font.Medium
+                                color: Theme.text
                                 Layout.alignment: Qt.AlignVCenter
-                            }
-
-                            // Estado de batería idéntico al Topbar
-                            RowLayout {
-                                spacing: 6
-                                Layout.alignment: Qt.AlignVCenter
-
-                                Text {
-                                    text: BatteryService.isCharging ? "󰂄" : BatteryService.icon
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: 14
-                                    color: BatteryService.color
-                                    Layout.alignment: Qt.AlignVCenter
-                                }
-
-                                Text {
-                                    text: BatteryService.percentage + "%"
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: 12
-                                    font.weight: Font.DemiBold
-                                    color: "#ffffff"
-                                    Layout.alignment: Qt.AlignVCenter
-                                }
                             }
                         }
                     }
                 }
 
                 // ----------------------------------------------------------
-                // ZONA CENTRAL (Reloj grande, Fecha, Saludo y Contraseña)
+                // ZONA SUPERIOR (Reloj prominente y Fecha)
                 // ----------------------------------------------------------
                 ColumnLayout {
-                    anchors.centerIn: parent
-                    spacing: 10
+                    id: clockBlock
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: parent.top
+                    anchors.topMargin: Math.round(parent.height * 0.18)
+                    spacing: 6
 
-                    // Reloj Estético Minimalista
+                    // Reloj Estético Prominente (Jerarquía UI/UX)
                     Text {
                         text: Qt.formatDateTime(surfaceContent.timeDate, "hh:mm")
                         font.family: Theme.fontFamily
-                        font.pixelSize: 84
+                        font.pixelSize: 112
                         font.weight: Font.DemiBold
                         color: "#ffffff"
                         Layout.alignment: Qt.AlignHCenter
@@ -278,12 +261,22 @@ WlSessionLock {
                             return formatted.charAt(0).toUpperCase() + formatted.slice(1);
                         }
                         font.family: Theme.fontFamily
-                        font.pixelSize: 15
+                        font.pixelSize: 16
                         font.weight: Font.Normal
                         color: "#c0c6d4"
                         Layout.alignment: Qt.AlignHCenter
-                        Layout.bottomMargin: 16
                     }
+                }
+
+                // ----------------------------------------------------------
+                // ZONA CENTRAL / AUTENTICACIÓN (Saludo, Contraseña y Feedback)
+                // ----------------------------------------------------------
+                ColumnLayout {
+                    id: authBlock
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: clockBlock.bottom
+                    anchors.topMargin: Math.max(64, Math.round(parent.height * 0.08))
+                    spacing: 12
 
                     // Saludo de Usuario (sin avatar circular)
                     Text {
@@ -297,7 +290,7 @@ WlSessionLock {
                         font.weight: Font.Medium
                         color: "#ffffff"
                         Layout.alignment: Qt.AlignHCenter
-                        Layout.bottomMargin: 6
+                        Layout.bottomMargin: 4
                     }
 
                     // Campo de contraseña estilo Squircle Quickshell con animación de Shake
@@ -325,9 +318,9 @@ WlSessionLock {
                             anchors.fill: parent
                             anchors.horizontalCenterOffset: pwdWrapper.xShake
                             radius: Theme.pillRadius
-                            color: Qt.rgba(0.12, 0.12, 0.12, 0.85)
+                            color: Theme.bgDark
                             border.width: 1
-                            border.color: LockService.authSucceeded ? Theme.success : (LockService.authFailed ? Theme.critical : (pwdInput.activeFocus ? Theme.highlight : Theme.dividerColor))
+                            border.color: LockService.authSucceeded ? Theme.success : (LockService.authFailed ? Theme.critical : (pwdInput.activeFocus ? Theme.highlight : Theme.borderDark))
 
                             Behavior on border.color { ColorAnimation { duration: 120 } }
                             Behavior on color { ColorAnimation { duration: 120 } }
@@ -341,8 +334,8 @@ WlSessionLock {
 
                             RowLayout {
                                 anchors.fill: parent
-                                anchors.leftMargin: 12
-                                anchors.rightMargin: 6
+                                anchors.leftMargin: 14
+                                anchors.rightMargin: 10
                                 spacing: 8
 
                                 Text {
@@ -372,6 +365,8 @@ WlSessionLock {
                                         focus: true
                                         clip: true
 
+                                        Keys.onPressed: LockService.checkCapsLock()
+
                                         onTextChanged: {
                                             if (LockService.authFailed && pwdInput.text.length > 0) {
                                                 LockService.authFailed = false;
@@ -397,27 +392,27 @@ WlSessionLock {
                                     }
                                 }
 
-                                // Botón Squircle de envío Quickshell
-                                Rectangle {
-                                    implicitWidth: 28
-                                    implicitHeight: 28
-                                    radius: 6
-                                    color: LockService.authSucceeded ? Theme.success : (submitMouse.containsMouse ? Theme.highlight : (pwdInput.text.length > 0 ? Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.22) : Qt.rgba(1, 1, 1, 0.05)))
-                                    border.width: 1
-                                    border.color: LockService.authSucceeded ? Theme.success : (pwdInput.text.length > 0 ? Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.4) : "transparent")
-                                    scale: submitMouse.pressed ? 0.92 : 1.0
-
-                                    Behavior on color { ColorAnimation { duration: 120 } }
-                                    Behavior on border.color { ColorAnimation { duration: 120 } }
-                                    Behavior on scale { NumberAnimation { duration: 80 } }
+                                // Acción de envío integrada (sin caja anidada ni cambios de color bruscos)
+                                Item {
+                                    implicitWidth: 26
+                                    implicitHeight: 26
+                                    Layout.alignment: Qt.AlignVCenter
 
                                     Text {
                                         anchors.centerIn: parent
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
                                         text: LockService.authSucceeded ? "󰄬" : (LockService.isAuthenticating ? "󰑐" : "󰅂")
                                         font.family: Theme.fontFamily
-                                        font.pixelSize: 14
-                                        color: (LockService.authSucceeded || submitMouse.containsMouse) ? "#161616" : (pwdInput.text.length > 0 ? Theme.highlight : Theme.textMuted)
+                                        font.pixelSize: 15
+                                        color: LockService.authSucceeded ? Theme.success : (LockService.authFailed ? Theme.critical : (pwdInput.text.length > 0 ? "#ffffff" : Theme.textMuted))
+                                        opacity: pwdInput.text.length > 0 ? (submitMouse.pressed ? 0.6 : 1.0) : 0.4
+                                        scale: submitMouse.pressed ? 0.88 : 1.0
                                         rotation: LockService.isAuthenticating ? spinAngle : 0
+
+                                        Behavior on opacity { NumberAnimation { duration: 120 } }
+                                        Behavior on scale { NumberAnimation { duration: 80 } }
+                                        Behavior on color { ColorAnimation { duration: 120 } }
 
                                         property real spinAngle: 0
                                         NumberAnimation on spinAngle {
@@ -433,7 +428,7 @@ WlSessionLock {
                                         id: submitMouse
                                         anchors.fill: parent
                                         hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
+                                        cursorShape: pwdInput.text.length > 0 ? Qt.PointingHandCursor : Qt.ArrowCursor
                                         onClicked: {
                                             if (pwdInput.text.length > 0) {
                                                 LockService.submitPassword(pwdInput.text);
@@ -441,6 +436,47 @@ WlSessionLock {
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
+
+                    // Badge contextual de Bloq Mayús (Caps Lock)
+                    Rectangle {
+                        id: capsBadge
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.preferredHeight: LockService.capsLockActive ? 24 : 0
+                        implicitWidth: capsRow.implicitWidth + 20
+                        radius: Theme.pillRadius
+                        color: Qt.rgba(0.98, 0.70, 0.53, 0.14)
+                        border.width: 1
+                        border.color: Qt.rgba(0.98, 0.70, 0.53, 0.35)
+                        clip: true
+                        opacity: LockService.capsLockActive ? 1.0 : 0.0
+                        visible: opacity > 0 || Layout.preferredHeight > 0
+
+                        Behavior on opacity { NumberAnimation { duration: 160 } }
+                        Behavior on Layout.preferredHeight { NumberAnimation { duration: 160; easing.type: Easing.OutQuad } }
+
+                        RowLayout {
+                            id: capsRow
+                            anchors.centerIn: parent
+                            spacing: 6
+
+                            Text {
+                                text: "󰌎"
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 12
+                                color: "#fab387"
+                                Layout.alignment: Qt.AlignVCenter
+                            }
+
+                            Text {
+                                text: "Bloq Mayús activado"
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 11
+                                font.weight: Font.Medium
+                                color: "#fab387"
+                                Layout.alignment: Qt.AlignVCenter
                             }
                         }
                     }
@@ -456,21 +492,149 @@ WlSessionLock {
                         opacity: LockService.authFailed ? 1.0 : 0.0
                         Behavior on opacity { NumberAnimation { duration: 150 } }
                     }
+
+                    // Píldora de acciones de energía segmentada (justo debajo del input / Bloq Mayús)
+                    Rectangle {
+                        id: powerDock
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.topMargin: 8
+                        implicitHeight: 38
+                        implicitWidth: 168
+                        radius: Theme.pillRadius
+                        color: Theme.bgDark
+                        border.width: 1
+                        border.color: Theme.borderDark
+                        clip: true
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: 1
+                            spacing: 0
+
+                            // Segmento: Suspender
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                topLeftRadius: Theme.pillRadius - 1
+                                bottomLeftRadius: Theme.pillRadius - 1
+                                topRightRadius: 0
+                                bottomRightRadius: 0
+                                color: suspMouse.containsMouse ? Theme.surfaceHover : "transparent"
+
+                                Behavior on color { ColorAnimation { duration: 120 } }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "󰤄"
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 16
+                                    color: suspMouse.containsMouse ? Theme.highlight : Theme.textMuted
+                                    scale: suspMouse.pressed ? 0.88 : 1.0
+                                    Behavior on color { ColorAnimation { duration: 120 } }
+                                    Behavior on scale { NumberAnimation { duration: 80 } }
+                                }
+
+                                MouseArea {
+                                    id: suspMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: SessionService.suspend()
+                                }
+                            }
+
+                            // Divisor vertical
+                            Rectangle {
+                                Layout.fillHeight: true
+                                implicitWidth: 1
+                                color: Theme.dividerColor
+                            }
+
+                            // Segmento: Reiniciar
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                radius: 0
+                                color: rebtMouse.containsMouse ? Theme.surfaceHover : "transparent"
+
+                                Behavior on color { ColorAnimation { duration: 120 } }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "󰑐"
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 16
+                                    color: rebtMouse.containsMouse ? "#fab387" : Theme.textMuted
+                                    scale: rebtMouse.pressed ? 0.88 : 1.0
+                                    Behavior on color { ColorAnimation { duration: 120 } }
+                                    Behavior on scale { NumberAnimation { duration: 80 } }
+                                }
+
+                                MouseArea {
+                                    id: rebtMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: SessionService.reboot()
+                                }
+                            }
+
+                            // Divisor vertical
+                            Rectangle {
+                                Layout.fillHeight: true
+                                implicitWidth: 1
+                                color: Theme.dividerColor
+                            }
+
+                            // Segmento: Apagar
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                topLeftRadius: 0
+                                bottomLeftRadius: 0
+                                topRightRadius: Theme.pillRadius - 1
+                                bottomRightRadius: Theme.pillRadius - 1
+                                color: pwrMouse.containsMouse ? Theme.surfaceHover : "transparent"
+
+                                Behavior on color { ColorAnimation { duration: 120 } }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "󰐥"
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 16
+                                    color: pwrMouse.containsMouse ? Theme.critical : Theme.textMuted
+                                    scale: pwrMouse.pressed ? 0.88 : 1.0
+                                    Behavior on color { ColorAnimation { duration: 120 } }
+                                    Behavior on scale { NumberAnimation { duration: 80 } }
+                                }
+
+                                MouseArea {
+                                    id: pwrMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: SessionService.shutdown()
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // ----------------------------------------------------------
                 // WIDGET MULTIMEDIA INFERIOR (MPRIS)
                 // ----------------------------------------------------------
                 Rectangle {
+                    id: mprisWidget
                     anchors.bottom: parent.bottom
                     anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.bottomMargin: 34
+                    anchors.bottomMargin: 32
                     implicitWidth: 330
                     implicitHeight: 64
                     radius: 16
-                    color: Qt.rgba(0.12, 0.12, 0.12, 0.80)
+                    color: Theme.bgDark
                     border.width: 1
-                    border.color: Theme.dividerColor
+                    border.color: Theme.borderDark
                     visible: MediaService.hasMedia && MediaService.title !== ""
 
                     RowLayout {
@@ -556,14 +720,20 @@ WlSessionLock {
                                 }
                             }
 
-                            // Play / Pause
+                            // Reproducir / Pausar
                             Rectangle {
                                 implicitWidth: 32
                                 implicitHeight: 32
                                 radius: 16
-                                color: playMouse.containsMouse ? Theme.highlight : Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.20)
+                                color: playMouse.containsMouse ? Theme.highlight : Theme.surfaceHover
+                                scale: playMouse.pressed ? 0.92 : 1.0
+                                Behavior on scale { NumberAnimation { duration: 80 } }
+                                Behavior on color { ColorAnimation { duration: 120 } }
+
                                 Text {
                                     anchors.centerIn: parent
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
                                     text: MediaService.isPlaying ? "󰏤" : "󰐊"
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 16

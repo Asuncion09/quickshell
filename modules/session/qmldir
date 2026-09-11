@@ -1,0 +1,2 @@
+module modules.session
+SessionWindow 1.0 SessionWindow.qml

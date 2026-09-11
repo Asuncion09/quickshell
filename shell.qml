@@ -11,6 +11,7 @@ import "modules/osd"
 import "modules/switcher"
 import "modules/wallpaper"
 import "modules/lock"
+import "modules/session"
 
 ShellRoot {
     NotificationServer {
@@ -250,6 +251,40 @@ ShellRoot {
         }
     }
 
+    IpcHandler {
+        target: "session"
+        function toggle(): void {
+            SessionService.toggle();
+        }
+        function open(): void {
+            SessionService.open();
+        }
+        function close(): void {
+            SessionService.close();
+        }
+        function next(): void {
+            SessionService.next();
+        }
+        function prev(): void {
+            SessionService.prev();
+        }
+        function lock(): void {
+            SessionService.lock();
+        }
+        function suspend(): void {
+            SessionService.suspend();
+        }
+        function logout(): void {
+            SessionService.logout();
+        }
+        function reboot(): void {
+            SessionService.reboot();
+        }
+        function shutdown(): void {
+            SessionService.shutdown();
+        }
+    }
+
     LockWindow {}
 
     Variants {
@@ -270,6 +305,11 @@ ShellRoot {
     Variants {
         model: Quickshell.screens
         WindowSwitcher {}
+    }
+
+    Variants {
+        model: Quickshell.screens
+        SessionWindow {}
     }
 }
 
