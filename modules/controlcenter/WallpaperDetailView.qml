@@ -205,13 +205,18 @@ Item {
             radius: 10
             color: "transparent"
 
-            // Máscara redondeada para la vista previa
+            ShaderEffectSource {
+                id: topMaskSource
+                sourceItem: topMask
+                hideSource: true
+                live: false
+            }
+
             Rectangle {
                 id: topMask
                 anchors.fill: parent
-                radius: 10
-                visible: false
-                layer.enabled: true
+                radius: 12
+                color: "#ffffff"
             }
 
             Item {
@@ -282,13 +287,13 @@ Item {
                 anchors.fill: parent
                 source: topContent
                 maskEnabled: true
-                maskSource: topMask
+                maskSource: topMaskSource
             }
 
             // Borde sutil del contenedor
             Rectangle {
                 anchors.fill: parent
-                radius: 10
+                radius: 12
                 color: "transparent"
                 border.width: 1
                 border.color: Theme.dividerColor
@@ -329,16 +334,23 @@ Item {
                     readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === itemNavIndex
                     readonly property bool isHovered: cardMouse.containsMouse
 
-                    scale: cardMouse.pressed ? 0.96 : (isHovered ? 1.02 : 1.0)
+                    // Feedback táctil exclusivo al presionar (sin zoom en hover para evitar deformar el radio de curvatura)
+                    scale: cardMouse.pressed ? 0.97 : 1.0
                     Behavior on scale { NumberAnimation { duration: Theme.animFast } }
 
-                    // Máscara redondeada para recortar la imagen (radius: 10)
+                    // Máscara redondeada para recortar la imagen (radius: 12)
+                    ShaderEffectSource {
+                        id: cardMaskSource
+                        sourceItem: cardMask
+                        hideSource: true
+                        live: false
+                    }
+
                     Rectangle {
                         id: cardMask
                         anchors.fill: parent
-                        radius: 10
-                        visible: false
-                        layer.enabled: true
+                        radius: 12
+                        color: "#ffffff"
                     }
 
                     // Contenido visual (imagen + gradiente + texto)
@@ -362,7 +374,7 @@ Item {
                             anchors.left: parent.left
                             anchors.right: parent.right
                             anchors.bottom: parent.bottom
-                            height: 24
+                            height: 26
                             gradient: Gradient {
                                 GradientStop { position: 0.0; color: "transparent" }
                                 GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.85) }
@@ -376,9 +388,11 @@ Item {
                                 text: modelData.name
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 9
-                                font.weight: Font.DemiBold
-                                color: "#ffffff"
+                                font.weight: (cardItem.isHovered || cardItem.isActive) ? Font.DemiBold : Font.Normal
+                                color: (cardItem.isHovered || cardItem.isActive) ? "#ffffff" : Qt.rgba(1, 1, 1, 0.80)
                                 elide: Text.ElideRight
+
+                                Behavior on color { ColorAnimation { duration: Theme.animFast } }
                             }
                         }
                     }
@@ -388,49 +402,45 @@ Item {
                         anchors.fill: parent
                         source: cardVisual
                         maskEnabled: true
-                        maskSource: cardMask
+                        maskSource: cardMaskSource
                     }
 
-                    // Velo sutil de hover (limpio, sin bordes grises)
+                    // Marco perimetral sutil que se ilumina con el hover (sin alterar los colores de la foto)
                     Rectangle {
                         anchors.fill: parent
-                        radius: 10
-                        color: (cardItem.isHovered && !cardItem.isActive) ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
-                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
-                    }
-
-                    // Borde de navegación por teclado (solo cuando se navega con teclas)
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: 10
+                        radius: 12
                         color: "transparent"
-                        border.width: cardItem.isKeyFocused ? 2 : 0
-                        border.color: cardItem.isKeyFocused ? Theme.highlight : "transparent"
+                        border.width: cardItem.isKeyFocused ? 2 : 1
+                        border.color: {
+                            if (cardItem.isKeyFocused) return Theme.highlight;
+                            if (cardItem.isHovered) return Qt.rgba(255, 255, 255, 0.35);
+                            return Qt.rgba(255, 255, 255, 0.08);
+                        }
 
-                        Behavior on border.width { NumberAnimation { duration: 60 } }
-                        Behavior on border.color { ColorAnimation { duration: 60 } }
+                        Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
+                        Behavior on border.width { NumberAnimation { duration: 40 } }
                     }
 
-                    // Badge de activo con icono de check (único indicador de selección)
+                    // Badge de selección minimalista (compacto 16x16, azul acento con check oscuro de alto contraste)
                     Rectangle {
                         anchors.top: parent.top
                         anchors.right: parent.right
-                        anchors.margins: 7
-                        width: 20
-                        height: 20
-                        radius: 10
-                        color: Theme.wsActiveColor
+                        anchors.margins: 6
+                        width: 16
+                        height: 16
+                        radius: 8
+                        color: Theme.highlight
                         visible: cardItem.isActive
-                        border.width: 1.5
-                        border.color: "#161616"
 
                         Text {
                             anchors.centerIn: parent
+                            anchors.horizontalCenterOffset: -0.5
+                            anchors.verticalCenterOffset: 0.5
                             text: "󰄬"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 11
-                            color: "#161616"
+                            font.pixelSize: 10
                             font.weight: Font.Bold
+                            color: "#121212"
                         }
                     }
 

@@ -18,6 +18,24 @@ Item {
         (currentToast.appName && (currentToast.appName.toLowerCase().includes("batería") || currentToast.appName.toLowerCase().includes("battery"))) ||
         (currentToast.summary && (currentToast.summary.toLowerCase().includes("batería") || currentToast.summary.toLowerCase().includes("battery")))
     )
+    readonly property bool isBatteryFull: isBatteryToast && (
+        (currentToast.summary && (currentToast.summary.toLowerCase().includes("completa") || currentToast.summary.toLowerCase().includes("full") || currentToast.summary.includes("100%"))) ||
+        (currentToast.body && (currentToast.body.toLowerCase().includes("completa") || currentToast.body.toLowerCase().includes("full") || currentToast.body.includes("100%")))
+    )
+    readonly property color batteryToastColor: {
+        if (!isBatteryToast) return Theme.highlight;
+        if (isBatteryFull) return Theme.success;
+        if (currentToast && currentToast.urgency === 2) return Theme.critical;
+        return Theme.warning;
+    }
+    readonly property color toastBorderColor: {
+        if (isBatteryToast) {
+            if (isBatteryFull) return Qt.rgba(66/255, 190/255, 101/255, 0.45);
+            if (currentToast && currentToast.urgency === 2) return Qt.rgba(238/255, 83/255, 150/255, 0.50);
+            return Qt.rgba(241/255, 196/255, 15/255, 0.45);
+        }
+        return Theme.borderDark;
+    }
     readonly property bool isScreenshot: currentToast !== null && (
         currentToast.isScreenshot === true ||
         (currentToast.appName && currentToast.appName.toLowerCase().includes("hyprshot")) ||
@@ -174,7 +192,7 @@ Item {
                 }
                 font.family: Theme.fontFamily
                 font.pixelSize: 12
-                color: (root.isScreenshot || root.isColorPicker) ? Theme.wsActiveColor : ((!root.isExpanded && root.isBatteryToast) ? "#161616" : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
+                color: (root.isScreenshot || root.isColorPicker) ? Theme.wsActiveColor : (root.isBatteryToast ? root.batteryToastColor : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
                 visible: !toastIconImg.visible || root.isScreenshot || root.isColorPicker
             }
         }
@@ -184,7 +202,7 @@ Item {
             implicitWidth: 5
             implicitHeight: 5
             radius: 2.5
-            color: (!root.isExpanded && root.isBatteryToast) ? "#161616" : Theme.critical
+            color: Theme.critical
             visible: root.currentToast && root.currentToast.urgency === 2
             Layout.alignment: Qt.AlignVCenter
         }
@@ -201,7 +219,7 @@ Item {
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
                 font.weight: Font.DemiBold
-                color: (root.isScreenshot || root.isColorPicker) ? Theme.wsActiveColor : ((!root.isExpanded && root.isBatteryToast) ? "#161616" : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
+                color: (root.isScreenshot || root.isColorPicker) ? Theme.wsActiveColor : (root.isBatteryToast ? root.batteryToastColor : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
                 Layout.alignment: Qt.AlignVCenter
             }
 
@@ -220,7 +238,7 @@ Item {
                 text: "•"
                 font.family: Theme.fontFamily
                 font.pixelSize: 9
-                color: (!root.isExpanded && root.isBatteryToast) ? Qt.rgba(0, 0, 0, 0.45) : Theme.textMuted
+                color: Theme.textMuted
                 Layout.alignment: Qt.AlignVCenter
             }
 
@@ -259,7 +277,7 @@ Item {
                 font.family: Theme.fontFamily
                 font.pixelSize: 12
                 font.weight: Font.Normal
-                color: (!root.isExpanded && root.isBatteryToast) ? "#161616" : Theme.text
+                color: Theme.text
                 maximumLineCount: 1
                 elide: Text.ElideRight
                 Layout.fillWidth: true
@@ -319,7 +337,7 @@ Item {
                     }
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
-                    color: (root.isScreenshot || root.isColorPicker) ? Theme.wsActiveColor : (root.isBatteryToast ? Theme.warning : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
+                    color: (root.isScreenshot || root.isColorPicker) ? Theme.wsActiveColor : (root.isBatteryToast ? root.batteryToastColor : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
                     visible: !expIconImg.visible || root.isScreenshot || root.isColorPicker
                 }
             }
@@ -329,7 +347,7 @@ Item {
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
                 font.weight: Font.DemiBold
-                color: (root.isScreenshot || root.isColorPicker) ? Theme.wsActiveColor : (root.isBatteryToast ? Theme.warning : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
+                color: (root.isScreenshot || root.isColorPicker) ? Theme.wsActiveColor : (root.isBatteryToast ? root.batteryToastColor : ((root.currentToast && root.currentToast.urgency === 2) ? Theme.critical : Theme.highlight))
                 Layout.alignment: Qt.AlignVCenter
             }
 

@@ -26,6 +26,7 @@ Item {
     readonly property bool isAnyModalActive: isLauncherActive || isClipboardActive || isNotificationCenterActive || isPolkitActive
 
     readonly property bool isBatteryToast: notificationToastView.isBatteryToast && root.isToastTarget
+    readonly property color batteryToastBorderColor: notificationToastView.toastBorderColor
     readonly property bool isBatteryAlertActive: batteryAlertIslandView.isActive
     readonly property bool isBatteryAlertDisplaying: batteryAlertIslandView.isActive && !root.isAnyModalActive && !root.isToastTarget && !OsdService.isVisible
     readonly property color batteryBorderColor: batteryAlertIslandView.alertBorderColor

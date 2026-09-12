@@ -51,6 +51,12 @@ Item {
         root.open();
     }
 
+    function openDisplays() {
+        root.requestedView = 6;
+        root.open();
+    }
+
+
     function close() {
         root.isOpen = false;
         root.isPowerMenuOpen = false;

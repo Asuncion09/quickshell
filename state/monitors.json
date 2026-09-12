@@ -1,0 +1,35 @@
+[
+  {
+    "id": 0,
+    "name": "eDP-1",
+    "description": "Chimei Innolux Corporation 0x153B",
+    "make": "Chimei Innolux Corporation",
+    "model": "0x153B",
+    "width": 1920,
+    "height": 1080,
+    "refreshRate": 60,
+    "x": 0,
+    "y": 0,
+    "scale": 1,
+    "transform": 0,
+    "focused": true,
+    "dpmsStatus": true,
+    "vrr": false,
+    "disabled": false,
+    "mirrorOf": "",
+    "availableModes": [
+      "1920x1080@60.00Hz",
+      "1920x1080@40.00Hz",
+      "1680x1050@60.00Hz",
+      "1280x1024@60.00Hz",
+      "1440x900@60.00Hz",
+      "1280x800@60.00Hz",
+      "1280x720@60.00Hz",
+      "1024x768@60.00Hz",
+      "800x600@60.00Hz",
+      "640x480@60.00Hz"
+    ],
+    "effectiveWidth": 1920,
+    "effectiveHeight": 1080
+  }
+]

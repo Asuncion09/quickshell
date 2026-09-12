@@ -72,8 +72,8 @@
     "semantic_hash": "9bdf9bc213e0c26c63f33081dfa5e3b2"
   },
   "state/wallpaper.txt": {
-    "mtime": 1789231277.3967671,
-    "seen": 1789231571.237463,
+    "mtime": 1789170480.9704747,
+    "seen": 1789170580.4809363,
     "ast_hash": "933c8000512e89db7424841d63149ae7",
     "semantic_hash": ""
   },
@@ -174,15 +174,9 @@
     "semantic_hash": "b08f3985e773d14cbfa20b5f1e235a1a"
   },
   "state/monitors.json": {
-    "mtime": 1789229167.7334332,
-    "seen": 1789229460.249164,
+    "mtime": 1789225477.9347773,
+    "seen": 1789225761.5090454,
     "ast_hash": "0f7e1d3d5639067fa8aebfcf6317169c",
-    "semantic_hash": ""
-  },
-  "scripts/persist_monitors.py": {
-    "mtime": 1789229368.3429806,
-    "seen": 1789229460.2491453,
-    "ast_hash": "2c640b928596f2155da9efbbf4e2c09e",
     "semantic_hash": ""
   }
 }

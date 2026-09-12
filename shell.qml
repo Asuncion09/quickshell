@@ -86,6 +86,9 @@ ShellRoot {
         function openWallpaper(): void {
             ControlCenterService.openWallpaper();
         }
+        function openDisplays(): void {
+            ControlCenterService.openDisplays();
+        }
         function close(): void {
             ControlCenterService.close();
         }

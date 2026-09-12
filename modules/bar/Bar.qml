@@ -216,13 +216,12 @@ PanelWindow {
                 paddingHorizontal: (root.isIslandModalActive || (root.isToastTarget && NotificationService.isToastExpanded && !OsdService.isVisible)) ? 6 : ((root.isToastTarget || OsdService.isVisible) ? (centerIsland.isBatteryToast ? 12 : 8) : (centerIsland.isBatteryAlertActive ? 13 : Theme.centerPillPaddingHorizontal))
                 customBorderColor: {
                     if (root.isFocusedMonitor && PolkitService.isActive) return PolkitService.isSuccess ? Theme.success : (PolkitService.authFailed ? Theme.critical : Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.4));
-                    if (centerIsland.isBatteryToast && root.isToastTarget && !OsdService.isVisible) return Theme.warning;
+                    if (centerIsland.isBatteryToast && root.isToastTarget && !OsdService.isVisible) return centerIsland.batteryToastBorderColor;
                     if (centerIsland.isBatteryAlertActive && !OsdService.isVisible) return centerIsland.batteryBorderColor;
                     if (OsdService.isVisible && OsdService.mode === "volume" && OsdService.value > 100 && !OsdService.isMuted) return Qt.rgba(241/255, 196/255, 15/255, 0.45);
                     return null;
                 }
                 customColor: {
-                    if (centerIsland.isBatteryToast && root.isToastTarget && !NotificationService.isToastExpanded && !OsdService.isVisible) return Theme.warning;
                     if (centerIsland.isBatteryAlertDisplaying) return centerIsland.batteryBgColor;
                     return null;
                 }

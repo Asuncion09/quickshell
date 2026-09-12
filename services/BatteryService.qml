@@ -175,9 +175,9 @@ Item {
                 root._notifiedFull = true;
                 if (typeof NotificationService !== "undefined" && NotificationService) {
                     NotificationService.postInternalNotification(
-                        "Battery",
-                        "⚡ Fully Charged",
-                        "Battery is at 100%. You can unplug the charger.",
+                        "Batería",
+                        "⚡ Carga completa",
+                        "Batería al 100%. Puedes desconectar el cargador.",
                         1,
                         Quickshell.iconPath("battery-full-charged") || root.icon,
                         "/usr/share/sounds/freedesktop/stereo/complete.oga"
@@ -194,9 +194,9 @@ Item {
                     root._notifiedLow = true;
                     if (typeof NotificationService !== "undefined" && NotificationService) {
                         NotificationService.postInternalNotification(
-                            "Battery",
-                            `${p}% remaining`,
-                            "Connect the charger soon.",
+                            "Batería",
+                            `⚠️ Batería baja (${p}%)`,
+                            "Conecta el cargador pronto.",
                             1,
                             Quickshell.iconPath("battery-low") || root.icon,
                             "/usr/share/sounds/freedesktop/stereo/dialog-warning.oga"
@@ -265,7 +265,13 @@ Item {
         if (isCharging) {
             root.resetSnooze();
             root.playPluggedSound();
+            // Si la batería ya está al 100% al momento de conectar, marcar como ya notificado
+            // para evitar solapar el sonido de conexión con el de carga completa
+            if (root.percentage >= 100 || root._sysStatus === "Full") {
+                root._notifiedFull = true;
+            }
         } else {
+            root._notifiedFull = false;
             if (!root.isCritical) {
                 root.playUnpluggedSound();
             }
@@ -301,9 +307,9 @@ Item {
     }
 
     readonly property string tooltipText: {
-        if (isCharging) return `Battery: ${percentage}% (Charging)`;
-        if (percentage === 100) return `Battery: ${percentage}% (Full)`;
-        return `Battery: ${percentage}%`;
+        if (isCharging) return `Batería: ${percentage}% (Cargando)`;
+        if (percentage === 100) return `Batería: ${percentage}% (Completa)`;
+        return `Batería: ${percentage}%`;
     }
 }
 

@@ -366,18 +366,6 @@
       "source_location": "L141"
     },
     {
-      "id": "scripts_persist_monitors_main",
-      "label": "main()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 30,
-      "community_name": "persist_monitors.py",
-      "file_type": "code",
-      "norm_label": "main()",
-      "source_file": "scripts/persist_monitors.py",
-      "source_location": "L7"
-    },
-    {
       "id": "services_clip_daemon_clipboarddaemon_init",
       "label": ".__init__()",
       "_callable": true,
@@ -889,17 +877,6 @@
       "file_type": "code",
       "norm_label": "bt_agent.py",
       "source_file": "services/bt_agent.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "scripts_persist_monitors",
-      "label": "persist_monitors.py",
-      "_origin": "ast",
-      "community": 30,
-      "community_name": "persist_monitors.py",
-      "file_type": "code",
-      "norm_label": "persist_monitors.py",
-      "source_file": "scripts/persist_monitors.py",
       "source_location": "L1"
     },
     {
@@ -2449,17 +2426,6 @@
       "weight": 1.0
     },
     {
-      "source": "scripts_persist_monitors",
-      "target": "scripts_persist_monitors_main",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/persist_monitors.py",
-      "source_location": "L7",
-      "weight": 1.0
-    },
-    {
       "source": "scripts_ryzenadj_apply_profile",
       "target": "scripts_ryzenadj_apply_profile_sh__entry",
       "relation": "contains",
@@ -3333,5 +3299,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "b618de25ddbf3070f7273a3ac852eaa3f6532b2e"
+  "built_at_commit": "344343029f3fa26b860a9bb3c31e695eed3cc0de"
 }

@@ -39,33 +39,28 @@ Item {
     // Borde de la cápsula
     readonly property real alertBorderWidth: Theme.pillBorderWidth
     readonly property color alertBorderColor: {
-        if (root.isPluggedNotice) return Theme.success;
-        if (root.isCriticalAlert) return Theme.critical;
+        if (root.isPluggedNotice) return Qt.rgba(66/255, 190/255, 101/255, 0.40);
+        if (root.isCriticalAlert) return Qt.rgba(238/255, 83/255, 150/255, 0.50);
         if (root.isUnpluggedNotice) {
-            if (BatteryService.isWarning) return Theme.warning;
-            return Qt.rgba(1, 1, 1, 0.20);
+            if (BatteryService.isWarning) return Qt.rgba(241/255, 196/255, 15/255, 0.40);
+            return Qt.rgba(1, 1, 1, 0.16);
         }
         return "transparent";
     }
 
-    // Fondo de la cápsula
-    readonly property color alertBgColor: {
+    // Fondo de la cápsula: se conserva el fondo oscuro elegante de la isla dinámica
+    readonly property color alertBgColor: Theme.bgDark
+
+    // Color del ícono según el estado semántico
+    readonly property color iconColor: {
         if (root.isPluggedNotice) return Theme.success;
         if (root.isCriticalAlert) return Theme.critical;
-        if (root.isUnpluggedNotice) {
-            if (BatteryService.isWarning) return Theme.warning;
-            return Theme.bgDark;
-        }
-        return Theme.bgDark;
+        if (root.isUnpluggedNotice && BatteryService.isWarning) return Theme.warning;
+        return Theme.textSecondary;
     }
 
-    // Color de texto e ícono
-    readonly property color contentColor: {
-        if (root.isUnpluggedNotice && BatteryService.isWarning) {
-            return "#161616"; // Máximo contraste sobre fondo amarillo #f1c40f
-        }
-        return "#ffffff";
-    }
+    // Color de texto
+    readonly property color contentColor: Theme.text
 
     // Micro-animación de latido sutil en el ícono de batería crítica
     property real iconPulseScale: 1.0
@@ -153,16 +148,16 @@ Item {
             font.family: Theme.fontFamily
             font.pixelSize: 13
             font.weight: Font.DemiBold
-            color: root.contentColor
+            color: root.iconColor
             Layout.alignment: Qt.AlignVCenter
             scale: (root.isCriticalAlert && !root.isPluggedNotice && !root.isUnpluggedNotice) ? root.iconPulseScale : 1.0
         }
 
         Text {
             text: {
-                if (root.isPluggedNotice) return `Charger connected · ${BatteryService.percentage}%`;
-                if (root.isUnpluggedNotice) return `Charger disconnected · ${BatteryService.percentage}%`;
-                return `Connect charger · ${BatteryService.percentage}%`;
+                if (root.isPluggedNotice) return `Cargador conectado · ${BatteryService.percentage}%`;
+                if (root.isUnpluggedNotice) return `Cargador desconectado · ${BatteryService.percentage}%`;
+                return `Batería baja · ${BatteryService.percentage}%`;
             }
             font.family: Theme.fontFamily
             font.pixelSize: 12
