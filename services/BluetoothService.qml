@@ -31,8 +31,8 @@ Item {
     }
 
     Timer {
-        interval: 5000
-        running: true
+        interval: 30000
+        running: !Bluetooth.defaultAdapter
         repeat: true
         triggeredOnStart: true
         onTriggered: {

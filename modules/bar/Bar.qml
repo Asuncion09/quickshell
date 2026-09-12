@@ -77,11 +77,17 @@ PanelWindow {
         return (target !== "") ? (target === (root.screen ? root.screen.name : "")) : root.isFocusedMonitor;
     }
 
+    readonly property bool isToastTarget: {
+        if (!NotificationService.isToastActive) return false;
+        let target = NotificationService.targetMonitor;
+        return (target !== "") ? (target === (root.screen ? root.screen.name : "")) : root.isFocusedMonitor;
+    }
+
     readonly property bool isIslandModalActive: root.isFocusedMonitor && (PolkitService.isActive || ClipboardService.isOpen || LauncherService.isOpen || NotificationService.isCenterOpen)
 
     readonly property bool isModalOpen: root.isIslandModalActive || root.isControlCenterTarget
 
-    readonly property bool isDismissActive: root.isModalOpen || (root.isFocusedMonitor && NotificationService.isToastExpanded)
+    readonly property bool isDismissActive: root.isModalOpen || (root.isToastTarget && NotificationService.isToastExpanded && !OsdService.isVisible)
 
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusiveZone: Theme.barHeight
@@ -110,10 +116,16 @@ PanelWindow {
         function onRawEvent(event) {
             if (!event) return;
             let n = event.name;
-            if (n === "activewindow" || n === "activewindowv2" || n === "workspace" || n === "focusedmon") {
+            if (n === "activewindow" || n === "activewindowv2" || n === "workspace") {
                 if (ClipboardService.isOpen) ClipboardService.close();
                 if (LauncherService.isOpen) LauncherService.close();
                 if (ControlCenterService.isOpen) ControlCenterService.close();
+                if (NotificationService.isCenterOpen) NotificationService.closeCenter();
+                if (NotificationService.isToastExpanded) NotificationService.dismissToast();
+            } else if (n === "focusedmon") {
+                if (ClipboardService.isOpen) ClipboardService.close();
+                if (LauncherService.isOpen) LauncherService.close();
+                // No cerramos ControlCenterService aquí para que cruzar el ratón al monitor adyacente no lo cierre accidentalmente
                 if (NotificationService.isCenterOpen) NotificationService.closeCenter();
                 if (NotificationService.isToastExpanded) NotificationService.dismissToast();
             }
@@ -201,22 +213,22 @@ PanelWindow {
             Pill {
                 id: centerPill
                 animateSize: false
-                paddingHorizontal: (root.isIslandModalActive || (root.isFocusedMonitor && NotificationService.isToastExpanded)) ? 6 : ((NotificationService.isToastActive || OsdService.isVisible) ? (centerIsland.isBatteryToast ? 12 : 8) : (centerIsland.isBatteryAlertActive ? 13 : Theme.centerPillPaddingHorizontal))
+                paddingHorizontal: (root.isIslandModalActive || (root.isToastTarget && NotificationService.isToastExpanded && !OsdService.isVisible)) ? 6 : ((root.isToastTarget || OsdService.isVisible) ? (centerIsland.isBatteryToast ? 12 : 8) : (centerIsland.isBatteryAlertActive ? 13 : Theme.centerPillPaddingHorizontal))
                 customBorderColor: {
                     if (root.isFocusedMonitor && PolkitService.isActive) return PolkitService.isSuccess ? Theme.success : (PolkitService.authFailed ? Theme.critical : Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.4));
-                    if (centerIsland.isBatteryToast) return Theme.warning;
-                    if (centerIsland.isBatteryAlertActive) return centerIsland.batteryBorderColor;
+                    if (centerIsland.isBatteryToast && root.isToastTarget && !OsdService.isVisible) return Theme.warning;
+                    if (centerIsland.isBatteryAlertActive && !OsdService.isVisible) return centerIsland.batteryBorderColor;
                     if (OsdService.isVisible && OsdService.mode === "volume" && OsdService.value > 100 && !OsdService.isMuted) return Qt.rgba(241/255, 196/255, 15/255, 0.45);
                     return null;
                 }
                 customColor: {
-                    if (centerIsland.isBatteryToast && !NotificationService.isToastExpanded) return Theme.warning;
+                    if (centerIsland.isBatteryToast && root.isToastTarget && !NotificationService.isToastExpanded && !OsdService.isVisible) return Theme.warning;
                     if (centerIsland.isBatteryAlertDisplaying) return centerIsland.batteryBgColor;
                     return null;
                 }
                 customBorderWidth: {
-                    if (centerIsland.isBatteryToast) return 1.0;
-                    if (centerIsland.isBatteryAlertActive) return centerIsland.batteryBorderWidth;
+                    if (centerIsland.isBatteryToast && root.isToastTarget && !OsdService.isVisible) return 1.0;
+                    if (centerIsland.isBatteryAlertActive && !OsdService.isVisible) return centerIsland.batteryBorderWidth;
                     return null;
                 }
 
@@ -225,6 +237,7 @@ PanelWindow {
                     isPillHovered: centerPill.containsMouse
                     isFocusedMonitor: root.isFocusedMonitor
                     monitorName: root.screen ? root.screen.name : ""
+                    isToastTarget: root.isToastTarget
                 }
             }
         }

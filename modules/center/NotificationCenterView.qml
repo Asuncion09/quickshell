@@ -497,6 +497,8 @@ Item {
                                 Image {
                                     anchors.fill: parent
                                     source: (modelData.isScreenshot && modelData.screenshotPath) ? ("file://" + modelData.screenshotPath) : ""
+                                    sourceSize.width: 320
+                                    sourceSize.height: 100
                                     fillMode: Image.PreserveAspectCrop
                                     asynchronous: true
                                     cache: false

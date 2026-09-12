@@ -13,6 +13,11 @@ Item {
     property bool isPillHovered: false
     property bool isFocusedMonitor: true
     property string monitorName: ""
+    property bool isToastTarget: {
+        if (!NotificationService.isToastActive) return false;
+        let target = NotificationService.targetMonitor;
+        return (target && target !== "") ? (target === root.monitorName) : root.isFocusedMonitor;
+    }
 
     readonly property bool isLauncherActive: LauncherService.isOpen && root.isFocusedMonitor
     readonly property bool isClipboardActive: ClipboardService.isOpen && root.isFocusedMonitor
@@ -20,13 +25,13 @@ Item {
     readonly property bool isPolkitActive: PolkitService.isActive && root.isFocusedMonitor
     readonly property bool isAnyModalActive: isLauncherActive || isClipboardActive || isNotificationCenterActive || isPolkitActive
 
-    readonly property bool isBatteryToast: notificationToastView.isBatteryToast && NotificationService.isToastActive
+    readonly property bool isBatteryToast: notificationToastView.isBatteryToast && root.isToastTarget
     readonly property bool isBatteryAlertActive: batteryAlertIslandView.isActive
-    readonly property bool isBatteryAlertDisplaying: batteryAlertIslandView.isActive && !root.isAnyModalActive && !NotificationService.isToastActive && !OsdService.isVisible
+    readonly property bool isBatteryAlertDisplaying: batteryAlertIslandView.isActive && !root.isAnyModalActive && !root.isToastTarget && !OsdService.isVisible
     readonly property color batteryBorderColor: batteryAlertIslandView.alertBorderColor
     readonly property color batteryBgColor: batteryAlertIslandView.alertBgColor
     readonly property real batteryBorderWidth: batteryAlertIslandView.alertBorderWidth
-    readonly property bool isMediaHovered: (!root.isAnyModalActive && !NotificationService.isToastActive && !OsdService.isVisible && !batteryAlertIslandView.isActive) && (isPillHovered || mediaView.isHovered)
+    readonly property bool isMediaHovered: (!root.isAnyModalActive && !root.isToastTarget && !OsdService.isVisible && !batteryAlertIslandView.isActive) && (isPillHovered || mediaView.isHovered)
 
     // Estados para control manual y temporizador de gracia
     property bool forceClock: false
@@ -214,7 +219,7 @@ Item {
         if (OsdService.isVisible) {
             return osdIslandView.implicitWidth;
         }
-        if (NotificationService.isToastActive) {
+        if (root.isToastTarget) {
             return notificationToastView.implicitWidth;
         }
         if (batteryAlertIslandView.isActive) {
@@ -230,29 +235,34 @@ Item {
         if (root.isClipboardActive || root.isLauncherActive || root.isNotificationCenterActive) {
             return modalHeight;
         }
-        if (NotificationService.isToastActive && NotificationService.isToastExpanded) {
+        if (OsdService.isVisible) {
+            return 28;
+        }
+        if (root.isToastTarget && NotificationService.isToastExpanded) {
             return notificationToastView.implicitHeight;
         }
         return 28;
     }
 
+    Layout.preferredWidth: implicitWidth
+    Layout.preferredHeight: implicitHeight
     width: implicitWidth
     height: implicitHeight
     clip: true
 
     Behavior on implicitWidth {
-        enabled: !root.isMediaActive || root._modeChanging || root.isAnyModalActive || OsdService.isVisible || NotificationService.isToastActive || batteryAlertIslandView.isActive
+        enabled: !root.isMediaActive || root._modeChanging || root.isAnyModalActive || OsdService.isVisible || root.isToastTarget || batteryAlertIslandView.isActive
         NumberAnimation {
-            duration: Theme.animNormal
-            easing.type: Easing.OutCubic
+            duration: (root.isToastTarget && NotificationService.isToastExpanded) ? 150 : Theme.animNormal
+            easing.type: (root.isToastTarget && NotificationService.isToastExpanded) ? Easing.OutQuad : Easing.OutCubic
         }
     }
 
     Behavior on implicitHeight {
-        enabled: !root.isMediaActive || root._modeChanging || root.isAnyModalActive || (NotificationService.isToastActive && NotificationService.isToastExpanded)
+        enabled: !root.isMediaActive || root._modeChanging || root.isAnyModalActive || OsdService.isVisible || (root.isToastTarget && NotificationService.isToastExpanded)
         NumberAnimation {
-            duration: Theme.animNormal
-            easing.type: Easing.OutCubic
+            duration: (root.isToastTarget && NotificationService.isToastExpanded) ? 150 : Theme.animNormal
+            easing.type: (root.isToastTarget && NotificationService.isToastExpanded) ? Easing.OutQuad : Easing.OutCubic
         }
     }
 
@@ -294,7 +304,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         width: implicitWidth
         height: 28
-        opacity: (!root.isAnyModalActive && !NotificationService.isToastActive && !OsdService.isVisible && !batteryAlertIslandView.isActive && root.height <= 36) ? (root.isMediaActive ? 0.0 : 1.0) : 0.0
+        opacity: (!root.isAnyModalActive && !root.isToastTarget && !OsdService.isVisible && !batteryAlertIslandView.isActive && root.height <= 36) ? (root.isMediaActive ? 0.0 : 1.0) : 0.0
         scale: opacity > 0.8 ? 1.0 : 0.94
         transformOrigin: Item.Center
         visible: opacity > 0.01
@@ -325,7 +335,7 @@ Item {
         width: implicitWidth
         height: 28
         isContainerHovered: root.isPillHovered
-        opacity: (root.isAnyModalActive || NotificationService.isToastActive || OsdService.isVisible || batteryAlertIslandView.isActive) ? 0.0 : (root.isMediaActive ? 1.0 : 0.0)
+        opacity: (root.isAnyModalActive || root.isToastTarget || OsdService.isVisible || batteryAlertIslandView.isActive) ? 0.0 : (root.isMediaActive ? 1.0 : 0.0)
         visible: opacity > 0.01
 
         onDismissToClockRequested: root.dismissToClock()
@@ -344,7 +354,7 @@ Item {
         id: batteryAlertIslandView
         anchors.centerIn: parent
         isHovered: root.isPillHovered
-        opacity: (!root.isAnyModalActive && !NotificationService.isToastActive && !OsdService.isVisible && batteryAlertIslandView.isActive) ? 1.0 : 0.0
+        opacity: (!root.isAnyModalActive && !root.isToastTarget && !OsdService.isVisible && batteryAlertIslandView.isActive) ? 1.0 : 0.0
         scale: opacity > 0.5 ? 1.0 : 0.94
         visible: opacity > 0.01
 
@@ -388,7 +398,8 @@ Item {
     NotificationToastView {
         id: notificationToastView
         anchors.fill: parent
-        opacity: (!root.isAnyModalActive && NotificationService.isToastActive && !OsdService.isVisible) ? 1.0 : 0.0
+        isDisplaying: root.isToastTarget
+        opacity: (!root.isAnyModalActive && root.isToastTarget && !OsdService.isVisible) ? 1.0 : 0.0
         visible: opacity > 0.01
 
         Behavior on opacity {

@@ -1,1 +1,1 @@
-/home/daniel/.config/hypr/media/gruvbox_room.png
+/home/daniel/.config/hypr/media/neighbor.png

@@ -91,12 +91,14 @@ Item {
     Component.onCompleted: {
         root.refreshSavedWifiConnections();
         root.checkCaffeine();
+        AudioService.refreshDevices();
     }
 
     onIsOpenChanged: {
         if (root.isOpen) {
             root.refreshSavedWifiConnections();
             root.checkCaffeine();
+            AudioService.refreshDevices();
         }
     }
 

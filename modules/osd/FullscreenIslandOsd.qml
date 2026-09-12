@@ -141,7 +141,7 @@ PanelWindow {
     Connections {
         target: Hyprland
         function onRawEvent(event) {
-            if (!event) return;
+            if (!event || !OsdService.isVisible) return;
             let n = event.name;
             if (n === "fullscreen" || n === "activewindow" || n === "activewindowv2" || n === "workspace" || n === "focusedmon") {
                 root.checkFullscreen();

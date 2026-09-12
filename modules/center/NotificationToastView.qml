@@ -7,6 +7,9 @@ import "../../services"
 
 Item {
     id: root
+    clip: true
+
+    property bool isDisplaying: true
 
     readonly property var currentToast: NotificationService.currentToast
     readonly property bool hasToast: currentToast !== null
@@ -43,7 +46,7 @@ Item {
         onTriggered: root.copiedPathFeedback = false
     }
 
-    focus: isExpanded
+    focus: isExpanded && root.isDisplaying && !OsdService.isVisible
 
     Keys.onPressed: event => {
         if (event.key === Qt.Key_Escape) {
@@ -53,7 +56,7 @@ Item {
     }
 
     onIsExpandedChanged: {
-        if (isExpanded) {
+        if (isExpanded && root.isDisplaying) {
             Qt.callLater(() => root.forceActiveFocus());
         }
     }
@@ -92,7 +95,8 @@ Item {
     // Absorbedor de clics cuando está expandida para evitar que pasen a dismissArea
     MouseArea {
         anchors.fill: parent
-        visible: root.isExpanded
+        visible: root.isExpanded && root.isDisplaying && !OsdService.isVisible
+        enabled: root.isExpanded && root.isDisplaying && !OsdService.isVisible
         z: -1
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onPressed: mouse => mouse.accepted = true
@@ -104,8 +108,8 @@ Item {
     MouseArea {
         id: toastMouse
         anchors.fill: parent
-        enabled: !root.isExpanded
-        visible: !root.isExpanded
+        enabled: !root.isExpanded && root.isDisplaying && !OsdService.isVisible
+        visible: !root.isExpanded && root.isDisplaying && !OsdService.isVisible
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -133,7 +137,7 @@ Item {
         anchors.leftMargin: 4
         anchors.rightMargin: 4
         spacing: 6
-        visible: !root.isExpanded
+        visible: !root.isExpanded && root.isDisplaying && !OsdService.isVisible
         opacity: root.isExpanded ? 0.0 : 1.0
 
         Behavior on opacity {
@@ -274,7 +278,7 @@ Item {
         anchors.top: parent.top
         anchors.margins: 6
         spacing: 6
-        visible: root.isExpanded
+        visible: root.isExpanded && root.isDisplaying && !OsdService.isVisible
         opacity: root.isExpanded ? 1.0 : 0.0
 
         Behavior on opacity {
@@ -396,6 +400,8 @@ Item {
                 asynchronous: true
                 cache: false
                 smooth: true
+                sourceSize.width: 360
+                sourceSize.height: 140
             }
 
             // Sombra inferior sutil para destacar el nombre del archivo
@@ -649,6 +655,9 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 anchors.fill: parent
                 visible: status === Image.Ready
+                asynchronous: true
+                sourceSize.width: 320
+                sourceSize.height: 100
             }
         }
 

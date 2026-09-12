@@ -53,8 +53,8 @@ Item {
     }
 
     Timer {
-        interval: 5000
-        running: true
+        interval: 30000
+        running: !Networking.devices || !Networking.devices.values || Networking.devices.values.length === 0
         repeat: true
         triggeredOnStart: true
         onTriggered: {

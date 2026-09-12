@@ -80,7 +80,7 @@ Item {
 
     Timer {
         id: closeTimer
-        interval: 220
+        interval: 150
         onTriggered: {
             if (!root._isOpen) {
                 root.currentView = 0;
@@ -174,30 +174,30 @@ Item {
         anchors.bottomMargin: 10
         transformOrigin: Item.TopRight
 
-        // Animaciones dinámicas de despliegue: escala elástica, traslación vertical y desvanecimiento
-        scale: root._isOpen ? 1.0 : 0.90
-        y: root._isOpen ? 0 : -16
+        // Animación cinemática premium estilo macOS Sonoma / iOS / Material 3:
+        // Micro-escala (0.975 -> 1.0) para profundidad 3D limpia sin deformación de fuentes ni efecto 'gelatina'
+        scale: root._isOpen ? 1.0 : 0.975
+        y: root._isOpen ? 0 : -10
         opacity: root._isOpen ? 1.0 : 0.0
 
         Behavior on scale {
             NumberAnimation {
-                duration: root._isOpen ? 240 : 180
-                easing.type: root._isOpen ? Easing.OutBack : Easing.InCubic
-                easing.overshoot: root._isOpen ? 1.08 : 1.0
+                duration: root._isOpen ? 210 : 130
+                easing.type: root._isOpen ? Easing.OutCubic : Easing.OutQuad
             }
         }
 
         Behavior on y {
             NumberAnimation {
-                duration: root._isOpen ? 240 : 180
-                easing.type: root._isOpen ? Easing.OutCubic : Easing.InCubic
+                duration: root._isOpen ? 210 : 130
+                easing.type: root._isOpen ? Easing.OutCubic : Easing.OutQuad
             }
         }
 
         Behavior on opacity {
             NumberAnimation {
-                duration: root._isOpen ? 200 : 160
-                easing.type: root._isOpen ? Easing.OutQuad : Easing.InQuad
+                duration: root._isOpen ? 180 : 120
+                easing.type: root._isOpen ? Easing.OutCubic : Easing.OutQuad
             }
         }
 

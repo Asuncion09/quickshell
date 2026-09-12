@@ -49,7 +49,25 @@ Item {
     // Notificación actual para la Dynamic Island (Toast efímero)
     property var currentToast: null
     property bool isToastExpanded: false
+    property string targetMonitor: ""
     readonly property bool isToastActive: currentToast !== null && !isCenterOpen && !isLauncherOpen && !isClipboardOpen
+
+    function updateTargetMonitor() {
+        if (Hyprland.focusedMonitor && Hyprland.focusedMonitor.name) {
+            root.targetMonitor = Hyprland.focusedMonitor.name;
+            return;
+        }
+        if (Hyprland.monitors && Hyprland.monitors.values) {
+            for (let i = 0; i < Hyprland.monitors.values.length; i++) {
+                let m = Hyprland.monitors.values[i];
+                if (m && m.focused && m.name) {
+                    root.targetMonitor = m.name;
+                    return;
+                }
+            }
+        }
+        root.targetMonitor = "";
+    }
 
     // Comprobación segura de estado de Launcher y Clipboard
     readonly property bool isLauncherOpen: {
@@ -80,6 +98,7 @@ Item {
         onTriggered: {
             root.isToastExpanded = false;
             root.currentToast = null;
+            root.targetMonitor = "";
         }
     }
 
@@ -91,6 +110,20 @@ Item {
         if (root.currentToast && !root.isToastExpanded) {
             toastTimer.interval = 3500;
             toastTimer.restart();
+        } else if (root.currentToast && root.isToastExpanded) {
+            toastTimer.interval = 6000;
+            toastTimer.restart();
+        }
+    }
+
+    Connections {
+        target: OsdService
+        function onIsVisibleChanged() {
+            if (OsdService.isVisible) {
+                root.pauseToast();
+            } else {
+                root.resumeToast();
+            }
         }
     }
 
@@ -109,6 +142,7 @@ Item {
         toastTimer.stop();
         root.isToastExpanded = false;
         root.currentToast = null;
+        root.targetMonitor = "";
     }
 
     function toggleDnd() {
@@ -264,6 +298,7 @@ Item {
         // Mostrar Toast si no está en modo DND (No Molestar) o si es urgente/crítica
         // También omitir si el centro de notificaciones ya está abierto
         if (!root.isCenterOpen && (!root.dnd || notif.urgency === 2)) {
+            root.updateTargetMonitor();
             if (isScreenshot && screenshotPath !== "") {
                 root.isToastExpanded = true;
                 root.currentToast = item;
@@ -312,6 +347,7 @@ Item {
         root.notifications = list;
 
         if (!root.isCenterOpen && (!root.dnd || urgency === 2)) {
+            root.updateTargetMonitor();
             root.isToastExpanded = false;
             root.currentToast = item;
             toastTimer.restart();

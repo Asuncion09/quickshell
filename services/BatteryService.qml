@@ -76,9 +76,9 @@ Item {
         }
     }
 
-    // Temporizador de respaldo periódico (reducido a 3s)
+    // Temporizador de respaldo periódico (30s)
     Timer {
-        interval: 3000
+        interval: 30000
         running: true
         repeat: true
         triggeredOnStart: true
@@ -209,13 +209,74 @@ Item {
         }
     }
 
+    // --- Retroalimentación sonora centralizada y global (Singleton) ---
+    // Al ser un servicio singleton, garantiza que el sonido suene exactamente una vez,
+    // independientemente del número de monitores conectados (1, 2 o más pantallas).
+    property bool _audioInitialized: false
+    Timer {
+        id: audioInitTimer
+        interval: 1200
+        running: true
+        onTriggered: root._audioInitialized = true
+    }
+
+    Timer {
+        id: soundDebounceTimer
+        interval: 800
+        repeat: false
+    }
+
+    Process {
+        id: soundPlugged
+        command: ["canberra-gtk-play", "-f", "/usr/share/sounds/freedesktop/stereo/device-added.oga"]
+    }
+
+    Process {
+        id: soundUnplugged
+        command: ["canberra-gtk-play", "-f", "/usr/share/sounds/freedesktop/stereo/device-removed.oga"]
+    }
+
+    Process {
+        id: soundAlert
+        command: ["canberra-gtk-play", "-f", "/usr/share/sounds/freedesktop/stereo/dialog-error.oga"]
+    }
+
+    function playPluggedSound() {
+        if (!root._audioInitialized || soundDebounceTimer.running) return;
+        soundDebounceTimer.restart();
+        if (!soundPlugged.running) soundPlugged.running = true;
+    }
+
+    function playUnpluggedSound() {
+        if (!root._audioInitialized || soundDebounceTimer.running) return;
+        soundDebounceTimer.restart();
+        if (!soundUnplugged.running) soundUnplugged.running = true;
+    }
+
+    function playCriticalAlertSound() {
+        if (!root._audioInitialized || soundDebounceTimer.running) return;
+        soundDebounceTimer.restart();
+        if (!soundAlert.running) soundAlert.running = true;
+    }
+
     onPercentageChanged: checkBatteryAlerts()
 
     onIsChargingChanged: {
         if (isCharging) {
             root.resetSnooze();
+            root.playPluggedSound();
+        } else {
+            if (!root.isCritical) {
+                root.playUnpluggedSound();
+            }
         }
         checkBatteryAlerts();
+    }
+
+    onShouldAlertCriticalChanged: {
+        if (shouldAlertCritical) {
+            root.playCriticalAlertSound();
+        }
     }
 
     // Umbrales de batería: Advertencia al 25% (amarillo), Crítica al 15% (rojo/alerta)

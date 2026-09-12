@@ -88,22 +88,6 @@ Item {
         }
     }
 
-    // Procesos de audio para retroalimentación sonora
-    Process {
-        id: soundAlert
-        command: ["canberra-gtk-play", "-f", "/usr/share/sounds/freedesktop/stereo/dialog-error.oga"]
-    }
-
-    Process {
-        id: soundPlugged
-        command: ["canberra-gtk-play", "-f", "/usr/share/sounds/freedesktop/stereo/device-added.oga"]
-    }
-
-    Process {
-        id: soundUnplugged
-        command: ["canberra-gtk-play", "-f", "/usr/share/sounds/freedesktop/stereo/device-removed.oga"]
-    }
-
     // Temporizador de 2.5 segundos para la confirmación de cargador conectado
     Timer {
         id: pluggedTimer
@@ -131,9 +115,6 @@ Item {
                 root.isUnpluggedNotice = false;
                 pluggedTimer.stop();
                 unpluggedTimer.stop();
-                if (!soundAlert.running) {
-                    soundAlert.running = true;
-                }
             }
         }
 
@@ -146,9 +127,6 @@ Item {
                 unpluggedTimer.stop();
                 root.isPluggedNotice = true;
                 pluggedTimer.restart();
-                if (!soundPlugged.running) {
-                    soundPlugged.running = true;
-                }
             } else {
                 // Al desenchufar el cargador
                 root.isPluggedNotice = false;
@@ -156,17 +134,8 @@ Item {
                 if (!root.isCriticalAlert) {
                     root.isUnpluggedNotice = true;
                     unpluggedTimer.restart();
-                    if (!soundUnplugged.running) {
-                        soundUnplugged.running = true;
-                    }
                 }
             }
-        }
-    }
-
-    Component.onCompleted: {
-        if (BatteryService.shouldAlertCritical) {
-            if (!soundAlert.running) soundAlert.running = true;
         }
     }
 

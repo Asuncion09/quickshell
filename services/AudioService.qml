@@ -351,7 +351,7 @@ Item {
         id: autoPollDevicesTimer
         interval: 4000
         repeat: true
-        running: true
+        running: ControlCenterService.isOpen
         onTriggered: root.refreshDevices()
     }
 
