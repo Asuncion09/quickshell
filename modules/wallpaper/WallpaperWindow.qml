@@ -167,6 +167,8 @@ PanelWindow {
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
         cache: true
+        sourceSize.width: root.screen ? Math.round(root.screen.width * (root.screen.devicePixelRatio || 1)) : 1920
+        sourceSize.height: root.screen ? Math.round(root.screen.height * (root.screen.devicePixelRatio || 1)) : 1080
         opacity: 0.0
         scale: 1.0
 
@@ -184,6 +186,8 @@ PanelWindow {
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
         cache: true
+        sourceSize.width: root.screen ? Math.round(root.screen.width * (root.screen.devicePixelRatio || 1)) : 1920
+        sourceSize.height: root.screen ? Math.round(root.screen.height * (root.screen.devicePixelRatio || 1)) : 1080
         opacity: 0.0
         scale: 1.0
 

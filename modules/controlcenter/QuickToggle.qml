@@ -126,7 +126,7 @@ Item {
                         to: 360
                         duration: 1000
                         loops: Animation.Infinite
-                        running: root.loading
+                        running: root.visible && root.loading
                     }
                 }
 

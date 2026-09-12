@@ -293,6 +293,9 @@ Item {
         } else {
             list.unshift(item);
         }
+        if (list.length > 50) {
+            list = list.slice(0, 50);
+        }
         root.notifications = list;
 
         // Mostrar Toast si no está en modo DND (No Molestar) o si es urgente/crítica

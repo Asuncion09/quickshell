@@ -858,7 +858,7 @@ Item {
                         to: 360
                         duration: 1200
                         loops: Animation.Infinite
-                        running: (!root.hasCompletedScan || root.isScanning)
+                        running: root.visible && (!root.hasCompletedScan || root.isScanning)
                     }
                 }
                 Text {
