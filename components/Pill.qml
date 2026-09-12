@@ -51,7 +51,7 @@ Item {
         id: shadowSource
         anchors.fill: pillBackground
         radius: root.radius
-        color: "#000000"
+        color: Theme.shadowColor
         visible: false
     }
 

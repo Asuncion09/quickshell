@@ -189,7 +189,7 @@ PanelWindow {
             id: shadowShape
             anchors.fill: mainCard
             radius: mainCard.radius
-            color: "#000000"
+            color: Theme.shadowColor
             visible: false
         }
 
@@ -198,7 +198,7 @@ PanelWindow {
             anchors.fill: shadowShape
             visible: Theme.pillShadowEnabled
             shadowEnabled: true
-            shadowColor: "#000000"
+            shadowColor: Theme.shadowColor
             shadowOpacity: 0.60
             shadowBlur: 0.55
             shadowVerticalOffset: 4
@@ -211,7 +211,7 @@ PanelWindow {
 
             radius: 16
             color: Theme.bgDark
-            border.color: "#2e2e2e"
+            border.color: Theme.borderModal
             border.width: 1
 
             // Lista horizontal de ventanas
@@ -245,7 +245,7 @@ PanelWindow {
 
                         // Tonalidad elegante y neutra coherente con el lanzador y la barra (sin bordes azules)
                         color: cardDelegate.isCurrent
-                               ? "#2c2c2c"
+                               ? Theme.surfaceKeyFocus
                                : (cardDelegate.isHovered ? Theme.surfaceHover : Theme.surfaceBase)
                         border.color: cardDelegate.isCurrent
                                       ? Qt.rgba(1, 1, 1, 0.18)
@@ -331,7 +331,7 @@ PanelWindow {
                             font.family: Theme.fontFamily
                             font.weight: cardDelegate.isCurrent ? Font.DemiBold : Font.Normal
                             font.pixelSize: 11
-                            color: cardDelegate.isCurrent ? "#ffffff" : Theme.textSecondary
+                            color: cardDelegate.isCurrent ? Theme.textBright : Theme.textSecondary
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
                         }

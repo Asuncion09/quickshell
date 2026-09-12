@@ -77,9 +77,9 @@ Item {
             Layout.fillWidth: true
             implicitHeight: 32
             radius: 7
-            color: searchField.activeFocus ? "#242424" : "#1c1c1c"
+            color: searchField.activeFocus ? Theme.surfaceHover : Theme.surfaceBase
             border.width: 1
-            border.color: searchField.activeFocus ? "#383838" : "#262626"
+            border.color: searchField.activeFocus ? Theme.borderCard : Theme.dividerColor
 
             Behavior on color { ColorAnimation { duration: Theme.animFast } }
             Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
@@ -104,9 +104,9 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 12
                     font.weight: Font.Normal
-                    color: "#ffffff"
-                    selectionColor: "#454545"
-                    selectedTextColor: "#ffffff"
+                    color: Theme.textBright
+                    selectionColor: Theme.selectionBg
+                    selectedTextColor: Theme.textBright
                     verticalAlignment: TextInput.AlignVCenter
                     clip: true
                     selectByMouse: true
@@ -211,7 +211,7 @@ Item {
                 implicitWidth: clearText.implicitWidth + 12
                 radius: 4
                 visible: ClipboardService.history.length > 0
-                color: clearMouse.containsMouse ? (confirmTimer.running ? Qt.rgba(238/255, 83/255, 150/255, 0.25) : "#2a2a2a") : "transparent"
+                color: clearMouse.containsMouse ? (confirmTimer.running ? Qt.rgba(238/255, 83/255, 150/255, 0.25) : Theme.surfaceHover) : "transparent"
 
                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
@@ -346,9 +346,9 @@ Item {
                     readonly property bool isSelected: index === ClipboardService.selectedIndex
                     readonly property bool isItemHovered: itemMouse.containsMouse || delMouse.containsMouse
 
-                    color: isSelected ? "#2e2e2e" : (isItemHovered ? "#222222" : "transparent")
+                    color: isSelected ? Theme.surfaceKeyFocus : (isItemHovered ? Theme.surfaceHover : "transparent")
                     border.width: isSelected ? 1 : 0
-                    border.color: isSelected ? "#383838" : "transparent"
+                    border.color: isSelected ? Theme.borderCard : "transparent"
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
                     Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
@@ -385,9 +385,9 @@ Item {
                                 height: 18
                                 radius: 9
                                 visible: modelData.type === "color"
-                                color: modelData.color || "#ffffff"
+                                color: modelData.color || Theme.textBright
                                 border.width: 1.5
-                                border.color: "#4a4a4a"
+                                border.color: Theme.borderCard
                             }
 
                             // Tipo: Enlace URL
@@ -448,7 +448,7 @@ Item {
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 11
                                 font.weight: Font.Normal
-                                color: isSelected ? "#ffffff" : Theme.text
+                                color: isSelected ? Theme.textBright : Theme.text
                                 elide: Text.ElideRight
                                 maximumLineCount: 1
                             }

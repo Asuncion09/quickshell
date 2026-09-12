@@ -142,7 +142,7 @@ Item {
                 implicitHeight: 28
                 radius: 14
                 readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 0
-                color: isKeyFocused ? "#2c2c2c" : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                color: isKeyFocused ? Theme.surfaceKeyFocus : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
                 border.width: isKeyFocused ? 1.5 : 0
                 border.color: Theme.highlight
 
@@ -157,7 +157,7 @@ Item {
                     text: "󰅁"
                     font.family: Theme.fontFamily
                     font.pixelSize: 14
-                    color: backBtn.isKeyFocused ? Theme.highlight : (backMouse.containsMouse ? "#ffffff" : Theme.text)
+                    color: backBtn.isKeyFocused ? Theme.highlight : (backMouse.containsMouse ? Theme.textBright : Theme.text)
                 }
 
                 MouseArea {
@@ -216,7 +216,7 @@ Item {
                 id: topMask
                 anchors.fill: parent
                 radius: 12
-                color: "#ffffff"
+                color: Theme.textBright
             }
 
             Item {
@@ -266,7 +266,7 @@ Item {
                             font.family: Theme.fontFamily
                             font.pixelSize: 10
                             font.weight: Font.DemiBold
-                            color: "#ffffff"
+                            color: Theme.textBright
                             elide: Text.ElideRight
                             Layout.fillWidth: true
                         }
@@ -350,7 +350,7 @@ Item {
                         id: cardMask
                         anchors.fill: parent
                         radius: 12
-                        color: "#ffffff"
+                        color: Theme.textBright
                     }
 
                     // Contenido visual (imagen + gradiente + texto)
@@ -389,7 +389,7 @@ Item {
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 9
                                 font.weight: (cardItem.isHovered || cardItem.isActive) ? Font.DemiBold : Font.Normal
-                                color: (cardItem.isHovered || cardItem.isActive) ? "#ffffff" : Qt.rgba(1, 1, 1, 0.80)
+                                color: (cardItem.isHovered || cardItem.isActive) ? Theme.textBright : Qt.rgba(1, 1, 1, 0.80)
                                 elide: Text.ElideRight
 
                                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
@@ -440,7 +440,7 @@ Item {
                             font.family: Theme.fontFamily
                             font.pixelSize: 10
                             font.weight: Font.Bold
-                            color: "#121212"
+                            color: Theme.textOnAccent
                         }
                     }
 

@@ -35,7 +35,7 @@ PopupWindow {
             id: shadowShape
             anchors.fill: container
             radius: 8
-            color: "#000000"
+            color: Theme.shadowColor
             visible: false
         }
 
@@ -44,7 +44,7 @@ PopupWindow {
             anchors.fill: shadowShape
             visible: Theme.pillShadowEnabled
             shadowEnabled: true
-            shadowColor: "#000000"
+            shadowColor: Theme.shadowColor
             shadowOpacity: 0.5
             shadowBlur: 0.45
             shadowVerticalOffset: 3
@@ -62,7 +62,7 @@ PopupWindow {
 
             radius: 8
             color: Theme.bgDark
-            border.color: "#393939"
+            border.color: Theme.borderCard
             border.width: 1
 
             ColumnLayout {
@@ -86,7 +86,7 @@ PopupWindow {
                             anchors.centerIn: parent
                             width: parent.width
                             height: 1
-                            color: "#393939"
+                            color: Theme.dividerColor
                             visible: entryItem.modelData.isSeparator
                         }
 

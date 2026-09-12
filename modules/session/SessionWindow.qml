@@ -159,7 +159,7 @@ PanelWindow {
             id: shadowShape
             anchors.fill: mainCard
             radius: mainCard.radius
-            color: "#000000"
+            color: Theme.shadowColor
             visible: false
         }
 
@@ -168,7 +168,7 @@ PanelWindow {
             anchors.fill: shadowShape
             visible: Theme.pillShadowEnabled
             shadowEnabled: true
-            shadowColor: "#000000"
+            shadowColor: Theme.shadowColor
             shadowOpacity: 0.60
             shadowBlur: 0.55
             shadowVerticalOffset: 4
@@ -181,7 +181,7 @@ PanelWindow {
             anchors.fill: parent
             radius: 16
             color: Theme.bgDark
-            border.color: "#2e2e2e"
+            border.color: Theme.borderModal
             border.width: 1
             z: 1
 
@@ -219,7 +219,7 @@ PanelWindow {
 
                         scale: itemMouse.pressed ? 0.94 : ((isHovered || isCurrent) ? 1.03 : 1.0)
                         color: isCurrent
-                               ? "#2c2c2c"
+                               ? Theme.surfaceKeyFocus
                                : (isHovered ? Theme.surfaceHover : Theme.surfaceBase)
 
                         border.color: isCurrent

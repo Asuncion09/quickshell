@@ -383,7 +383,7 @@ Item {
                     text: "󰅖"
                     font.family: Theme.fontFamily
                     font.pixelSize: 10
-                    color: closeExpMouse.containsMouse ? "#ffffff" : Theme.textSecondary
+                    color: closeExpMouse.containsMouse ? Theme.textBright : Theme.textSecondary
                 }
 
                 MouseArea {
@@ -487,7 +487,7 @@ Item {
                             text: "󰈟"
                             font.family: Theme.fontFamily
                             font.pixelSize: 13
-                            color: "#ffffff"
+                            color: Theme.textBright
                         }
                     }
 
@@ -496,7 +496,7 @@ Item {
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
                         font.weight: Font.DemiBold
-                        color: "#ffffff"
+                        color: Theme.textBright
                     }
                 }
             }
@@ -563,7 +563,7 @@ Item {
                             font.family: "JetBrainsMono Nerd Font Propo"
                             font.pixelSize: 15
                             font.weight: Font.Bold
-                            color: "#ffffff"
+                            color: Theme.textBright
                         }
 
                         // Badge sutil de copiado
@@ -581,14 +581,14 @@ Item {
                                     text: "󰄬"
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 9
-                                    color: "#81c784"
+                                    color: Theme.successFeedback
                                 }
                                 Text {
                                     text: "Copiado"
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 9
                                     font.weight: Font.Medium
-                                    color: "#81c784"
+                                    color: Theme.successFeedback
                                 }
                             }
                         }
@@ -629,7 +629,7 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
                     font.weight: Font.DemiBold
-                    color: "#ffffff"
+                    color: Theme.textBright
                     wrapMode: Text.Wrap
                     Layout.fillWidth: true
                 }
@@ -703,14 +703,14 @@ Item {
                         text: root.copiedPathFeedback ? "󰄬" : "󰆏"
                         font.family: Theme.fontFamily
                         font.pixelSize: 12
-                        color: root.copiedPathFeedback ? "#81c784" : "#161616"
+                        color: root.copiedPathFeedback ? Theme.successFeedback : Theme.textOnAccent
                     }
                     Text {
                         text: root.copiedPathFeedback ? "¡Copiada al portapapeles!" : "Copiar imagen"
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
                         font.weight: Font.DemiBold
-                        color: root.copiedPathFeedback ? "#81c784" : "#161616"
+                        color: root.copiedPathFeedback ? Theme.successFeedback : Theme.textOnAccent
                     }
                 }
 
@@ -748,14 +748,14 @@ Item {
                         text: "󰅖"
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
-                        color: delShotMouse.containsMouse ? "#ffffff" : Theme.textSecondary
+                        color: delShotMouse.containsMouse ? Theme.textBright : Theme.textSecondary
                     }
                     Text {
                         text: "Borrar"
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
                         font.weight: Font.Medium
-                        color: delShotMouse.containsMouse ? "#ffffff" : Theme.textSecondary
+                        color: delShotMouse.containsMouse ? Theme.textBright : Theme.textSecondary
                     }
                 }
 
@@ -786,7 +786,7 @@ Item {
                 radius: 14
                 color: root.copiedColorFeedback === 1 ? Qt.rgba(76/255, 175/255, 80/255, 0.28) : (copyHexMouse.containsMouse ? Qt.lighter(Theme.wsActiveColor, 1.1) : Theme.wsActiveColor)
                 border.width: root.copiedColorFeedback === 1 ? 1 : 0
-                border.color: root.copiedColorFeedback === 1 ? "#81c784" : "transparent"
+                border.color: root.copiedColorFeedback === 1 ? Theme.successFeedback : "transparent"
 
                 scale: copyHexMouse.pressed ? 0.94 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -800,14 +800,14 @@ Item {
                         text: root.copiedColorFeedback === 1 ? "󰄬" : "󰆏"
                         font.family: Theme.fontFamily
                         font.pixelSize: 12
-                        color: root.copiedColorFeedback === 1 ? "#81c784" : "#161616"
+                        color: root.copiedColorFeedback === 1 ? Theme.successFeedback : Theme.textOnAccent
                     }
                     Text {
                         text: root.copiedColorFeedback === 1 ? "¡HEX Copiado!" : "Copiar HEX"
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
                         font.weight: Font.DemiBold
-                        color: root.copiedColorFeedback === 1 ? "#81c784" : "#161616"
+                        color: root.copiedColorFeedback === 1 ? Theme.successFeedback : Theme.textOnAccent
                     }
                 }
 
@@ -832,7 +832,7 @@ Item {
                 radius: 14
                 color: root.copiedColorFeedback === 2 ? Qt.rgba(76/255, 175/255, 80/255, 0.28) : (copyRgbMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.08))
                 border.width: 1
-                border.color: root.copiedColorFeedback === 2 ? "#81c784" : (copyRgbMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.25) : Qt.rgba(1, 1, 1, 0.12))
+                border.color: root.copiedColorFeedback === 2 ? Theme.successFeedback : (copyRgbMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.25) : Qt.rgba(1, 1, 1, 0.12))
 
                 scale: copyRgbMouse.pressed ? 0.94 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
@@ -846,14 +846,14 @@ Item {
                         text: root.copiedColorFeedback === 2 ? "󰄬" : "󰆏"
                         font.family: Theme.fontFamily
                         font.pixelSize: 12
-                        color: root.copiedColorFeedback === 2 ? "#81c784" : (copyRgbMouse.containsMouse ? "#ffffff" : Theme.text)
+                        color: root.copiedColorFeedback === 2 ? Theme.successFeedback : (copyRgbMouse.containsMouse ? Theme.textBright : Theme.text)
                     }
                     Text {
                         text: root.copiedColorFeedback === 2 ? "¡RGB Copiado!" : "Copiar RGB"
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
                         font.weight: Font.Medium
-                        color: root.copiedColorFeedback === 2 ? "#81c784" : (copyRgbMouse.containsMouse ? "#ffffff" : Theme.text)
+                        color: root.copiedColorFeedback === 2 ? Theme.successFeedback : (copyRgbMouse.containsMouse ? Theme.textBright : Theme.text)
                     }
                 }
 
@@ -894,7 +894,7 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 11
                     font.weight: Font.Medium
-                    color: closeBtnMouse2.containsMouse ? "#ffffff" : Theme.textSecondary
+                    color: closeBtnMouse2.containsMouse ? Theme.textBright : Theme.textSecondary
                 }
 
                 MouseArea {
@@ -923,7 +923,7 @@ Item {
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
                         font.weight: Font.Medium
-                        color: actionMouse2.containsMouse ? "#161616" : Theme.text
+                        color: actionMouse2.containsMouse ? Theme.textOnAccent : Theme.text
                     }
 
                     MouseArea {
@@ -954,7 +954,7 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 11
                     font.weight: Font.DemiBold
-                    color: "#161616"
+                    color: Theme.textOnAccent
                 }
 
                 MouseArea {

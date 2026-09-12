@@ -206,7 +206,7 @@ Item {
             id: shadowShape
             anchors.fill: mainCard
             radius: 16
-            color: "#000000"
+            color: Theme.shadowColor
             visible: false
         }
 
@@ -215,7 +215,7 @@ Item {
             anchors.fill: shadowShape
             visible: Theme.pillShadowEnabled
             shadowEnabled: true
-            shadowColor: "#000000"
+            shadowColor: Theme.shadowColor
             shadowOpacity: 0.65
             shadowBlur: 0.55
             shadowVerticalOffset: 4
@@ -256,7 +256,7 @@ Item {
 
             radius: 16
             color: Theme.bgDark
-            border.color: "#2e2e2e"
+            border.color: Theme.borderModal
             border.width: 1
             focus: true
 

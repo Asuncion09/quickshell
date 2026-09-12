@@ -194,7 +194,7 @@ Item {
                                     text: modelData.icon
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 14
-                                    color: "#161616"
+                                    color: Theme.textOnAccent
                                     Layout.alignment: Qt.AlignVCenter
                                 }
 
@@ -203,7 +203,7 @@ Item {
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 11
                                     font.weight: Font.DemiBold
-                                    color: "#161616"
+                                    color: Theme.textOnAccent
                                     Layout.alignment: Qt.AlignVCenter
                                 }
                             }

@@ -235,6 +235,16 @@ ShellRoot {
     }
 
     IpcHandler {
+        target: "theme"
+        function setMode(mode: string): void {
+            WallpaperService.setThemeMode(mode);
+        }
+        function toggle(): void {
+            WallpaperService.setThemeMode(Theme.themeMode === "matugen" ? "default" : "matugen");
+        }
+    }
+
+    IpcHandler {
         target: "lock"
         function lock(): void {
             LockService.lock();

@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import "../../theme"
 import "../../services"
 
 PanelWindow {
@@ -24,7 +25,7 @@ PanelWindow {
     // Totalmente permeable a clics del ratón
     mask: Region {}
 
-    color: "#121212"
+    color: Theme.shadowColor
 
     property string activePath: ""
     property bool showingA: true
@@ -40,7 +41,9 @@ PanelWindow {
             imgA.source = fileUrl;
             imgA.opacity = 1.0;
             imgA.scale = 1.0;
+            imgA.z = 2;
             imgB.opacity = 0.0;
+            imgB.z = 1;
             showingA = true;
             return;
         }
@@ -49,21 +52,27 @@ PanelWindow {
         activePath = cleanPath;
 
         if (showingA) {
-            // Preparar Buffer B
+            // Preparar Buffer B sobre Buffer A
             transToB.stop();
             transToA.stop();
+            imgA.opacity = 1.0;
             imgB.opacity = 0.0;
             imgB.scale = 1.04;
+            imgB.z = 2;
+            imgA.z = 1;
             imgB.source = fileUrl;
             if (imgB.status === Image.Ready) {
                 transToB.restart();
             }
         } else {
-            // Preparar Buffer A
+            // Preparar Buffer A sobre Buffer B
             transToB.stop();
             transToA.stop();
+            imgB.opacity = 1.0;
             imgA.opacity = 0.0;
             imgA.scale = 1.04;
+            imgA.z = 2;
+            imgB.z = 1;
             imgA.source = fileUrl;
             if (imgA.status === Image.Ready) {
                 transToA.restart();
@@ -82,10 +91,18 @@ PanelWindow {
         root.applyNewWallpaper(WallpaperService.currentWallpaper);
     }
 
-    // Transición cinematográfica fluida hacia Buffer B
+    // Transición cinematográfica fluida hacia Buffer B (Buffer B entra sobre Buffer A)
     ParallelAnimation {
         id: transToB
-        onStarted: root.showingA = false
+        onStarted: {
+            root.showingA = false;
+            imgB.z = 2;
+            imgA.z = 1;
+        }
+        onFinished: {
+            imgA.opacity = 0.0;
+            imgA.scale = 1.0;
+        }
 
         NumberAnimation {
             target: imgB
@@ -102,14 +119,6 @@ PanelWindow {
             to: 1.0
             duration: 950
             easing.type: Easing.OutCubic
-        }
-        NumberAnimation {
-            target: imgA
-            property: "opacity"
-            from: 1.0
-            to: 0.0
-            duration: 800
-            easing.type: Easing.InOutCubic
         }
         NumberAnimation {
             target: imgA
@@ -121,10 +130,18 @@ PanelWindow {
         }
     }
 
-    // Transición cinematográfica fluida hacia Buffer A
+    // Transición cinematográfica fluida hacia Buffer A (Buffer A entra sobre Buffer B)
     ParallelAnimation {
         id: transToA
-        onStarted: root.showingA = true
+        onStarted: {
+            root.showingA = true;
+            imgA.z = 2;
+            imgB.z = 1;
+        }
+        onFinished: {
+            imgB.opacity = 0.0;
+            imgB.scale = 1.0;
+        }
 
         NumberAnimation {
             target: imgA
@@ -141,14 +158,6 @@ PanelWindow {
             to: 1.0
             duration: 950
             easing.type: Easing.OutCubic
-        }
-        NumberAnimation {
-            target: imgB
-            property: "opacity"
-            from: 1.0
-            to: 0.0
-            duration: 800
-            easing.type: Easing.InOutCubic
         }
         NumberAnimation {
             target: imgB

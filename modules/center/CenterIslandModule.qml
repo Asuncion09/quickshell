@@ -490,9 +490,9 @@ Item {
                 Layout.fillWidth: true
                 implicitHeight: 32
                 radius: 7
-                color: searchField.activeFocus ? "#242424" : "#1c1c1c"
+                color: searchField.activeFocus ? Theme.surfaceHover : Theme.surfaceBase
                 border.width: 1
-                border.color: searchField.activeFocus ? "#383838" : "#262626"
+                border.color: searchField.activeFocus ? Theme.borderCard : Theme.dividerColor
 
                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
                 Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
@@ -517,9 +517,9 @@ Item {
                         font.family: Theme.fontFamily
                         font.pixelSize: 12
                         font.weight: Font.Normal
-                        color: "#ffffff"
-                        selectionColor: "#454545"
-                        selectedTextColor: "#ffffff"
+                        color: Theme.textBright
+                        selectionColor: Theme.selectionBg
+                        selectedTextColor: Theme.textBright
                         verticalAlignment: TextInput.AlignVCenter
                         clip: true
                         selectByMouse: true
@@ -645,7 +645,7 @@ Item {
                         readonly property bool isSelected: index === LauncherService.selectedIndex
 
                         // Señalización elegante mediante fondo tonal neutro suave (cero bordes o líneas azules)
-                        color: isSelected ? "#2e2e2e" : (itemMouse.containsMouse ? "#222222" : "transparent")
+                        color: isSelected ? Theme.surfaceKeyFocus : (itemMouse.containsMouse ? Theme.surfaceHover : "transparent")
                         border.width: 0
 
                         Behavior on color { ColorAnimation { duration: Theme.animFast } }
@@ -693,7 +693,7 @@ Item {
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 12
                                     font.weight: appItem.isSelected ? Font.Medium : Font.Normal
-                                    color: appItem.isSelected ? "#ffffff" : Theme.text
+                                    color: appItem.isSelected ? Theme.textBright : Theme.text
                                     elide: Text.ElideRight
                                     Layout.fillWidth: true
                                 }

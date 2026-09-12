@@ -164,7 +164,7 @@ Item {
                 implicitHeight: 28
                 radius: 14
                 readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 0
-                color: isKeyFocused ? "#2c2c2c" : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                color: isKeyFocused ? Theme.surfaceKeyFocus : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
                 border.width: isKeyFocused ? 1.5 : 0
                 border.color: Theme.highlight
 
@@ -295,7 +295,7 @@ Item {
                             if (modelData.isDefault) {
                                 return (sinkMouse.containsMouse || isKeyFocused) ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.05);
                             }
-                            if (isKeyFocused) return "#2c2c2c";
+                            if (isKeyFocused) return Theme.surfaceKeyFocus;
                             return sinkMouse.containsMouse ? Theme.surfaceHover : "transparent";
                         }
                         border.width: isKeyFocused ? 1.5 : (modelData.isDefault ? 1 : 0)
@@ -331,7 +331,7 @@ Item {
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 11
                                 font.weight: modelData.isDefault ? Font.DemiBold : Font.Normal
-                                color: modelData.isDefault ? "#ffffff" : (sinkMouse.containsMouse ? Theme.text : Theme.textSecondary)
+                                color: modelData.isDefault ? Theme.textBright : (sinkMouse.containsMouse ? Theme.text : Theme.textSecondary)
                                 elide: Text.ElideRight
                                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
                             }
@@ -463,7 +463,7 @@ Item {
                             if (modelData.isDefault) {
                                 return (srcMouse.containsMouse || isKeyFocused) ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.05);
                             }
-                            if (isKeyFocused) return "#2c2c2c";
+                            if (isKeyFocused) return Theme.surfaceKeyFocus;
                             return srcMouse.containsMouse ? Theme.surfaceHover : "transparent";
                         }
                         border.width: isKeyFocused ? 1.5 : (modelData.isDefault ? 1 : 0)
@@ -499,7 +499,7 @@ Item {
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 11
                                 font.weight: modelData.isDefault ? Font.DemiBold : Font.Normal
-                                color: modelData.isDefault ? "#ffffff" : (srcMouse.containsMouse ? Theme.text : Theme.textSecondary)
+                                color: modelData.isDefault ? Theme.textBright : (srcMouse.containsMouse ? Theme.text : Theme.textSecondary)
                                 elide: Text.ElideRight
                                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
                             }

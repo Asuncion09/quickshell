@@ -44,7 +44,7 @@ Item {
         id: trackBg
         anchors.fill: parent
         radius: 12
-        color: root.focused ? "#2c2c2c" : (root.isHovered ? Theme.surfaceHover : Theme.surfaceBase)
+        color: root.focused ? Theme.surfaceKeyFocus : (root.isHovered ? Theme.surfaceHover : Theme.surfaceBase)
         border.width: 0
         clip: true
 
@@ -119,9 +119,9 @@ Item {
                     font.pixelSize: 16
                     color: {
                         if (root.isMuted) {
-                            return root.value > 12 ? "#161616" : Theme.critical;
+                            return root.value > 12 ? Theme.textOnAccent : Theme.critical;
                         }
-                        return root.value > 12 ? "#161616" : (root.focused ? Theme.text : Theme.textSecondary);
+                        return root.value > 12 ? Theme.textOnAccent : (root.focused ? Theme.text : Theme.textSecondary);
                     }
 
                     Behavior on color {
@@ -153,12 +153,12 @@ Item {
                 color: {
                     let isCovered = (root.value - root.minValue) >= ((root.maxValue - root.minValue) * 0.88);
                     if (root.isMuted) {
-                        return isCovered ? "#161616" : Theme.critical;
+                        return isCovered ? Theme.textOnAccent : Theme.critical;
                     }
                     if (root.focused) {
-                        return isCovered ? "#161616" : Theme.highlight;
+                        return isCovered ? Theme.textOnAccent : Theme.highlight;
                     }
-                    return isCovered ? "#161616" : Theme.text;
+                    return isCovered ? Theme.textOnAccent : Theme.text;
                 }
                 verticalAlignment: Text.AlignVCenter
                 opacity: 0.95

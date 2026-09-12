@@ -83,7 +83,7 @@ PanelWindow {
             id: shadowShape
             anchors.fill: osdContainer
             radius: 12
-            color: "#000000"
+            color: Theme.shadowColor
             visible: false
         }
 
@@ -92,7 +92,7 @@ PanelWindow {
             anchors.fill: shadowShape
             visible: Theme.pillShadowEnabled
             shadowEnabled: true
-            shadowColor: "#000000"
+            shadowColor: Theme.shadowColor
             shadowOpacity: 0.6
             shadowBlur: 0.5
             shadowVerticalOffset: 4
@@ -110,7 +110,7 @@ PanelWindow {
 
             radius: 12
             color: Theme.bgDark
-            border.color: "#393939"
+            border.color: Theme.borderModal
             border.width: 1
 
             RowLayout {
@@ -133,7 +133,7 @@ PanelWindow {
                     Layout.fillWidth: true
                     height: 6
                     radius: 3
-                    color: "#262626"
+                    color: Theme.dividerColor
                     clip: true
 
                     Rectangle {

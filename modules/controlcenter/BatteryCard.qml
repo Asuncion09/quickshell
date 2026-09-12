@@ -125,7 +125,7 @@ Item {
                 implicitWidth: 32
                 implicitHeight: 32
                 radius: 8
-                color: root.settingsFocused ? "#2c2c2c" : (settingsMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                color: root.settingsFocused ? Theme.surfaceKeyFocus : (settingsMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
                 border.width: root.settingsFocused ? 1.5 : 0
                 border.color: Theme.highlight
 
@@ -175,7 +175,7 @@ Item {
                 implicitWidth: 32
                 implicitHeight: 32
                 radius: 8
-                color: root.lockFocused ? "#2c2c2c" : (lockMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                color: root.lockFocused ? Theme.surfaceKeyFocus : (lockMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
                 border.width: root.lockFocused ? 1.5 : 0
                 border.color: Theme.highlight
 
@@ -220,7 +220,7 @@ Item {
                 implicitWidth: 32
                 implicitHeight: 32
                 radius: 8
-                color: root.powerFocused ? "#2c2c2c" : (powerMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                color: root.powerFocused ? Theme.surfaceKeyFocus : (powerMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
                 border.width: root.powerFocused ? 1.5 : 0
                 border.color: Theme.critical
 
@@ -287,7 +287,7 @@ Item {
                 implicitHeight: 28
                 radius: 14
                 readonly property bool isKeyFocused: root.isPowerNavActive && root.powerNavIndex === 0
-                color: isKeyFocused ? "#2c2c2c" : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                color: isKeyFocused ? Theme.surfaceKeyFocus : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
                 border.width: isKeyFocused ? 1.5 : 0
                 border.color: Theme.highlight
 
@@ -362,7 +362,7 @@ Item {
                     implicitHeight: 32
                     radius: 8
                     readonly property bool isKeyFocused: root.isPowerNavActive && root.powerNavIndex === 1
-                    color: isKeyFocused ? "#2c2c2c" : (suspMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                    color: isKeyFocused ? Theme.surfaceKeyFocus : (suspMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
                     border.width: isKeyFocused ? 1.5 : 0
                     border.color: Theme.highlight
                     scale: suspMouse.pressed ? 0.92 : 1.0
@@ -397,7 +397,7 @@ Item {
                     implicitHeight: 32
                     radius: 8
                     readonly property bool isKeyFocused: root.isPowerNavActive && root.powerNavIndex === 2
-                    color: isKeyFocused ? "#2c2c2c" : (exitMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                    color: isKeyFocused ? Theme.surfaceKeyFocus : (exitMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
                     border.width: isKeyFocused ? 1.5 : 0
                     border.color: Theme.warning
                     scale: exitMouse.pressed ? 0.92 : 1.0
@@ -432,7 +432,7 @@ Item {
                     implicitHeight: 32
                     radius: 8
                     readonly property bool isKeyFocused: root.isPowerNavActive && root.powerNavIndex === 3
-                    color: isKeyFocused ? "#2c2c2c" : (rebootMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                    color: isKeyFocused ? Theme.surfaceKeyFocus : (rebootMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
                     border.width: isKeyFocused ? 1.5 : 0
                     border.color: Theme.warning
                     scale: rebootMouse.pressed ? 0.92 : 1.0
@@ -467,7 +467,7 @@ Item {
                     implicitHeight: 32
                     radius: 8
                     readonly property bool isKeyFocused: root.isPowerNavActive && root.powerNavIndex === 4
-                    color: isKeyFocused ? "#2c2c2c" : (shutMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                    color: isKeyFocused ? Theme.surfaceKeyFocus : (shutMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
                     border.width: isKeyFocused ? 1.5 : 0
                     border.color: Theme.critical
                     scale: shutMouse.pressed ? 0.92 : 1.0

@@ -499,7 +499,7 @@ Item {
                 implicitHeight: 28
                 radius: 14
                 readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 0
-                color: isKeyFocused ? "#2c2c2c" : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                color: isKeyFocused ? Theme.surfaceKeyFocus : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
                 border.width: isKeyFocused ? 1.5 : 0
                 border.color: Theme.highlight
 
@@ -551,7 +551,7 @@ Item {
                 implicitHeight: 28
                 radius: 14
                 readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 1
-                color: isKeyFocused ? "#2c2c2c" : (refreshMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                color: isKeyFocused ? Theme.surfaceKeyFocus : (refreshMouse.containsMouse ? Theme.surfaceHover : "transparent")
                 border.width: isKeyFocused ? 1.5 : 0
                 border.color: Theme.highlight
 
@@ -601,7 +601,7 @@ Item {
                 readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 2
                 color: BluetoothService.isEnabled ? Theme.wsActiveColor : Theme.surfaceBase
                 border.width: isKeyFocused ? 1.5 : 0
-                border.color: BluetoothService.isEnabled ? "#ffffff" : Theme.highlight
+                border.color: BluetoothService.isEnabled ? Theme.textBright : Theme.highlight
 
                 Behavior on border.width { NumberAnimation { duration: 40 } }
                 Behavior on border.color { ColorAnimation { duration: 40 } }
@@ -612,7 +612,7 @@ Item {
                     width: 16
                     height: 16
                     radius: 8
-                    color: "#ffffff"
+                    color: Theme.textBright
                     anchors.verticalCenter: parent.verticalCenter
                     x: BluetoothService.isEnabled ? parent.width - width - 3 : 3
 
@@ -783,7 +783,7 @@ Item {
                         radius: 8
                         color: Theme.wsActiveColor
                         border.width: 0
-                        border.color: "#ffffff"
+                        border.color: Theme.textBright
 
                         Text {
                             anchors.centerIn: parent
@@ -791,7 +791,7 @@ Item {
                             font.family: Theme.fontFamily
                             font.pixelSize: 11
                             font.weight: Font.Bold
-                            color: "#161616"
+                            color: Theme.textOnAccent
                         }
 
                         MouseArea {
@@ -914,7 +914,7 @@ Item {
                                     if (modelData.connected) {
                                         return (rowMouse.containsMouse || isKeyFocused) ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.05);
                                     }
-                                    if (isKeyFocused) return "#2c2c2c";
+                                    if (isKeyFocused) return Theme.surfaceKeyFocus;
                                     return rowMouse.containsMouse ? Theme.surfaceHover : "transparent";
                                 }
                                 border.width: isKeyFocused ? 1.5 : (modelData.connected ? 1 : 0)
@@ -1120,7 +1120,7 @@ Item {
                                 implicitHeight: 34
                                 radius: 8
                                 readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === (3 + root.pairedDevices.length + index)
-                                color: isKeyFocused ? "#2c2c2c" : (availMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                                color: isKeyFocused ? Theme.surfaceKeyFocus : (availMouse.containsMouse ? Theme.surfaceHover : "transparent")
                                 border.width: isKeyFocused ? 1.5 : 0
                                 border.color: Theme.highlight
 

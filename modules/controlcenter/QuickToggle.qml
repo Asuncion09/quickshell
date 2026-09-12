@@ -50,7 +50,7 @@ Item {
             if (root.active) {
                 return (root.isAnyHovered || root.focused) ? Qt.lighter(Theme.wsActiveColor, 1.08) : Theme.wsActiveColor;
             }
-            if (root.focused) return "#2c2c2c";
+            if (root.focused) return Theme.surfaceKeyFocus;
             if (root.isAnyHovered) return Theme.surfaceHover;
             return Theme.surfaceBase;
         }
@@ -89,7 +89,7 @@ Item {
                     text: root.icon
                     font.family: Theme.fontFamily
                     font.pixelSize: 16
-                    color: root.active ? "#161616" : ((root.isAnyHovered || root.focused) ? Theme.text : Theme.textSecondary)
+                    color: root.active ? Theme.textOnAccent : ((root.isAnyHovered || root.focused) ? Theme.text : Theme.textSecondary)
                     Layout.alignment: Qt.AlignVCenter
 
                     Behavior on color {
@@ -103,7 +103,7 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 11
                     font.weight: Font.DemiBold
-                    color: root.active ? "#161616" : Theme.text
+                    color: root.active ? Theme.textOnAccent : Theme.text
                     elide: Text.ElideRight
                     Layout.alignment: Qt.AlignVCenter
 
@@ -118,7 +118,7 @@ Item {
                     text: "󰑐"
                     font.family: Theme.fontFamily
                     font.pixelSize: 11
-                    color: root.active ? "#161616" : Theme.wsActiveColor
+                    color: root.active ? Theme.textOnAccent : Theme.wsActiveColor
                     Layout.alignment: Qt.AlignVCenter
 
                     RotationAnimator on rotation {
@@ -196,7 +196,7 @@ Item {
                 }
 
                 color: {
-                    if (root.active) return "#161616";
+                    if (root.active) return Theme.textOnAccent;
                     return (root.isAnyHovered || root.focused) ? Theme.text : Theme.textMuted;
                 }
                 opacity: root.active ? 0.85 : ((root.isAnyHovered || root.focused) ? 0.90 : 0.45)

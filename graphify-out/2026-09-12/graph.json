@@ -366,6 +366,18 @@
       "source_location": "L141"
     },
     {
+      "id": "scripts_persist_monitors_main",
+      "label": "main()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 30,
+      "community_name": "persist_monitors.py",
+      "file_type": "code",
+      "norm_label": "main()",
+      "source_file": "scripts/persist_monitors.py",
+      "source_location": "L7"
+    },
+    {
       "id": "services_clip_daemon_clipboarddaemon_init",
       "label": ".__init__()",
       "_callable": true,
@@ -514,16 +526,16 @@
       "source_location": "L1"
     },
     {
-      "id": "readme_1_habilitar_copr_e_instalar_quickshell",
-      "label": "1. Habilitar Copr e Instalar Quickshell",
+      "id": "readme_1_instalar_quickshell",
+      "label": "1. Instalar Quickshell",
       "_origin": "ast",
       "community": 10,
       "community_name": "\ud83d\ude80 Quickshell Desktop Shell para Hyprland",
       "file_type": "document",
       "node_kind": "heading",
-      "norm_label": "1. habilitar copr e instalar quickshell",
+      "norm_label": "1. instalar quickshell",
       "source_file": "README.md",
-      "source_location": "L70"
+      "source_location": "L96"
     },
     {
       "id": "readme_2_paquetes_y_dependencias_del_sistema",
@@ -535,7 +547,7 @@
       "node_kind": "heading",
       "norm_label": "2. paquetes y dependencias del sistema",
       "source_file": "README.md",
-      "source_location": "L85"
+      "source_location": "L103"
     },
     {
       "id": "readme_3_tipograf\u00eda_e_iconos",
@@ -547,19 +559,7 @@
       "node_kind": "heading",
       "norm_label": "3. tipografia e iconos",
       "source_file": "README.md",
-      "source_location": "L127"
-    },
-    {
-      "id": "readme_4_permisos_de_usuario_control_de_brillo",
-      "label": "4. Permisos de Usuario (Control de Brillo)",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "\ud83d\ude80 Quickshell Desktop Shell para Hyprland",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "4. permisos de usuario (control de brillo)",
-      "source_file": "README.md",
-      "source_location": "L152"
+      "source_location": "L134"
     },
     {
       "id": "readme_atajos_de_teclado_recomendados",
@@ -571,7 +571,7 @@
       "node_kind": "heading",
       "norm_label": "atajos de teclado recomendados",
       "source_file": "README.md",
-      "source_location": "L189"
+      "source_location": "L156"
     },
     {
       "id": "readme_autoinicio",
@@ -583,31 +583,31 @@
       "node_kind": "heading",
       "norm_label": "autoinicio",
       "source_file": "README.md",
-      "source_location": "L183"
+      "source_location": "L150"
     },
     {
-      "id": "readme_descarga_e_instalaci\u00f3n_de_la_fuente",
-      "label": "Descarga e instalaci\u00f3n de la fuente:",
+      "id": "readme_caracter\u00edsticas_destacadas",
+      "label": "\u2728 Caracter\u00edsticas Destacadas",
       "_origin": "ast",
       "community": 10,
       "community_name": "\ud83d\ude80 Quickshell Desktop Shell para Hyprland",
       "file_type": "document",
       "node_kind": "heading",
-      "norm_label": "descarga e instalacion de la fuente:",
+      "norm_label": "\u2728 caracteristicas destacadas",
       "source_file": "README.md",
-      "source_location": "L131"
+      "source_location": "L9"
     },
     {
-      "id": "readme_detalle_de_para_qu\u00e9_sirve_cada_dependencia",
-      "label": "\ud83d\udccb Detalle de para qu\u00e9 sirve cada dependencia:",
+      "id": "readme_control_por_terminal_ipc",
+      "label": "\ud83d\udce1 Control por Terminal / IPC",
       "_origin": "ast",
       "community": 10,
       "community_name": "\ud83d\ude80 Quickshell Desktop Shell para Hyprland",
       "file_type": "document",
       "node_kind": "heading",
-      "norm_label": "\ud83d\udccb detalle de para que sirve cada dependencia:",
+      "norm_label": "\ud83d\udce1 control por terminal / ipc",
       "source_file": "README.md",
-      "source_location": "L108"
+      "source_location": "L192"
     },
     {
       "id": "readme_estructura_del_proyecto",
@@ -619,43 +619,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\uddc2\ufe0f estructura del proyecto",
       "source_file": "README.md",
-      "source_location": "L217"
-    },
-    {
-      "id": "readme_iconos_de_aplicaciones",
-      "label": "Iconos de aplicaciones:",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "\ud83d\ude80 Quickshell Desktop Shell para Hyprland",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "iconos de aplicaciones:",
-      "source_file": "README.md",
-      "source_location": "L143"
-    },
-    {
-      "id": "readme_instalaci\u00f3n_de_esta_configuraci\u00f3n",
-      "label": "\ud83d\udd27 Instalaci\u00f3n de esta Configuraci\u00f3n",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "\ud83d\ude80 Quickshell Desktop Shell para Hyprland",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "\ud83d\udd27 instalacion de esta configuracion",
-      "source_file": "README.md",
-      "source_location": "L163"
-    },
-    {
-      "id": "readme_instalaci\u00f3n_desde_cero_en_fedora",
-      "label": "\ud83d\udce6 Instalaci\u00f3n desde Cero en Fedora",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "\ud83d\ude80 Quickshell Desktop Shell para Hyprland",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "\ud83d\udce6 instalacion desde cero en fedora",
-      "source_file": "README.md",
-      "source_location": "L68"
+      "source_location": "L212"
     },
     {
       "id": "readme_integraci\u00f3n_con_hyprland_hyprland_conf",
@@ -667,7 +631,7 @@
       "node_kind": "heading",
       "norm_label": "\u2328\ufe0f integracion con hyprland (`hyprland.conf`)",
       "source_file": "README.md",
-      "source_location": "L179"
+      "source_location": "L146"
     },
     {
       "id": "readme_quickshell_desktop_shell_para_hyprland",
@@ -682,6 +646,42 @@
       "source_location": "L1"
     },
     {
+      "id": "readme_requisitos_e_instalaci\u00f3n_en_fedora",
+      "label": "\ud83d\udce6 Requisitos e Instalaci\u00f3n en Fedora",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "\ud83d\ude80 Quickshell Desktop Shell para Hyprland",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "\ud83d\udce6 requisitos e instalacion en fedora",
+      "source_file": "README.md",
+      "source_location": "L94"
+    },
+    {
+      "id": "readme_resumen_de_utilidades_clave",
+      "label": "\ud83d\udccb Resumen de utilidades clave:",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "\ud83d\ude80 Quickshell Desktop Shell para Hyprland",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "\ud83d\udccb resumen de utilidades clave:",
+      "source_file": "README.md",
+      "source_location": "L126"
+    },
+    {
+      "id": "readme_sistema_de_tematizaci\u00f3n_dual_matugen_default",
+      "label": "\ud83c\udfa8 Sistema de Tematizaci\u00f3n Dual (Matugen & Default)",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "\ud83d\ude80 Quickshell Desktop Shell para Hyprland",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "\ud83c\udfa8 sistema de tematizacion dual (matugen & default)",
+      "source_file": "README.md",
+      "source_location": "L81"
+    },
+    {
       "id": "readme_soluci\u00f3n_de_problemas_frecuentes",
       "label": "\ud83d\udee0\ufe0f Soluci\u00f3n de Problemas Frecuentes",
       "_origin": "ast",
@@ -691,7 +691,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udee0\ufe0f solucion de problemas frecuentes",
       "source_file": "README.md",
-      "source_location": "L256"
+      "source_location": "L259"
     },
     {
       "id": "readme_barra_superior_completa_top_bar",
@@ -703,19 +703,7 @@
       "node_kind": "heading",
       "norm_label": "barra superior completa (top bar)",
       "source_file": "README.md",
-      "source_location": "L9"
-    },
-    {
-      "id": "readme_centro_de_control_quick_settings",
-      "label": "\u2699\ufe0f Centro de Control (Quick Settings)",
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "\ud83d\udcf8 Demostraci\u00f3n Visual",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "\u2699\ufe0f centro de control (quick settings)",
-      "source_file": "README.md",
-      "source_location": "L41"
+      "source_location": "L22"
     },
     {
       "id": "readme_centro_de_notificaciones",
@@ -727,7 +715,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udd14 centro de notificaciones",
       "source_file": "README.md",
-      "source_location": "L35"
+      "source_location": "L54"
     },
     {
       "id": "readme_conmutador_de_ventanas_alt_tab",
@@ -739,7 +727,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udd00 conmutador de ventanas (alt + tab)",
       "source_file": "README.md",
-      "source_location": "L47"
+      "source_location": "L60"
     },
     {
       "id": "readme_demostraci\u00f3n_visual",
@@ -751,7 +739,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udcf8 demostracion visual",
       "source_file": "README.md",
-      "source_location": "L7"
+      "source_location": "L20"
     },
     {
       "id": "readme_lanzador_de_aplicaciones_spotlight",
@@ -763,7 +751,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udd0d lanzador de aplicaciones (spotlight)",
       "source_file": "README.md",
-      "source_location": "L29"
+      "source_location": "L42"
     },
     {
       "id": "readme_m\u00f3dulos_principales",
@@ -775,7 +763,7 @@
       "node_kind": "heading",
       "norm_label": "modulos principales",
       "source_file": "README.md",
-      "source_location": "L15"
+      "source_location": "L28"
     },
     {
       "id": "readme_notificaciones_en_pantalla_osd_y_alertas",
@@ -787,19 +775,31 @@
       "node_kind": "heading",
       "norm_label": "\ud83c\udf9b\ufe0f notificaciones en pantalla (osd) y alertas",
       "source_file": "README.md",
-      "source_location": "L55"
+      "source_location": "L68"
     },
     {
-      "id": "readme_paneles_desplegables",
-      "label": "Paneles Desplegables",
+      "id": "readme_paneles_y_di\u00e1logos",
+      "label": "Paneles y Di\u00e1logos",
       "_origin": "ast",
       "community": 11,
       "community_name": "\ud83d\udcf8 Demostraci\u00f3n Visual",
       "file_type": "document",
       "node_kind": "heading",
-      "norm_label": "paneles desplegables",
+      "norm_label": "paneles y dialogos",
       "source_file": "README.md",
-      "source_location": "L27"
+      "source_location": "L40"
+    },
+    {
+      "id": "readme_selector_de_tema_y_configuraci\u00f3n_settings",
+      "label": "\ud83c\udfa8 Selector de Tema y Configuraci\u00f3n (Settings)",
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "\ud83d\udcf8 Demostraci\u00f3n Visual",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "\ud83c\udfa8 selector de tema y configuracion (settings)",
+      "source_file": "README.md",
+      "source_location": "L48"
     },
     {
       "id": "agents_rules_graphify",
@@ -877,6 +877,17 @@
       "file_type": "code",
       "norm_label": "bt_agent.py",
       "source_file": "services/bt_agent.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_persist_monitors",
+      "label": "persist_monitors.py",
+      "_origin": "ast",
+      "community": 30,
+      "community_name": "persist_monitors.py",
+      "file_type": "code",
+      "norm_label": "persist_monitors.py",
+      "source_file": "scripts/persist_monitors.py",
       "source_location": "L1"
     },
     {
@@ -2174,68 +2185,13 @@
     },
     {
       "source": "readme_2_paquetes_y_dependencias_del_sistema",
-      "target": "readme_detalle_de_para_qu\u00e9_sirve_cada_dependencia",
+      "target": "readme_resumen_de_utilidades_clave",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L108",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_3_tipograf\u00eda_e_iconos",
-      "target": "readme_descarga_e_instalaci\u00f3n_de_la_fuente",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L131",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_3_tipograf\u00eda_e_iconos",
-      "target": "readme_iconos_de_aplicaciones",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L143",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_demostraci\u00f3n_visual",
-      "target": "readme_m\u00f3dulos_principales",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L15",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_demostraci\u00f3n_visual",
-      "target": "readme_paneles_desplegables",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L27",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_demostraci\u00f3n_visual",
-      "target": "readme_notificaciones_en_pantalla_osd_y_alertas",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L55",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -2246,51 +2202,40 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L9",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
-      "source": "readme_instalaci\u00f3n_desde_cero_en_fedora",
-      "target": "readme_3_tipograf\u00eda_e_iconos",
+      "source": "readme_demostraci\u00f3n_visual",
+      "target": "readme_m\u00f3dulos_principales",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L127",
+      "source_location": "L28",
       "weight": 1.0
     },
     {
-      "source": "readme_instalaci\u00f3n_desde_cero_en_fedora",
-      "target": "readme_4_permisos_de_usuario_control_de_brillo",
+      "source": "readme_demostraci\u00f3n_visual",
+      "target": "readme_paneles_y_di\u00e1logos",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L152",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
-      "source": "readme_instalaci\u00f3n_desde_cero_en_fedora",
-      "target": "readme_1_habilitar_copr_e_instalar_quickshell",
+      "source": "readme_demostraci\u00f3n_visual",
+      "target": "readme_notificaciones_en_pantalla_osd_y_alertas",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L70",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_instalaci\u00f3n_desde_cero_en_fedora",
-      "target": "readme_2_paquetes_y_dependencias_del_sistema",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L85",
+      "source_location": "L68",
       "weight": 1.0
     },
     {
@@ -2301,7 +2246,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L183",
+      "source_location": "L150",
       "weight": 1.0
     },
     {
@@ -2312,62 +2257,51 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L189",
+      "source_location": "L156",
       "weight": 1.0
     },
     {
-      "source": "readme_paneles_desplegables",
+      "source": "readme_paneles_y_di\u00e1logos",
       "target": "readme_lanzador_de_aplicaciones_spotlight",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L29",
+      "source_location": "L42",
       "weight": 1.0
     },
     {
-      "source": "readme_paneles_desplegables",
+      "source": "readme_paneles_y_di\u00e1logos",
+      "target": "readme_selector_de_tema_y_configuraci\u00f3n_settings",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_paneles_y_di\u00e1logos",
       "target": "readme_centro_de_notificaciones",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L35",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
-      "source": "readme_paneles_desplegables",
-      "target": "readme_centro_de_control_quick_settings",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L41",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_paneles_desplegables",
+      "source": "readme_paneles_y_di\u00e1logos",
       "target": "readme_conmutador_de_ventanas_alt_tab",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L47",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_quickshell_desktop_shell_para_hyprland",
-      "target": "readme_instalaci\u00f3n_de_esta_configuraci\u00f3n",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L163",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
@@ -2378,40 +2312,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L179",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
       "source": "readme_quickshell_desktop_shell_para_hyprland",
-      "target": "readme_estructura_del_proyecto",
+      "target": "readme_control_por_terminal_ipc",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L217",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_quickshell_desktop_shell_para_hyprland",
-      "target": "readme_soluci\u00f3n_de_problemas_frecuentes",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L256",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_quickshell_desktop_shell_para_hyprland",
-      "target": "readme_instalaci\u00f3n_desde_cero_en_fedora",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L68",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -2422,6 +2334,105 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_quickshell_desktop_shell_para_hyprland",
+      "target": "readme_estructura_del_proyecto",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L212",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_quickshell_desktop_shell_para_hyprland",
+      "target": "readme_soluci\u00f3n_de_problemas_frecuentes",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L259",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_quickshell_desktop_shell_para_hyprland",
+      "target": "readme_sistema_de_tematizaci\u00f3n_dual_matugen_default",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_quickshell_desktop_shell_para_hyprland",
+      "target": "readme_caracter\u00edsticas_destacadas",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_quickshell_desktop_shell_para_hyprland",
+      "target": "readme_requisitos_e_instalaci\u00f3n_en_fedora",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L94",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_requisitos_e_instalaci\u00f3n_en_fedora",
+      "target": "readme_2_paquetes_y_dependencias_del_sistema",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_requisitos_e_instalaci\u00f3n_en_fedora",
+      "target": "readme_3_tipograf\u00eda_e_iconos",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_requisitos_e_instalaci\u00f3n_en_fedora",
+      "target": "readme_1_instalar_quickshell",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_persist_monitors",
+      "target": "scripts_persist_monitors_main",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/persist_monitors.py",
       "source_location": "L7",
       "weight": 1.0
     },
@@ -3299,5 +3310,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "344343029f3fa26b860a9bb3c31e695eed3cc0de"
+  "built_at_commit": "ca65c861302ca2f58e329950c7b05595bd71117c"
 }

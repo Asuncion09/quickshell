@@ -94,7 +94,7 @@ Item {
                         font.family: Theme.fontFamily
                         font.pixelSize: 13
                         font.weight: Font.DemiBold
-                        color: "#ffffff"
+                        color: Theme.textBright
                         Layout.alignment: Qt.AlignVCenter
                     }
 
@@ -103,8 +103,8 @@ Item {
                         implicitWidth: Math.max(18, countText.implicitWidth + 8)
                         implicitHeight: 16
                         radius: 8
-                        color: "#242424"
-                        border.color: "#383838"
+                        color: Theme.surfaceBase
+                        border.color: Theme.borderCard
                         border.width: 1
                         Layout.alignment: Qt.AlignVCenter
 
@@ -296,7 +296,7 @@ Item {
                         id: cardShadowSource
                         anchors.fill: cardBg
                         radius: cardBg.radius
-                        color: "#000000"
+                        color: Theme.shadowColor
                         visible: false
                     }
 
@@ -306,7 +306,7 @@ Item {
                         anchors.fill: cardShadowSource
                         visible: Theme.pillShadowEnabled
                         shadowEnabled: true
-                        shadowColor: "#000000"
+                        shadowColor: Theme.shadowColor
                         shadowOpacity: cardHover.hovered ? 0.78 : 0.55
                         shadowBlur: 0.50
                         shadowVerticalOffset: cardHover.hovered ? 3.5 : 2.0
@@ -561,7 +561,7 @@ Item {
                                         font.family: Theme.fontFamily
                                         font.pixelSize: 10
                                         font.weight: Font.DemiBold
-                                        color: "#161616"
+                                        color: Theme.textOnAccent
                                     }
                                     MouseArea {
                                         id: copyCenterShotM
@@ -589,7 +589,7 @@ Item {
                                         font.family: Theme.fontFamily
                                         font.pixelSize: 10
                                         font.weight: Font.Medium
-                                        color: delCenterShotM.containsMouse ? "#ffffff" : Theme.textSecondary
+                                        color: delCenterShotM.containsMouse ? Theme.textBright : Theme.textSecondary
                                     }
                                     MouseArea {
                                         id: delCenterShotM
@@ -634,7 +634,7 @@ Item {
                                             font.family: "JetBrainsMono Nerd Font Propo"
                                             font.pixelSize: 13
                                             font.weight: Font.Bold
-                                            color: "#ffffff"
+                                            color: Theme.textBright
                                         }
 
                                         Text {
@@ -659,7 +659,7 @@ Item {
                                             text: "󰆏"
                                             font.family: Theme.fontFamily
                                             font.pixelSize: 12
-                                            color: copyHexHistMouse.containsMouse ? "#161616" : Theme.text
+                                            color: copyHexHistMouse.containsMouse ? Theme.textOnAccent : Theme.text
                                         }
 
                                         MouseArea {
@@ -738,7 +738,7 @@ Item {
                                             font.family: Theme.fontFamily
                                             font.pixelSize: 11
                                             font.weight: Font.Medium
-                                            color: actionMouse.containsMouse ? "#161616" : Theme.text
+                                            color: actionMouse.containsMouse ? Theme.textOnAccent : Theme.text
                                         }
 
                                         MouseArea {

@@ -119,7 +119,7 @@ WlSessionLock {
             // Base oscura sólida para evitar cualquier destello
             Rectangle {
                 anchors.fill: parent
-                color: "#161616"
+                color: Theme.bgDark
             }
 
             Item {
@@ -274,7 +274,7 @@ WlSessionLock {
                         font.family: Theme.fontFamily
                         font.pixelSize: 112
                         font.weight: Font.DemiBold
-                        color: "#ffffff"
+                        color: Theme.textBright
                         Layout.alignment: Qt.AlignHCenter
                     }
 
@@ -288,7 +288,7 @@ WlSessionLock {
                         font.family: Theme.fontFamily
                         font.pixelSize: 16
                         font.weight: Font.Normal
-                        color: "#c0c6d4"
+                        color: Theme.textSecondary
                         Layout.alignment: Qt.AlignHCenter
                     }
                 }
@@ -313,7 +313,7 @@ WlSessionLock {
                         font.family: Theme.fontFamily
                         font.pixelSize: 18
                         font.weight: Font.Medium
-                        color: "#ffffff"
+                        color: Theme.textBright
                         Layout.alignment: Qt.AlignHCenter
                         Layout.bottomMargin: 4
                     }
@@ -384,9 +384,9 @@ WlSessionLock {
                                         passwordCharacter: "•"
                                         font.family: Theme.fontFamily
                                         font.pixelSize: 14
-                                        color: "#ffffff"
-                                        selectionColor: "#454545"
-                                        selectedTextColor: "#ffffff"
+                                        color: Theme.textBright
+                                        selectionColor: Theme.selectionBg
+                                        selectedTextColor: Theme.textBright
                                         focus: surfaceContent.isInitiallyFocusedScreen
                                         clip: true
 
@@ -434,7 +434,7 @@ WlSessionLock {
                                         text: LockService.authSucceeded ? "󰄬" : (LockService.isAuthenticating ? "󰑐" : "󰅂")
                                         font.family: Theme.fontFamily
                                         font.pixelSize: 15
-                                        color: LockService.authSucceeded ? Theme.success : (LockService.authFailed ? Theme.critical : (pwdInput.text.length > 0 ? "#ffffff" : Theme.textMuted))
+                                        color: LockService.authSucceeded ? Theme.success : (LockService.authFailed ? Theme.critical : (pwdInput.text.length > 0 ? Theme.textBright : Theme.textMuted))
                                         opacity: pwdInput.text.length > 0 ? (submitMouse.pressed ? 0.6 : 1.0) : 0.4
                                         scale: submitMouse.pressed ? 0.88 : 1.0
                                         rotation: LockService.isAuthenticating ? spinAngle : 0
@@ -495,7 +495,7 @@ WlSessionLock {
                                 text: "󰌎"
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 12
-                                color: "#fab387"
+                                color: Theme.warning
                                 Layout.alignment: Qt.AlignVCenter
                             }
 
@@ -504,7 +504,7 @@ WlSessionLock {
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 11
                                 font.weight: Font.Medium
-                                color: "#fab387"
+                                color: Theme.warning
                                 Layout.alignment: Qt.AlignVCenter
                             }
                         }
@@ -593,7 +593,7 @@ WlSessionLock {
                                     text: "󰑐"
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 16
-                                    color: rebtMouse.containsMouse ? "#fab387" : Theme.textMuted
+                                    color: rebtMouse.containsMouse ? Theme.warning : Theme.textMuted
                                     scale: rebtMouse.pressed ? 0.88 : 1.0
                                     Behavior on color { ColorAnimation { duration: 120 } }
                                     Behavior on scale { NumberAnimation { duration: 80 } }
@@ -678,7 +678,7 @@ WlSessionLock {
                             radius: 8
                             clip: true
                             layer.enabled: true
-                            color: "#1e1e1e"
+                            color: Theme.bgDarkAlt
 
                             Image {
                                 anchors.fill: parent
@@ -708,7 +708,7 @@ WlSessionLock {
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 12
                                 font.weight: Font.DemiBold
-                                color: "#ffffff"
+                                color: Theme.textBright
                                 elide: Text.ElideRight
                                 Layout.fillWidth: true
                             }
@@ -738,7 +738,7 @@ WlSessionLock {
                                     text: "󰒮"
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 14
-                                    color: prevMouse.containsMouse ? "#ffffff" : Theme.textMuted
+                                    color: prevMouse.containsMouse ? Theme.textBright : Theme.textMuted
                                 }
                                 MouseArea {
                                     id: prevMouse
@@ -766,7 +766,7 @@ WlSessionLock {
                                     text: MediaService.isPlaying ? "󰏤" : "󰐊"
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 16
-                                    color: playMouse.containsMouse ? "#161616" : Theme.highlight
+                                    color: playMouse.containsMouse ? Theme.textOnAccent : Theme.highlight
                                 }
                                 MouseArea {
                                     id: playMouse
@@ -788,7 +788,7 @@ WlSessionLock {
                                     text: "󰒭"
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 14
-                                    color: nextMouse.containsMouse ? "#ffffff" : Theme.textMuted
+                                    color: nextMouse.containsMouse ? Theme.textBright : Theme.textMuted
                                 }
                                 MouseArea {
                                     id: nextMouse

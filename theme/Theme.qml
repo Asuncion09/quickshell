@@ -2,30 +2,64 @@ pragma Singleton
 import QtQuick
 
 QtObject {
-    // --- Paleta de colores (extraída de Waybar style.css) ---
-    readonly property color bgDark: "#161616"             // @dark-9
-    readonly property color bgDarkAlt: "#1e1e1e"          // Hover sutil sobre cápsulas (sutilmente más claro que #161616)
+    id: root
+
+    // --- Sistema Dual de Temas: "default" (Obsidian & Accent Blue) | "matugen" (Material You Dinámico) ---
+    property string themeMode: "default"
+    property var dynamicPalette: null
+
+    // Detección reactiva de modo dinámico válido
+    readonly property bool isDynamic: themeMode === "matugen" && dynamicPalette !== null && dynamicPalette.colors !== undefined
+
+    // --- Paleta Base por Defecto Fija (Waybar style.css original) ---
+    readonly property color defaultHighlight: "#78a9ff"          // @highlight (azul acento)
+    readonly property color defaultBgDark: "#161616"             // @dark-9
+    readonly property color defaultBgDarkAlt: "#1e1e1e"          // Hover sutil sobre cápsulas
+    readonly property color defaultBgDarkest: "#121212"          // Fondo más profundo (wallpapers, capas base)
+    readonly property color defaultTextOnAccent: "#121212"       // Contraste oscuro sobre color de acento o sliders (on_primary)
+    readonly property color defaultSurfaceBase: "#202020"        // Superficie uniforme inactiva (toggles, sliders, chips)
+    readonly property color defaultSurfaceHover: "#282828"       // Hover uniforme para cualquier superficie inactiva
+    readonly property color defaultSurfaceKeyFocus: "#2c2c2c"    // Superficie con foco de navegación por teclado
+    readonly property color defaultBorderCard: "#2e2e2e"         // Borde sutil para tarjetas y menús flotantes
+    readonly property color defaultDividerColor: "#262626"       // Divisores ultra-sutiles
+    readonly property color defaultCritical: "#ee5396"           // Rosa/Rojo (urgent, error, batería crítica)
+    readonly property color defaultWsOccupied: "#42be65"         // Verde esmeralda Waybar para workspaces con ventanas
+
+    // --- Paleta Reactiva Dual (Conmuta instantáneamente entre Default y Matugen) ---
+    readonly property color highlight: isDynamic ? dynamicPalette.colors.primary.dark.color : defaultHighlight
+    readonly property color hoverBg: Qt.rgba(highlight.r, highlight.g, highlight.b, 0.12)
+    readonly property color textOnAccent: isDynamic ? dynamicPalette.colors.on_primary.dark.color : defaultTextOnAccent
+    readonly property color bgDark: isDynamic ? dynamicPalette.colors.surface_container_lowest.dark.color : defaultBgDark
+    readonly property color bgDarkAlt: isDynamic ? dynamicPalette.colors.surface_container.dark.color : defaultBgDarkAlt
+    readonly property color bgDarkest: isDynamic ? dynamicPalette.colors.surface_container_lowest.dark.color : defaultBgDarkest
+    readonly property color surfaceBase: isDynamic ? dynamicPalette.colors.surface_container.dark.color : defaultSurfaceBase
+    readonly property color surfaceHover: isDynamic ? dynamicPalette.colors.surface_container_high.dark.color : defaultSurfaceHover
+    readonly property color surfaceKeyFocus: isDynamic ? dynamicPalette.colors.surface_container_highest.dark.color : defaultSurfaceKeyFocus
+    readonly property color borderCard: isDynamic ? dynamicPalette.colors.outline_variant.dark.color : defaultBorderCard
+    readonly property color dividerColor: isDynamic ? Qt.rgba(borderCard.r, borderCard.g, borderCard.b, 0.35) : defaultDividerColor
+    readonly property color critical: isDynamic ? dynamicPalette.colors.error.dark.color : defaultCritical
+
+    // --- Tokens Fijos Neutros y Semánticos ---
     readonly property color borderDark: Qt.rgba(1, 1, 1, 0.08)  // Borde sutil de relieve (rim light)
+    readonly property color borderModal: Qt.rgba(1, 1, 1, 0.12) // Borde suave traslúcido para ventanas flotantes (idéntico al Launcher)
     readonly property color dark6: "#80525252"            // @dark-6 (50% opacity)
     readonly property color dark5: "#1f525252"            // @dark-5 (12% opacity)
-    readonly property color highlight: "#78a9ff"          // @highlight (azul acento)
-    readonly property color hoverBg: "#1f78a9ff"          // rgba(120, 169, 255, 0.12)
     
     readonly property color text: "#dde1e7"               // Texto principal
     readonly property color textSecondary: "#a0a8b7"      // Texto secundario (artista, subtítulo, 65% contraste)
     readonly property color textMuted: "#59dde1e7"        // 35% opacidad
     readonly property color textDisabled: "#66dde1e7"     // 40% opacidad
-    
-    readonly property color success: "#42be65"            // Verde (charging / persistent)
-    readonly property color warning: "#f1c40f"            // Amarillo (batería warning)
-    readonly property color critical: "#ee5396"           // Rosa/Rojo (urgent, error, batería crítica)
+    readonly property color textBright: "#ffffff"         // Texto blanco nítido / máximo contraste
+    readonly property color selectionBg: "#454545"        // Selección de texto en campos de entrada
 
-    // --- Superficies y Capas del Centro de Control (Sistema Tonal Limpio) ---
-    readonly property color surfaceBase: "#202020"                                                 // Superficie uniforme inactiva (toggles, sliders, chips)
-    readonly property color surfaceHover: "#282828"                                                // Hover uniforme para cualquier superficie inactiva
-    readonly property color surfaceActive: Qt.rgba(wsActiveColor.r, wsActiveColor.g, wsActiveColor.b, 0.20)      // Superficie activa derivada del azul del workspace activo
-    readonly property color surfaceActiveHover: Qt.rgba(wsActiveColor.r, wsActiveColor.g, wsActiveColor.b, 0.28) // Hover uniforme para elementos activos
-    readonly property color dividerColor: "#262626"                                                // Divisores ultra-sutiles
+    readonly property color success: "#42be65"            // Verde (charging / persistent)
+    readonly property color successFeedback: "#81c784"    // Verde suave para confirmación de copiado
+    readonly property color warning: "#f1c40f"            // Amarillo (batería warning)
+
+    // Superficies activas derivadas dinámicamente del azul del workspace o acento
+    readonly property color surfaceActive: Qt.rgba(wsActiveColor.r, wsActiveColor.g, wsActiveColor.b, 0.20)
+    readonly property color surfaceActiveHover: Qt.rgba(wsActiveColor.r, wsActiveColor.g, wsActiveColor.b, 0.28)
+    readonly property color shadowColor: "#000000"
 
     // --- Métricas y Dimensiones de la Barra ---
     readonly property int barHeight: 32
@@ -47,8 +81,10 @@ QtObject {
     readonly property int wsHeight: 8
     readonly property int wsRadius: 4
 
-    readonly property color wsActiveColor: highlight           // #78a9ff (Azul activo)
-    readonly property color wsOccupiedColor: success           // #42be65 (Verde esmeralda vistoso de tu Waybar)
+    readonly property color wsActiveColor: highlight           // #78a9ff en default | primary en Matugen
+    readonly property color wsOccupiedColor: (isDynamic && dynamicPalette.colors.tertiary)
+                                            ? dynamicPalette.colors.tertiary.dark.color
+                                            : defaultWsOccupied // #42be65 en default | tertiary armónico en Matugen
     // Opciones alternativas vistosas:
     // "#42be65" (Verde esmeralda Waybar)
     // "#33b1ff" (Cyan eléctrico)

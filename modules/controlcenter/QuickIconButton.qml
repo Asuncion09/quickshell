@@ -10,7 +10,7 @@ Item {
     property bool active: false
     property bool focused: false
     property color customActiveColor: Theme.wsActiveColor
-    property color customActiveTextColor: "#161616"
+    property color customActiveTextColor: Theme.textOnAccent
 
     signal clicked()
 
@@ -41,7 +41,7 @@ Item {
             if (root.active) {
                 return (root.isHovered || root.focused) ? Qt.lighter(root.customActiveColor, 1.1) : root.customActiveColor;
             }
-            if (root.focused) return "#2c2c2c";
+            if (root.focused) return Theme.surfaceKeyFocus;
             if (root.isHovered) return Theme.surfaceHover;
             return Theme.surfaceBase;
         }
@@ -58,7 +58,7 @@ Item {
             font.weight: Font.DemiBold
             color: {
                 if (root.active) return root.customActiveTextColor;
-                if (root.isHovered || root.focused) return "#ffffff";
+                if (root.isHovered || root.focused) return Theme.textBright;
                 return Theme.textSecondary;
             }
 

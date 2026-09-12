@@ -20,6 +20,10 @@ Item {
     property int navIndex: 0
     property bool isKeyNavActive: false
 
+    readonly property color dynamicColor: (Theme.dynamicPalette && Theme.dynamicPalette.colors && Theme.dynamicPalette.colors.primary)
+                                          ? Theme.dynamicPalette.colors.primary.dark.color
+                                          : "#81d3dd"
+
     onVisibleChanged: {
         root.isKeyNavActive = false;
         root.navIndex = 0;
@@ -31,7 +35,7 @@ Item {
             return;
         }
         if (root.navIndex === 1) {
-            root.soundRequested();
+            WallpaperService.setThemeMode(Theme.themeMode === "matugen" ? "default" : "matugen");
             return;
         }
         if (root.navIndex === 2) {
@@ -39,14 +43,17 @@ Item {
             return;
         }
         if (root.navIndex === 3) {
+            root.soundRequested();
+            return;
+        }
+        if (root.navIndex === 4) {
             root.displaysRequested();
             return;
         }
     }
 
     function handleKey(event) {
-        let totalItems = 4; // 0: Volver, 1: Sound, 2: Wallpaper, 3: Displays
-
+        let totalItems = 5; // 0: Volver, 1: Theme Style, 2: Wallpaper, 3: Sound, 4: Displays
 
         if (!root.isKeyNavActive) {
             if (event.key === Qt.Key_Down || event.key === Qt.Key_Up || event.key === Qt.Key_Right || event.key === Qt.Key_Left || event.key === Qt.Key_Tab) {
@@ -70,13 +77,24 @@ Item {
 
         if (event.key === Qt.Key_Left) {
             root.isKeyNavActive = true;
+            if (root.navIndex === 1) {
+                WallpaperService.setThemeMode("default");
+                return true;
+            }
             root.backRequested();
             return true;
         }
 
         if (event.key === Qt.Key_Right) {
             root.isKeyNavActive = true;
-            if (root.navIndex === 0) root.navIndex = 1;
+            if (root.navIndex === 0) {
+                root.navIndex = 1;
+                return true;
+            }
+            if (root.navIndex === 1) {
+                WallpaperService.setThemeMode("matugen");
+                return true;
+            }
             return true;
         }
 
@@ -114,7 +132,7 @@ Item {
                 implicitHeight: 28
                 radius: 14
                 readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 0
-                color: isKeyFocused ? "#2c2c2c" : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                color: isKeyFocused ? Theme.surfaceKeyFocus : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
                 border.width: isKeyFocused ? 1.5 : 0
                 border.color: Theme.highlight
 
@@ -129,7 +147,7 @@ Item {
                     text: "󰅁"
                     font.family: Theme.fontFamily
                     font.pixelSize: 14
-                    color: backBtn.isKeyFocused ? Theme.highlight : (backMouse.containsMouse ? "#ffffff" : Theme.text)
+                    color: backBtn.isKeyFocused ? Theme.highlight : (backMouse.containsMouse ? Theme.textBright : Theme.text)
                 }
 
                 MouseArea {
@@ -161,10 +179,10 @@ Item {
         }
 
         // ==========================================
-        // 2. SECCIÓN DE CONFIGURACIONES DEL SISTEMA
+        // 2. SECCIÓN DE APARIENCIA
         // ==========================================
         Text {
-            text: "SYSTEM"
+            text: "APPEARANCE"
             font.family: Theme.fontFamily
             font.pixelSize: 10
             font.weight: Font.DemiBold
@@ -173,88 +191,193 @@ Item {
             Layout.topMargin: 2
         }
 
-        // Tarjeta Interactiva 1: Sound (Sonido)
+        // Tarjeta Interactiva 1: Theme Style (Selector Dual: Default vs Dynamic)
         Rectangle {
-            id: soundSettingCard
+            id: themeSettingCard
             Layout.fillWidth: true
-            implicitHeight: 48
+            implicitHeight: 74
             radius: 10
 
             readonly property bool isFocused: root.isKeyNavActive && root.navIndex === 1
-            readonly property bool isHovered: soundMouse.containsMouse
+            readonly property bool isHovered: themeMouse.containsMouse
 
-            color: isFocused ? "#2c2c2c" : (isHovered ? Theme.surfaceHover : Theme.surfaceBase)
+            color: isFocused ? Theme.surfaceKeyFocus : (isHovered ? Theme.surfaceHover : Theme.surfaceBase)
             border.width: isFocused ? 1.5 : 0
             border.color: Theme.highlight
 
-            scale: soundMouse.pressed ? 0.98 : 1.0
-            Behavior on scale { NumberAnimation { duration: Theme.animFast } }
             Behavior on color { ColorAnimation { duration: Theme.animFast } }
             Behavior on border.width { NumberAnimation { duration: 40 } }
 
-            RowLayout {
+            ColumnLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 10
-                anchors.rightMargin: 12
-                spacing: 10
+                anchors.margins: 8
+                spacing: 8
 
-                // Icono temático de Audio
-                Rectangle {
-                    implicitWidth: 32
-                    implicitHeight: 32
-                    radius: 8
-                    color: Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.16)
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: AudioService.outputIcon || "󰓃"
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 16
-                        color: Theme.highlight
-                    }
-                }
-
-                // Textos (Título y Dispositivo activo)
-                ColumnLayout {
+                // Cabecera: Icono + Título + Etiqueta de Modo Actual
+                RowLayout {
                     Layout.fillWidth: true
-                    spacing: 2
+                    spacing: 8
+
+                    Rectangle {
+                        implicitWidth: 26
+                        implicitHeight: 26
+                        radius: 7
+                        color: Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.16)
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰔎"
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 14
+                            color: Theme.highlight
+                        }
+                    }
 
                     Text {
-                        text: "Sound"
+                        text: "Theme Style"
                         font.family: Theme.fontFamily
                         font.pixelSize: 12
                         font.weight: Font.DemiBold
-                        color: "#ffffff"
+                        color: Theme.textBright
                     }
 
+                    Item { Layout.fillWidth: true }
+
                     Text {
-                        text: AudioService.outputDescription || "Audio devices & volume"
+                        text: Theme.themeMode === "matugen" ? "Material You" : "Obsidian Blue"
                         font.family: Theme.fontFamily
                         font.pixelSize: 10
                         font.weight: Font.Normal
                         color: Theme.textMuted
-                        elide: Text.ElideRight
-                        Layout.fillWidth: true
                     }
                 }
 
-                // Chevron indicador de submenú
-                Text {
-                    text: "󰅂"
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 13
-                    color: soundSettingCard.isHovered || soundSettingCard.isFocused ? "#ffffff" : Theme.textMuted
+                // Fila con los 2 botones selectores de modo (Default vs Dynamic)
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
 
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                    // Botón 1: Default (Obsidian & Accent Blue)
+                    Rectangle {
+                        id: btnDefaultTheme
+                        Layout.fillWidth: true
+                        implicitHeight: 28
+                        radius: 7
+                        readonly property bool isSelected: Theme.themeMode === "default"
+                        readonly property bool isBtnHovered: defaultMouse.containsMouse
+
+                        color: isSelected ? Qt.rgba(Theme.defaultHighlight.r, Theme.defaultHighlight.g, Theme.defaultHighlight.b, 0.18)
+                                          : (isBtnHovered ? Theme.surfaceHover : Qt.rgba(0, 0, 0, 0.25))
+                        border.width: isSelected ? 1.5 : 1
+                        border.color: isSelected ? Theme.defaultHighlight : Theme.dividerColor
+
+                        scale: defaultMouse.pressed ? 0.96 : 1.0
+                        Behavior on scale { NumberAnimation { duration: Theme.animFast } }
+                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                        Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
+
+                        RowLayout {
+                            anchors.centerIn: parent
+                            spacing: 6
+
+                            Rectangle {
+                                width: 8
+                                height: 8
+                                radius: 4
+                                color: Theme.defaultHighlight
+                            }
+
+                            Text {
+                                text: "Default"
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 11
+                                font.weight: btnDefaultTheme.isSelected ? Font.DemiBold : Font.Normal
+                                color: btnDefaultTheme.isSelected ? Theme.textBright : Theme.textSecondary
+                            }
+
+                            Text {
+                                visible: btnDefaultTheme.isSelected
+                                text: "󰄬"
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 10
+                                color: Theme.defaultHighlight
+                            }
+                        }
+
+                        MouseArea {
+                            id: defaultMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: WallpaperService.setThemeMode("default")
+                        }
+                    }
+
+                    // Botón 2: Dynamic (Material You Matugen)
+                    Rectangle {
+                        id: btnDynamicTheme
+                        Layout.fillWidth: true
+                        implicitHeight: 28
+                        radius: 7
+                        readonly property bool isSelected: Theme.themeMode === "matugen"
+                        readonly property bool isBtnHovered: dynamicMouse.containsMouse
+
+                        color: isSelected ? Qt.rgba(root.dynamicColor.r, root.dynamicColor.g, root.dynamicColor.b, 0.18)
+                                          : (isBtnHovered ? Theme.surfaceHover : Qt.rgba(0, 0, 0, 0.25))
+                        border.width: isSelected ? 1.5 : 1
+                        border.color: isSelected ? root.dynamicColor : Theme.dividerColor
+
+                        scale: dynamicMouse.pressed ? 0.96 : 1.0
+                        Behavior on scale { NumberAnimation { duration: Theme.animFast } }
+                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                        Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
+
+                        RowLayout {
+                            anchors.centerIn: parent
+                            spacing: 6
+
+                            Rectangle {
+                                width: 8
+                                height: 8
+                                radius: 4
+                                color: root.dynamicColor
+                            }
+
+                            Text {
+                                text: "Dynamic"
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 11
+                                font.weight: btnDynamicTheme.isSelected ? Font.DemiBold : Font.Normal
+                                color: btnDynamicTheme.isSelected ? Theme.textBright : Theme.textSecondary
+                            }
+
+                            Text {
+                                visible: btnDynamicTheme.isSelected
+                                text: "󰄬"
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 10
+                                color: root.dynamicColor
+                            }
+                        }
+
+                        MouseArea {
+                            id: dynamicMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: WallpaperService.setThemeMode("matugen")
+                        }
+                    }
                 }
             }
 
             MouseArea {
-                id: soundMouse
+                id: themeMouse
                 anchors.fill: parent
+                z: -1
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: root.soundRequested()
+                onClicked: WallpaperService.setThemeMode(Theme.themeMode === "matugen" ? "default" : "matugen")
             }
         }
 
@@ -268,7 +391,7 @@ Item {
             readonly property bool isFocused: root.isKeyNavActive && root.navIndex === 2
             readonly property bool isHovered: wallpaperMouse.containsMouse
 
-            color: isFocused ? "#2c2c2c" : (isHovered ? Theme.surfaceHover : Theme.surfaceBase)
+            color: isFocused ? Theme.surfaceKeyFocus : (isHovered ? Theme.surfaceHover : Theme.surfaceBase)
             border.width: isFocused ? 1.5 : 0
             border.color: Theme.highlight
 
@@ -309,7 +432,7 @@ Item {
                         font.family: Theme.fontFamily
                         font.pixelSize: 12
                         font.weight: Font.DemiBold
-                        color: "#ffffff"
+                        color: Theme.textBright
                     }
 
                     Text {
@@ -333,7 +456,7 @@ Item {
                     text: "󰅂"
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
-                    color: wallpaperSettingCard.isHovered || wallpaperSettingCard.isFocused ? "#ffffff" : Theme.textMuted
+                    color: wallpaperSettingCard.isHovered || wallpaperSettingCard.isFocused ? Theme.textBright : Theme.textMuted
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
                 }
@@ -348,17 +471,115 @@ Item {
             }
         }
 
-        // Tarjeta Interactiva 3: Displays (Pantallas / Monitores)
+        // ==========================================
+        // 3. SECCIÓN DE CONFIGURACIONES DEL SISTEMA
+        // ==========================================
+        Text {
+            text: "SYSTEM"
+            font.family: Theme.fontFamily
+            font.pixelSize: 10
+            font.weight: Font.DemiBold
+            color: Theme.textMuted
+            Layout.leftMargin: 4
+            Layout.topMargin: 2
+        }
+
+        // Tarjeta Interactiva 3: Sound (Sonido)
+        Rectangle {
+            id: soundSettingCard
+            Layout.fillWidth: true
+            implicitHeight: 48
+            radius: 10
+
+            readonly property bool isFocused: root.isKeyNavActive && root.navIndex === 3
+            readonly property bool isHovered: soundMouse.containsMouse
+
+            color: isFocused ? Theme.surfaceKeyFocus : (isHovered ? Theme.surfaceHover : Theme.surfaceBase)
+            border.width: isFocused ? 1.5 : 0
+            border.color: Theme.highlight
+
+            scale: soundMouse.pressed ? 0.98 : 1.0
+            Behavior on scale { NumberAnimation { duration: Theme.animFast } }
+            Behavior on color { ColorAnimation { duration: Theme.animFast } }
+            Behavior on border.width { NumberAnimation { duration: 40 } }
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 10
+                anchors.rightMargin: 12
+                spacing: 10
+
+                // Icono temático de Audio
+                Rectangle {
+                    implicitWidth: 32
+                    implicitHeight: 32
+                    radius: 8
+                    color: Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.16)
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: AudioService.outputIcon || "󰓃"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 16
+                        color: Theme.highlight
+                    }
+                }
+
+                // Textos (Título y Dispositivo activo)
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+
+                    Text {
+                        text: "Sound"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        font.weight: Font.DemiBold
+                        color: Theme.textBright
+                    }
+
+                    Text {
+                        text: AudioService.outputDescription || "Audio devices & volume"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 10
+                        font.weight: Font.Normal
+                        color: Theme.textMuted
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
+                    }
+                }
+
+                // Chevron indicador de submenú
+                Text {
+                    text: "󰅂"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 13
+                    color: soundSettingCard.isHovered || soundSettingCard.isFocused ? Theme.textBright : Theme.textMuted
+
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                }
+            }
+
+            MouseArea {
+                id: soundMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.soundRequested()
+            }
+        }
+
+        // Tarjeta Interactiva 4: Displays (Pantallas / Monitores)
         Rectangle {
             id: displaysSettingCard
             Layout.fillWidth: true
             implicitHeight: 48
             radius: 10
 
-            readonly property bool isFocused: root.isKeyNavActive && root.navIndex === 3
+            readonly property bool isFocused: root.isKeyNavActive && root.navIndex === 4
             readonly property bool isHovered: displaysMouse.containsMouse
 
-            color: isFocused ? "#2c2c2c" : (isHovered ? Theme.surfaceHover : Theme.surfaceBase)
+            color: isFocused ? Theme.surfaceKeyFocus : (isHovered ? Theme.surfaceHover : Theme.surfaceBase)
             border.width: isFocused ? 1.5 : 0
             border.color: Theme.highlight
 
@@ -399,7 +620,7 @@ Item {
                         font.family: Theme.fontFamily
                         font.pixelSize: 12
                         font.weight: Font.DemiBold
-                        color: "#ffffff"
+                        color: Theme.textBright
                     }
 
                     Text {
@@ -425,7 +646,7 @@ Item {
                     text: "󰅂"
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
-                    color: displaysSettingCard.isHovered || displaysSettingCard.isFocused ? "#ffffff" : Theme.textMuted
+                    color: displaysSettingCard.isHovered || displaysSettingCard.isFocused ? Theme.textBright : Theme.textMuted
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
                 }
@@ -441,4 +662,3 @@ Item {
         }
     }
 }
-

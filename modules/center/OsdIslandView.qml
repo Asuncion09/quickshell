@@ -41,7 +41,7 @@ Item {
             implicitWidth: 68
             implicitHeight: 5
             radius: 3
-            color: "#252525"
+            color: Theme.surfaceBase
             Layout.alignment: Qt.AlignVCenter
             Layout.preferredWidth: visible ? 68 : 0
             clip: true

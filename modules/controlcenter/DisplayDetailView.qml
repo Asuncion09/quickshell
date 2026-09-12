@@ -464,7 +464,7 @@ Item {
                 implicitHeight: 28
                 radius: 14
                 readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 0
-                color: isKeyFocused ? "#2c2c2c" : Theme.surfaceHover
+                color: isKeyFocused ? Theme.surfaceKeyFocus : Theme.surfaceHover
                 opacity: (isKeyFocused || backMouse.containsMouse) ? 1.0 : 0.0
                 border.width: isKeyFocused ? 1.5 : 0
                 border.color: Theme.highlight
@@ -546,7 +546,7 @@ Item {
                 Layout.fillWidth: true
                 implicitHeight: 96
                 radius: 12
-                color: "#161616"
+                color: Theme.bgDark
                 border.color: Theme.borderDark
                 border.width: 1
                 clip: true
@@ -631,12 +631,12 @@ Item {
                             radius: 8
                             border.width: 0
 
-                            // Color sólido completo: seleccionado (#3a3a3a) vs inactivo (#242424) vs arrastrando (#484848) vs hover (#2f2f2f)
+                            // Color sólido completo: seleccionado (Theme.surfaceKeyFocus) vs inactivo (Theme.surfaceBase) vs arrastrando (Theme.selectionBg) vs hover (Theme.surfaceHover)
                             color: {
-                                if (mon.disabled) return "#1c1c1c";
-                                if (monitorRectContainer.isDragging) return "#484848";
-                                if (isSelected) return "#3a3a3a";
-                                return monMouse.containsMouse ? "#2f2f2f" : "#242424";
+                                if (mon.disabled) return Theme.surfaceBase;
+                                if (monitorRectContainer.isDragging) return Theme.selectionBg;
+                                if (isSelected) return Theme.surfaceKeyFocus;
+                                return monMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase;
                             }
                             opacity: mon.disabled ? 0.35 : (monitorRectContainer.isDragging ? 0.92 : 1.0)
                             scale: monitorRectContainer.isDragging ? 1.05 : 1.0
@@ -652,7 +652,7 @@ Item {
                                     text: mon.name.startsWith("eDP") ? "󰌢" : "󰍹"
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Math.round(Math.min(18, Math.max(13, monH * 0.35)))
-                                    color: (isSelected || monitorRectContainer.isDragging) ? "#ffffff" : Theme.textSecondary
+                                    color: (isSelected || monitorRectContainer.isDragging) ? Theme.textBright : Theme.textSecondary
                                     Layout.alignment: Qt.AlignHCenter
                                 }
 
@@ -661,7 +661,7 @@ Item {
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Math.round(Math.min(12, Math.max(10, monH * 0.24)))
                                     font.weight: (isSelected || monitorRectContainer.isDragging) ? Font.Bold : Font.DemiBold
-                                    color: (isSelected || monitorRectContainer.isDragging) ? "#ffffff" : Theme.textSecondary
+                                    color: (isSelected || monitorRectContainer.isDragging) ? Theme.textBright : Theme.textSecondary
                                     elide: Text.ElideRight
                                     Layout.alignment: Qt.AlignHCenter
                                 }
@@ -758,7 +758,7 @@ Item {
                     Layout.fillWidth: true
                     radius: 8
                     border.width: 0
-                    color: isSelected ? "#3a3a3a" : (pillMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
+                    color: isSelected ? Theme.surfaceKeyFocus : (pillMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase)
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
@@ -770,7 +770,7 @@ Item {
                             text: modelData.name.startsWith("eDP") ? "󰌢" : "󰍹"
                             font.family: Theme.fontFamily
                             font.pixelSize: 13
-                            color: isSelected ? "#ffffff" : Theme.textMuted
+                            color: isSelected ? Theme.textBright : Theme.textMuted
                         }
 
                         Text {
@@ -778,7 +778,7 @@ Item {
                             font.family: Theme.fontFamily
                             font.pixelSize: 12
                             font.weight: isSelected ? Font.DemiBold : Font.Normal
-                            color: isSelected ? "#ffffff" : Theme.textSecondary
+                            color: isSelected ? Theme.textBright : Theme.textSecondary
                         }
                     }
 
@@ -846,7 +846,7 @@ Item {
                             readonly property bool isOpen: root.openMenu === "resolution"
                             readonly property bool isHovered: modeRowMouse.containsMouse
 
-                            color: isKeyFocused ? "#2c2c2c" : Theme.surfaceHover
+                            color: isKeyFocused ? Theme.surfaceKeyFocus : Theme.surfaceHover
                             opacity: isKeyFocused ? 1.0 : (isHovered ? 1.0 : (isOpen ? 0.35 : 0.0))
 
                             border.width: isKeyFocused ? 1.5 : 0
@@ -968,7 +968,7 @@ Item {
                                             }
                                             return { res: raw, rate: "" };
                                         }
-                                        color: isKeyFocused ? "#383838" : (isCurrent ? Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.12) : "transparent")
+                                        color: isKeyFocused ? Theme.surfaceKeyFocus : (isCurrent ? Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.12) : "transparent")
                                         border.width: isKeyFocused ? 1.5 : 0
                                         border.color: Theme.highlight
 
@@ -991,7 +991,7 @@ Item {
                                                 text: modeItemBox.parts.res
                                                 font.family: Theme.fontFamily
                                                 font.pixelSize: 11
-                                                color: (modeItemBox.isKeyFocused || modeItemBox.isCurrent) ? "#ffffff" : Theme.textSecondary
+                                                color: (modeItemBox.isKeyFocused || modeItemBox.isCurrent) ? Theme.textBright : Theme.textSecondary
                                                 font.weight: (modeItemBox.isKeyFocused || modeItemBox.isCurrent) ? Font.DemiBold : Font.Normal
                                                 Layout.fillWidth: true
                                             }
@@ -1069,7 +1069,7 @@ Item {
                             readonly property bool isOpen: root.openMenu === "scale"
                             readonly property bool isHovered: scaleRowMouse.containsMouse
 
-                            color: isKeyFocused ? "#2c2c2c" : Theme.surfaceHover
+                            color: isKeyFocused ? Theme.surfaceKeyFocus : Theme.surfaceHover
                             opacity: isKeyFocused ? 1.0 : (isHovered ? 1.0 : (isOpen ? 0.35 : 0.0))
 
                             border.width: isKeyFocused ? 1.5 : 0
@@ -1180,7 +1180,7 @@ Item {
                                         radius: 6
                                         readonly property bool isCurrent: Math.abs(root.selectedScale - modelData.value) < 0.01
                                         readonly property bool isKeyFocused: root.isKeyNavActive && root.openMenu === "scale" && root.menuNavIndex === index
-                                        color: isKeyFocused ? "#383838" : (isCurrent ? Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.12) : "transparent")
+                                        color: isKeyFocused ? Theme.surfaceKeyFocus : (isCurrent ? Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.12) : "transparent")
                                         border.width: isKeyFocused ? 1.5 : 0
                                         border.color: Theme.highlight
 
@@ -1202,7 +1202,7 @@ Item {
                                                 text: modelData.label
                                                 font.family: Theme.fontFamily
                                                 font.pixelSize: 11
-                                                color: (scaleItemBox.isKeyFocused || scaleItemBox.isCurrent) ? "#ffffff" : Theme.textSecondary
+                                                color: (scaleItemBox.isKeyFocused || scaleItemBox.isCurrent) ? Theme.textBright : Theme.textSecondary
                                                 font.weight: (scaleItemBox.isKeyFocused || scaleItemBox.isCurrent) ? Font.Bold : Font.Normal
                                                 Layout.fillWidth: true
                                             }
@@ -1259,7 +1259,7 @@ Item {
                             readonly property bool isOpen: root.openMenu === "orientation"
                             readonly property bool isHovered: orientRowMouse.containsMouse
 
-                            color: isKeyFocused ? "#2c2c2c" : Theme.surfaceHover
+                            color: isKeyFocused ? Theme.surfaceKeyFocus : Theme.surfaceHover
                             opacity: isKeyFocused ? 1.0 : (isHovered ? 1.0 : (isOpen ? 0.35 : 0.0))
 
                             border.width: isKeyFocused ? 1.5 : 0
@@ -1372,7 +1372,7 @@ Item {
                                         radius: 6
                                         readonly property bool isCurrent: root.selectedTransform === modelData.value
                                         readonly property bool isKeyFocused: root.isKeyNavActive && root.openMenu === "orientation" && root.menuNavIndex === index
-                                        color: isKeyFocused ? "#383838" : (isCurrent ? Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.12) : "transparent")
+                                        color: isKeyFocused ? Theme.surfaceKeyFocus : (isCurrent ? Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.12) : "transparent")
                                         border.width: isKeyFocused ? 1.5 : 0
                                         border.color: Theme.highlight
 
@@ -1394,7 +1394,7 @@ Item {
                                                 text: modelData.label
                                                 font.family: Theme.fontFamily
                                                 font.pixelSize: 11
-                                                color: (orientItemBox.isKeyFocused || orientItemBox.isCurrent) ? "#ffffff" : Theme.textSecondary
+                                                color: (orientItemBox.isKeyFocused || orientItemBox.isCurrent) ? Theme.textBright : Theme.textSecondary
                                                 font.weight: (orientItemBox.isKeyFocused || orientItemBox.isCurrent) ? Font.Bold : Font.Normal
                                                 Layout.fillWidth: true
                                             }
@@ -1481,7 +1481,7 @@ Item {
                             font.family: Theme.fontFamily
                             font.pixelSize: 11
                             font.weight: Font.Medium
-                            color: posMouse.containsMouse ? "#ffffff" : Theme.textSecondary
+                            color: posMouse.containsMouse ? Theme.textBright : Theme.textSecondary
                         }
 
                         MouseArea {
@@ -1541,7 +1541,7 @@ Item {
                 if (canApply) {
                     return isKeyFocused ? Qt.lighter(Theme.highlight, 1.15) : (applyMouse.containsMouse ? Qt.lighter(Theme.highlight, 1.08) : Theme.highlight);
                 } else {
-                    return isKeyFocused ? "#2c2c2c" : (applyMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase);
+                    return isKeyFocused ? Theme.surfaceKeyFocus : (applyMouse.containsMouse ? Theme.surfaceHover : Theme.surfaceBase);
                 }
             }
 
@@ -1562,7 +1562,7 @@ Item {
                     text: "󰄬"
                     font.family: Theme.fontFamily
                     font.pixelSize: 14
-                    color: applyBtn.canApply ? "#121212" : Theme.textMuted
+                    color: applyBtn.canApply ? Theme.textOnAccent : Theme.textMuted
                 }
 
                 Text {
@@ -1570,7 +1570,7 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 12
                     font.weight: applyBtn.canApply ? Font.Bold : Font.Medium
-                    color: applyBtn.canApply ? "#121212" : Theme.textMuted
+                    color: applyBtn.canApply ? Theme.textOnAccent : Theme.textMuted
                 }
             }
 

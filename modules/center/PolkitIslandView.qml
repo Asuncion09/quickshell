@@ -82,7 +82,7 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
                     font.weight: Font.DemiBold
-                    color: "#ffffff"
+                    color: Theme.textBright
                     Layout.fillWidth: true
                 }
 
@@ -108,7 +108,7 @@ Item {
                     text: "󰅖"
                     font.family: Theme.fontFamily
                     font.pixelSize: 13
-                    color: closeMouse.containsMouse ? "#ffffff" : Theme.textMuted
+                    color: closeMouse.containsMouse ? Theme.textBright : Theme.textMuted
                 }
 
                 MouseArea {
@@ -206,9 +206,9 @@ Item {
                             passwordCharacter: "•"
                             font.family: Theme.fontFamily
                             font.pixelSize: 13
-                            color: "#ffffff"
-                            selectionColor: "#454545"
-                            selectedTextColor: "#ffffff"
+                            color: Theme.textBright
+                            selectionColor: Theme.selectionBg
+                            selectedTextColor: Theme.textBright
                             focus: true
                             clip: true
 
@@ -305,7 +305,7 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 12
                     font.weight: Font.Medium
-                    color: cancelMouse.containsMouse ? "#ffffff" : Theme.textSecondary
+                    color: cancelMouse.containsMouse ? Theme.textBright : Theme.textSecondary
                 }
 
                 MouseArea {
@@ -341,7 +341,7 @@ Item {
                         text: PolkitService.isSuccess ? "󰄬" : "󰌾"
                         font.family: Theme.fontFamily
                         font.pixelSize: 13
-                        color: (PolkitService.isSuccess || passInput.text.length > 0 || authMouse.containsMouse) ? "#161616" : Theme.textDisabled
+                        color: (PolkitService.isSuccess || passInput.text.length > 0 || authMouse.containsMouse) ? Theme.textOnAccent : Theme.textDisabled
                     }
 
                     Text {
@@ -349,7 +349,7 @@ Item {
                         font.family: Theme.fontFamily
                         font.pixelSize: 12
                         font.weight: Font.DemiBold
-                        color: (PolkitService.isSuccess || passInput.text.length > 0 || authMouse.containsMouse) ? "#161616" : Theme.textDisabled
+                        color: (PolkitService.isSuccess || passInput.text.length > 0 || authMouse.containsMouse) ? Theme.textOnAccent : Theme.textDisabled
                     }
                 }
 

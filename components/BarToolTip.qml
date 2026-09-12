@@ -56,7 +56,7 @@ PopupWindow {
             id: shadowShape
             anchors.fill: container
             radius: 6
-            color: "#000000"
+            color: Theme.shadowColor
             visible: false
         }
 
@@ -65,7 +65,7 @@ PopupWindow {
             anchors.fill: shadowShape
             visible: Theme.pillShadowEnabled
             shadowEnabled: true
-            shadowColor: "#000000"
+            shadowColor: Theme.shadowColor
             shadowOpacity: 0.5
             shadowBlur: 0.4
             shadowVerticalOffset: 2.5
@@ -81,7 +81,7 @@ PopupWindow {
 
             radius: 6
             color: Theme.bgDark
-            border.color: "#393939"
+            border.color: Theme.borderCard
             border.width: 1
 
             opacity: root.visible ? 1.0 : 0.0
