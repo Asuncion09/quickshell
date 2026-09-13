@@ -56,6 +56,22 @@ Item {
         root.open();
     }
 
+    property int themeInitialTab: 0
+
+    function openTheme(tab) {
+        root.themeInitialTab = (tab !== undefined && tab !== null) ? tab : 0;
+        root.requestedView = 7;
+        root.open();
+    }
+
+    function openSounds() {
+        root.openTheme(1);
+    }
+
+    function openFonts() {
+        root.openTheme(2);
+    }
+
 
     function close() {
         root.isOpen = false;

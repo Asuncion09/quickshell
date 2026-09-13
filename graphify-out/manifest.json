@@ -36,9 +36,9 @@
     "semantic_hash": ""
   },
   "services/clip_daemon.py": {
-    "mtime": 1789170026.8975308,
-    "seen": 1789170053.408714,
-    "ast_hash": "c8729c344ce0e6a8a4479357f48e7d1a",
+    "mtime": 1789252535.355955,
+    "seen": 1789252753.7657378,
+    "ast_hash": "c615d454ad292e7184a6c81ca31af82a",
     "semantic_hash": ""
   },
   ".agents/rules/graphify.md": {
@@ -66,14 +66,14 @@
     "semantic_hash": "da7017866984cb65dba87583990fc3ff"
   },
   "state/power_profile.txt": {
-    "mtime": 1789163599.5408466,
-    "seen": 1789165600.2184722,
+    "mtime": 1789254319.7669878,
+    "seen": 1789254393.0730722,
     "ast_hash": "9bdf9bc213e0c26c63f33081dfa5e3b2",
     "semantic_hash": "9bdf9bc213e0c26c63f33081dfa5e3b2"
   },
   "state/wallpaper.txt": {
-    "mtime": 1789236106.6840916,
-    "seen": 1789236201.1334121,
+    "mtime": 1789255550.1121767,
+    "seen": 1789255569.0452843,
     "ast_hash": "e5bfda7db470aef15387b1ca8cdaee7a",
     "semantic_hash": ""
   },
@@ -96,9 +96,9 @@
     "semantic_hash": ""
   },
   "assets/screenshots/controlcenter.png": {
-    "mtime": 1789236632.9392262,
-    "seen": 1789237721.152232,
-    "ast_hash": "ab959059bcd5ad9fed95a63e89e1316f",
+    "mtime": 1789249797.920833,
+    "seen": 1789249809.0254176,
+    "ast_hash": "d6471ad804e4a6af373a40c6797a5037",
     "semantic_hash": ""
   },
   "assets/screenshots/island_clock.png": {
@@ -162,9 +162,9 @@
     "semantic_hash": "3b25e85550283a74932b787d25444148"
   },
   "assets/screenshots/tray_hardware.png": {
-    "mtime": 1789236583.1934125,
-    "seen": 1789237721.152273,
-    "ast_hash": "a5606200781ba673f9bbd97db11fb539",
+    "mtime": 1789249798.0558386,
+    "seen": 1789249809.0254612,
+    "ast_hash": "2a75ef283950105641e50e1d93deea55",
     "semantic_hash": ""
   },
   "assets/screenshots/workspaces_taskbar.png": {
@@ -174,9 +174,9 @@
     "semantic_hash": ""
   },
   "state/monitors.json": {
-    "mtime": 1789229167.7334332,
-    "seen": 1789229460.249164,
-    "ast_hash": "0f7e1d3d5639067fa8aebfcf6317169c",
+    "mtime": 1789258571.3085015,
+    "seen": 1789258857.2204773,
+    "ast_hash": "58d1a491bbc073b554ae2482850fe0b3",
     "semantic_hash": ""
   },
   "scripts/persist_monitors.py": {
@@ -186,14 +186,14 @@
     "semantic_hash": ""
   },
   "state/dynamic_theme.json": {
-    "mtime": 1789236106.8086388,
-    "seen": 1789236201.1333926,
+    "mtime": 1789255550.1858952,
+    "seen": 1789255569.0452666,
     "ast_hash": "2cb15e8ee3579ac84df97b9bedd8059b",
     "semantic_hash": ""
   },
   "state/theme_mode.txt": {
-    "mtime": 1789235817.8595953,
-    "seen": 1789236044.3149354,
+    "mtime": 1789249702.9439187,
+    "seen": 1789249809.0253992,
     "ast_hash": "7a86bb71effbd195930c32bcac9ec9d6",
     "semantic_hash": ""
   },
@@ -201,6 +201,36 @@
     "mtime": 1789236660.1484454,
     "seen": 1789237721.1522357,
     "ast_hash": "c378d228f8ab7dfbf4f9fcce160c6078",
+    "semantic_hash": ""
+  },
+  "scripts/list_sound_themes.py": {
+    "mtime": 1789258451.3953567,
+    "seen": 1789258857.2204583,
+    "ast_hash": "2c33927260c3e26d9b8687f8b62cb3b5",
+    "semantic_hash": ""
+  },
+  "state/sound_theme.txt": {
+    "mtime": 1789258136.0293233,
+    "seen": 1789258857.2204888,
+    "ast_hash": "0ae61bd0474e04c9f1195d4baa0213a0",
+    "semantic_hash": ""
+  },
+  "scripts/list_fonts.py": {
+    "mtime": 1789258406.3806064,
+    "seen": 1789258857.220453,
+    "ast_hash": "17b55eadbe8c065324e95a89acc1fcc2",
+    "semantic_hash": ""
+  },
+  "state/font.txt": {
+    "mtime": 1789258816.7406404,
+    "seen": 1789258857.2204843,
+    "ast_hash": "5fe0af1b7a3d40e33384357bb6577b9e",
+    "semantic_hash": ""
+  },
+  "state/sound_enabled.txt": {
+    "mtime": 1789258132.4865816,
+    "seen": 1789258857.2204874,
+    "ast_hash": "b326b5062b2f0e69046810717534cb09",
     "semantic_hash": ""
   }
 }

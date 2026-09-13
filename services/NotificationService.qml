@@ -26,20 +26,12 @@ Item {
     }
 
     function playSound(customPath) {
-        if (!root.soundEnabled) return;
-        let file = (customPath && customPath !== "") ? customPath : root.defaultSoundPath;
-
-        let proc = (root._soundProcTurn === 0) ? soundProc1 : soundProc2;
-        root._soundProcTurn = (root._soundProcTurn + 1) % 2;
-
-        if (proc.running) proc.running = false;
-        // Reproducir como flujo de evento (media.role=event) para que se mezcle con la música sin cortes
+        if (!root.soundEnabled || !SoundService.soundEnabled) return;
         if (customPath && customPath !== "") {
-            proc.command = ["sh", "-c", "canberra-gtk-play -f \"" + file + "\" 2>/dev/null || paplay --property=media.role=event \"" + file + "\""];
+            SoundService.playFile(customPath);
         } else {
-            proc.command = ["sh", "-c", "canberra-gtk-play -i message-new-instant 2>/dev/null || paplay --property=media.role=event \"" + root.defaultSoundPath + "\""];
+            SoundService.play("message-new-instant");
         }
-        proc.running = true;
     }
 
     // Estado de la interfaz

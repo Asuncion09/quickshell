@@ -248,7 +248,7 @@ PanelWindow {
             anchors.rightMargin: Theme.barMarginRight
             anchors.top: parent.top
             spacing: 8
-            z: 1
+            z: root.isControlCenterTarget ? 100 : 1
 
             // Cápsula #tray (Solo iconos de la bandeja del sistema)
             // Se auto-oculta limpiamente si no hay aplicaciones activas en la bandeja

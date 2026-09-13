@@ -13,6 +13,7 @@ Item {
     Layout.fillWidth: true
 
     signal backRequested()
+    signal themeRequested()
     signal soundRequested()
     signal wallpaperRequested()
     signal displaysRequested()
@@ -35,7 +36,7 @@ Item {
             return;
         }
         if (root.navIndex === 1) {
-            WallpaperService.setThemeMode(Theme.themeMode === "matugen" ? "default" : "matugen");
+            root.themeRequested();
             return;
         }
         if (root.navIndex === 2) {
@@ -77,10 +78,6 @@ Item {
 
         if (event.key === Qt.Key_Left) {
             root.isKeyNavActive = true;
-            if (root.navIndex === 1) {
-                WallpaperService.setThemeMode("default");
-                return true;
-            }
             root.backRequested();
             return true;
         }
@@ -91,10 +88,7 @@ Item {
                 root.navIndex = 1;
                 return true;
             }
-            if (root.navIndex === 1) {
-                WallpaperService.setThemeMode("matugen");
-                return true;
-            }
+            root.triggerCurrentItem();
             return true;
         }
 
@@ -191,11 +185,11 @@ Item {
             Layout.topMargin: 2
         }
 
-        // Tarjeta Interactiva 1: Theme Style (Selector Dual: Default vs Dynamic)
+        // Tarjeta Interactiva 1: Theme Style
         Rectangle {
             id: themeSettingCard
             Layout.fillWidth: true
-            implicitHeight: 74
+            implicitHeight: 48
             radius: 10
 
             readonly property bool isFocused: root.isKeyNavActive && root.navIndex === 1
@@ -205,33 +199,37 @@ Item {
             border.width: isFocused ? 1.5 : 0
             border.color: Theme.highlight
 
+            scale: themeMouse.pressed ? 0.98 : 1.0
+            Behavior on scale { NumberAnimation { duration: Theme.animFast } }
             Behavior on color { ColorAnimation { duration: Theme.animFast } }
             Behavior on border.width { NumberAnimation { duration: 40 } }
 
-            ColumnLayout {
+            RowLayout {
                 anchors.fill: parent
-                anchors.margins: 8
-                spacing: 8
+                anchors.leftMargin: 10
+                anchors.rightMargin: 12
+                spacing: 10
 
-                // Cabecera: Icono + Título + Etiqueta de Modo Actual
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
+                // Icono temático de Theme
+                Rectangle {
+                    implicitWidth: 32
+                    implicitHeight: 32
+                    radius: 8
+                    color: Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.16)
 
-                    Rectangle {
-                        implicitWidth: 26
-                        implicitHeight: 26
-                        radius: 7
-                        color: Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.16)
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "󰔎"
-                            font.family: Theme.fontFamily
-                            font.pixelSize: 14
-                            color: Theme.highlight
-                        }
+                    Text {
+                        anchors.centerIn: parent
+                        text: "󰔎"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 16
+                        color: Theme.highlight
                     }
+                }
+
+                // Textos (Título y Modo activo)
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
 
                     Text {
                         text: "Theme Style"
@@ -241,143 +239,34 @@ Item {
                         color: Theme.textBright
                     }
 
-                    Item { Layout.fillWidth: true }
-
                     Text {
-                        text: Theme.themeMode === "matugen" ? "Material You" : "Obsidian Blue"
+                        text: (Theme.themeMode === "matugen" ? "Material You" : "Obsidian Blue") + " • " + SoundService.currentThemeName + " • " + FontService.currentFontName
                         font.family: Theme.fontFamily
                         font.pixelSize: 10
                         font.weight: Font.Normal
                         color: Theme.textMuted
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
                     }
                 }
 
-                // Fila con los 2 botones selectores de modo (Default vs Dynamic)
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 6
+                // Chevron indicador de submenú
+                Text {
+                    text: "󰅂"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 13
+                    color: themeSettingCard.isHovered || themeSettingCard.isFocused ? Theme.textBright : Theme.textMuted
 
-                    // Botón 1: Default (Obsidian & Accent Blue)
-                    Rectangle {
-                        id: btnDefaultTheme
-                        Layout.fillWidth: true
-                        implicitHeight: 28
-                        radius: 7
-                        readonly property bool isSelected: Theme.themeMode === "default"
-                        readonly property bool isBtnHovered: defaultMouse.containsMouse
-
-                        color: isSelected ? Qt.rgba(Theme.defaultHighlight.r, Theme.defaultHighlight.g, Theme.defaultHighlight.b, 0.18)
-                                          : (isBtnHovered ? Theme.surfaceHover : Qt.rgba(0, 0, 0, 0.25))
-                        border.width: isSelected ? 1.5 : 1
-                        border.color: isSelected ? Theme.defaultHighlight : Theme.dividerColor
-
-                        scale: defaultMouse.pressed ? 0.96 : 1.0
-                        Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
-                        Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
-
-                        RowLayout {
-                            anchors.centerIn: parent
-                            spacing: 6
-
-                            Rectangle {
-                                width: 8
-                                height: 8
-                                radius: 4
-                                color: Theme.defaultHighlight
-                            }
-
-                            Text {
-                                text: "Default"
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 11
-                                font.weight: btnDefaultTheme.isSelected ? Font.DemiBold : Font.Normal
-                                color: btnDefaultTheme.isSelected ? Theme.textBright : Theme.textSecondary
-                            }
-
-                            Text {
-                                visible: btnDefaultTheme.isSelected
-                                text: "󰄬"
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 10
-                                color: Theme.defaultHighlight
-                            }
-                        }
-
-                        MouseArea {
-                            id: defaultMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: WallpaperService.setThemeMode("default")
-                        }
-                    }
-
-                    // Botón 2: Dynamic (Material You Matugen)
-                    Rectangle {
-                        id: btnDynamicTheme
-                        Layout.fillWidth: true
-                        implicitHeight: 28
-                        radius: 7
-                        readonly property bool isSelected: Theme.themeMode === "matugen"
-                        readonly property bool isBtnHovered: dynamicMouse.containsMouse
-
-                        color: isSelected ? Qt.rgba(root.dynamicColor.r, root.dynamicColor.g, root.dynamicColor.b, 0.18)
-                                          : (isBtnHovered ? Theme.surfaceHover : Qt.rgba(0, 0, 0, 0.25))
-                        border.width: isSelected ? 1.5 : 1
-                        border.color: isSelected ? root.dynamicColor : Theme.dividerColor
-
-                        scale: dynamicMouse.pressed ? 0.96 : 1.0
-                        Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                        Behavior on color { ColorAnimation { duration: Theme.animFast } }
-                        Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
-
-                        RowLayout {
-                            anchors.centerIn: parent
-                            spacing: 6
-
-                            Rectangle {
-                                width: 8
-                                height: 8
-                                radius: 4
-                                color: root.dynamicColor
-                            }
-
-                            Text {
-                                text: "Dynamic"
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 11
-                                font.weight: btnDynamicTheme.isSelected ? Font.DemiBold : Font.Normal
-                                color: btnDynamicTheme.isSelected ? Theme.textBright : Theme.textSecondary
-                            }
-
-                            Text {
-                                visible: btnDynamicTheme.isSelected
-                                text: "󰄬"
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 10
-                                color: root.dynamicColor
-                            }
-                        }
-
-                        MouseArea {
-                            id: dynamicMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: WallpaperService.setThemeMode("matugen")
-                        }
-                    }
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
                 }
             }
 
             MouseArea {
                 id: themeMouse
                 anchors.fill: parent
-                z: -1
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: WallpaperService.setThemeMode(Theme.themeMode === "matugen" ? "default" : "matugen")
+                onClicked: root.themeRequested()
             }
         }
 

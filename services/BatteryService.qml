@@ -226,37 +226,22 @@ Item {
         repeat: false
     }
 
-    Process {
-        id: soundPlugged
-        command: ["canberra-gtk-play", "-f", "/usr/share/sounds/freedesktop/stereo/device-added.oga"]
-    }
-
-    Process {
-        id: soundUnplugged
-        command: ["canberra-gtk-play", "-f", "/usr/share/sounds/freedesktop/stereo/device-removed.oga"]
-    }
-
-    Process {
-        id: soundAlert
-        command: ["canberra-gtk-play", "-f", "/usr/share/sounds/freedesktop/stereo/dialog-error.oga"]
-    }
-
     function playPluggedSound() {
         if (!root._audioInitialized || soundDebounceTimer.running) return;
         soundDebounceTimer.restart();
-        if (!soundPlugged.running) soundPlugged.running = true;
+        SoundService.play("device-added");
     }
 
     function playUnpluggedSound() {
         if (!root._audioInitialized || soundDebounceTimer.running) return;
         soundDebounceTimer.restart();
-        if (!soundUnplugged.running) soundUnplugged.running = true;
+        SoundService.play("device-removed");
     }
 
     function playCriticalAlertSound() {
         if (!root._audioInitialized || soundDebounceTimer.running) return;
         soundDebounceTimer.restart();
-        if (!soundAlert.running) soundAlert.running = true;
+        SoundService.play("dialog-error");
     }
 
     onPercentageChanged: checkBatteryAlerts()
@@ -300,7 +285,7 @@ Item {
 
     // Color del ícono según las reglas del sistema
     readonly property color color: {
-        if (isCharging) return Theme.success;    // #42be65
+        if (isCharging) return Theme.batteryChargingColor;
         if (isCritical) return Theme.critical;   // #ee5396
         if (isWarning) return Theme.warning;     // #f1c40f
         return Theme.text;                       // #dde1e7

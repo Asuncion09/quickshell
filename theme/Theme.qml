@@ -52,9 +52,37 @@ QtObject {
     readonly property color textBright: "#ffffff"         // Texto blanco nítido / máximo contraste
     readonly property color selectionBg: "#454545"        // Selección de texto en campos de entrada
 
-    readonly property color success: "#42be65"            // Verde (charging / persistent)
+    readonly property color defaultSuccess: "#42be65"
+    readonly property color defaultWarning: "#f1c40f"
+    readonly property color success: isDynamic ? highlight : defaultSuccess
     readonly property color successFeedback: "#81c784"    // Verde suave para confirmación de copiado
-    readonly property color warning: "#f1c40f"            // Amarillo (batería warning)
+    readonly property color warning: defaultWarning       // Amarillo (batería warning)
+
+    // --- Perfiles de Energía y Batería (Dual Default / Matugen) ---
+    readonly property color defaultPowerEco: "#42be65"
+    readonly property color defaultPowerBalanced: defaultHighlight
+    readonly property color defaultPowerTurbo: "#f1c40f"
+    readonly property color defaultBatteryCharging: "#42be65"
+
+    readonly property color powerEcoColor: (isDynamic && dynamicPalette.colors.tertiary)
+                                           ? dynamicPalette.colors.tertiary.dark.color
+                                           : defaultPowerEco
+    readonly property color powerBalancedColor: isDynamic ? highlight : defaultPowerBalanced
+    readonly property color powerTurboColor: (isDynamic && dynamicPalette.colors.error)
+                                             ? dynamicPalette.colors.error.dark.color
+                                             : defaultPowerTurbo
+    readonly property color batteryChargingColor: (isDynamic && dynamicPalette.colors.tertiary)
+                                                  ? dynamicPalette.colors.tertiary.dark.color
+                                                  : defaultBatteryCharging
+
+    // Contraste tipográfico sobre cada píldora activa de perfil
+    readonly property color textOnPowerEco: (isDynamic && dynamicPalette.colors.on_tertiary)
+                                            ? dynamicPalette.colors.on_tertiary.dark.color
+                                            : defaultTextOnAccent
+    readonly property color textOnPowerBalanced: textOnAccent
+    readonly property color textOnPowerTurbo: (isDynamic && dynamicPalette.colors.on_error)
+                                             ? dynamicPalette.colors.on_error.dark.color
+                                             : defaultTextOnAccent
 
     // Superficies activas derivadas dinámicamente del azul del workspace o acento
     readonly property color surfaceActive: Qt.rgba(wsActiveColor.r, wsActiveColor.g, wsActiveColor.b, 0.20)
@@ -101,7 +129,7 @@ QtObject {
     readonly property real pillShadowOffsetY: 3.5
 
     // --- Tipografía ---
-    readonly property string fontFamily: "JetBrainsMono Nerd Font Propo"
+    property string fontFamily: "JetBrainsMono Nerd Font Propo"
     readonly property int fontSize: 13
     readonly property int launcherFontSize: 15
     readonly property int iconSize: 16

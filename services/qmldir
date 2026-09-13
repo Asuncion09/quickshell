@@ -16,4 +16,6 @@ singleton LockService 1.0 LockService.qml
 singleton PolkitService 1.0 PolkitService.qml
 singleton SessionService 1.0 SessionService.qml
 singleton DisplayService 1.0 DisplayService.qml
+singleton SoundService 1.0 SoundService.qml
+singleton FontService 1.0 FontService.qml
 

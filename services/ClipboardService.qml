@@ -26,7 +26,7 @@ Item {
             let preview = (item.preview || "").toLowerCase();
             let type = (item.type || "").toLowerCase();
 
-            if (text.includes(q) || preview.includes(q) || type.includes(q)) {
+            if (text.includes(q) || preview.includes(q) || type.includes(q) || (item.pinned && (q === "pinned" || q === "fijado" || q === "pin"))) {
                 matches.push(item);
             }
         }
@@ -92,8 +92,12 @@ Item {
         let list = filteredHistory;
         if (idx >= 0 && idx < list.length) {
             let item = list[idx];
-            if (item && item.text) {
-                sendCmd({ action: "copy", text: item.text });
+            if (item) {
+                if (item.type === "image") {
+                    sendCmd({ action: "copy_image", id: item.id, path: item.imagePath, mime: item.mime || "image/png" });
+                } else if (item.text) {
+                    sendCmd({ action: "copy", text: item.text });
+                }
             }
             root.close();
         }
@@ -101,6 +105,19 @@ Item {
 
     function selectCurrent() {
         selectIndex(selectedIndex);
+    }
+
+    function togglePin(itemId) {
+        if (!itemId) return;
+        sendCmd({ action: "toggle_pin", id: itemId });
+
+        // Actualización reactiva optimista de UI
+        let list = root.history.slice();
+        let idx = list.findIndex(h => h.id === itemId);
+        if (idx !== -1) {
+            list[idx].pinned = !list[idx].pinned;
+            root.history = list;
+        }
     }
 
     function deleteItem(itemId) {
@@ -118,7 +135,8 @@ Item {
 
     function clearAll() {
         sendCmd({ action: "clear" });
-        root.history = [];
+        // Preservar elementos fijados en la UI
+        root.history = root.history.filter(h => h.pinned);
         root.selectedIndex = 0;
     }
 
@@ -142,7 +160,7 @@ Item {
 
     Process {
         id: clipDaemonProc
-        command: ["python3", Qt.resolvedUrl("clip_daemon.py").toString().replace(/^file:\/\//, "")]
+        command: ["python3", "-u", Qt.resolvedUrl("clip_daemon.py").toString().replace(/^file:\/\//, "")]
         stdinEnabled: true
         running: true
 
@@ -163,11 +181,18 @@ Item {
                             list = list.slice(0, 50);
                         }
                         root.history = list;
+                    } else if (msg.type === "update_pin" && msg.id) {
+                        let list = root.history.slice();
+                        let idx = list.findIndex(h => h.id === msg.id);
+                        if (idx !== -1) {
+                            list[idx].pinned = msg.pinned;
+                            root.history = list;
+                        }
                     } else if (msg.type === "removed" && msg.id) {
                         let list = root.history.slice();
                         root.history = list.filter(h => h.id !== msg.id);
                     } else if (msg.type === "cleared") {
-                        root.history = [];
+                        root.history = root.history.filter(h => h.pinned);
                     }
                 } catch (e) {
                     console.error("[ClipboardService] Error parseando mensaje del daemon:", e, line);

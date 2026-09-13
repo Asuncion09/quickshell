@@ -16,10 +16,24 @@ Item {
     Layout.fillWidth: true
 
     readonly property var profiles: [
-        { id: "power-save", label: "Eco", icon: "󰌪", activeColor: Theme.success },
-        { id: "balanced", label: "Balance", icon: "󰾆", activeColor: Theme.wsActiveColor },
-        { id: "performance", label: "Turbo", icon: "󰓅", activeColor: Theme.warning }
+        { id: "power-save", label: "Eco", icon: "󰌪" },
+        { id: "balanced", label: "Balance", icon: "󰾆" },
+        { id: "performance", label: "Turbo", icon: "󰓅" }
     ]
+
+    function getProfileActiveColor(idx) {
+        if (idx === 0) return Theme.powerEcoColor;
+        if (idx === 1) return Theme.powerBalancedColor;
+        if (idx === 2) return Theme.powerTurboColor;
+        return Theme.highlight;
+    }
+
+    function getProfileTextColor(idx) {
+        if (idx === 0) return Theme.textOnPowerEco;
+        if (idx === 1) return Theme.textOnPowerBalanced;
+        if (idx === 2) return Theme.textOnPowerTurbo;
+        return Theme.textOnAccent;
+    }
 
     readonly property int activeIndex: {
         for (let i = 0; i < profiles.length; i++) {
@@ -135,9 +149,12 @@ Item {
             radius: 9
             clip: true
 
-            color: (root.hoveredIndex === root.activeIndex || root.focused)
-                   ? Qt.lighter(root.profiles[root.activeIndex].activeColor, 1.08)
-                   : root.profiles[root.activeIndex].activeColor
+            color: {
+                let baseCol = root.getProfileActiveColor(root.activeIndex);
+                return (root.hoveredIndex === root.activeIndex || root.focused)
+                       ? Qt.lighter(baseCol, 1.08)
+                       : baseCol;
+            }
 
             scale: (root.pressedIndex === root.activeIndex) ? 0.96 : 1.0
 
@@ -194,7 +211,7 @@ Item {
                                     text: modelData.icon
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 14
-                                    color: Theme.textOnAccent
+                                    color: root.getProfileTextColor(root.activeIndex)
                                     Layout.alignment: Qt.AlignVCenter
                                 }
 
@@ -203,7 +220,7 @@ Item {
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 11
                                     font.weight: Font.DemiBold
-                                    color: Theme.textOnAccent
+                                    color: root.getProfileTextColor(root.activeIndex)
                                     Layout.alignment: Qt.AlignVCenter
                                 }
                             }

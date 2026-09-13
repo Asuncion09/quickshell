@@ -11,7 +11,11 @@ Item {
     property string currentProfile: "balanced"
     property string label: "Balance"
     property string icon: "󰾆"
-    property color accentColor: Theme.text
+    readonly property color accentColor: {
+        if (root.currentProfile === "power-save") return Theme.powerEcoColor;
+        if (root.currentProfile === "performance") return Theme.powerTurboColor;
+        return Theme.text;
+    }
 
     readonly property string stateFilePath: Quickshell.env("HOME") + "/.config/quickshell/state/power_profile.txt"
     readonly property string applyScriptPath: Quickshell.env("HOME") + "/.config/quickshell/scripts/ryzenadj/apply-profile.sh"
@@ -21,16 +25,13 @@ Item {
         if (profile === "power-save") {
             root.label = "Eco";
             root.icon = "󰌪";
-            root.accentColor = Theme.success;
         } else if (profile === "performance") {
             root.label = "Turbo";
             root.icon = "󰓅";
-            root.accentColor = Theme.warning;
         } else {
             root.currentProfile = "balanced";
             root.label = "Balance";
             root.icon = "󰾆";
-            root.accentColor = Theme.text;
         }
     }
 

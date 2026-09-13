@@ -360,6 +360,7 @@ Item {
             }
 
             Text {
+                visible: !root.isScreenshot || root.screenshotPath === ""
                 text: "now"
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
@@ -367,14 +368,33 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
             }
 
-            Item { Layout.fillWidth: true }
+            Text {
+                visible: root.isScreenshot && root.screenshotPath !== ""
+                text: {
+                    if (!root.screenshotPath) return "";
+                    let parts = root.screenshotPath.split("/");
+                    return parts[parts.length - 1];
+                }
+                font.family: "JetBrainsMono Nerd Font Propo"
+                font.pixelSize: 10
+                color: Theme.textSecondary
+                elide: Text.ElideMiddle
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
+            }
+
+            Item {
+                visible: !root.isScreenshot || root.screenshotPath === ""
+                Layout.fillWidth: true
+            }
 
             Rectangle {
-                implicitWidth: 20
-                implicitHeight: 20
-                radius: 10
+                implicitWidth: 22
+                implicitHeight: 22
+                radius: 11
                 color: closeExpMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.22) : Qt.rgba(1, 1, 1, 0.08)
                 Layout.alignment: Qt.AlignVCenter
+                Layout.rightMargin: -5
 
                 Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
@@ -382,7 +402,7 @@ Item {
                     anchors.centerIn: parent
                     text: "󰅖"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 10
+                    font.pixelSize: 11
                     color: closeExpMouse.containsMouse ? Theme.textBright : Theme.textSecondary
                 }
 
@@ -396,14 +416,20 @@ Item {
             }
         }
 
-        // 2a. Vista previa visual de captura (Screenshot Preview Card)
+        // 2a. Vista previa visual de captura (Screenshot Preview Card - Sin sombras ni degradados)
         Rectangle {
             id: screenshotPreviewBox
             visible: root.isScreenshot && root.screenshotPath !== ""
             Layout.fillWidth: true
-            implicitHeight: 126
+            implicitHeight: {
+                if (screenshotImg.implicitWidth > 0 && screenshotImg.implicitHeight > 0) {
+                    let h = Math.round(width * screenshotImg.implicitHeight / screenshotImg.implicitWidth);
+                    return Math.max(90, Math.min(156, h));
+                }
+                return 130;
+            }
             radius: 8
-            color: Qt.rgba(0, 0, 0, 0.45)
+            color: Qt.rgba(0, 0, 0, 0.35)
             clip: true
             border.width: 1
             border.color: shotHover.containsMouse ? Qt.rgba(255, 255, 255, 0.28) : Qt.rgba(255, 255, 255, 0.08)
@@ -414,53 +440,10 @@ Item {
                 id: screenshotImg
                 anchors.fill: parent
                 source: root.screenshotPath !== "" ? ("file://" + root.screenshotPath) : ""
-                fillMode: Image.PreserveAspectCrop
+                fillMode: Image.PreserveAspectFit
                 asynchronous: true
                 cache: false
                 smooth: true
-                sourceSize.width: 360
-                sourceSize.height: 140
-            }
-
-            // Sombra inferior sutil para destacar el nombre del archivo
-            Rectangle {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                height: 28
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: "transparent" }
-                    GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.75) }
-                }
-            }
-
-            // Nombre del archivo de la captura
-            RowLayout {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                anchors.margins: 6
-                spacing: 4
-
-                Text {
-                    text: "󰄄"
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 10
-                    color: Qt.rgba(255, 255, 255, 0.75)
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: {
-                        if (!root.screenshotPath) return "";
-                        let parts = root.screenshotPath.split("/");
-                        return parts[parts.length - 1];
-                    }
-                    font.family: "JetBrainsMono Nerd Font Propo"
-                    font.pixelSize: 10
-                    color: Qt.rgba(255, 255, 255, 0.9)
-                    elide: Text.ElideMiddle
-                }
             }
 
             // Overlay al pasar el cursor (hint de "Click para abrir")

@@ -53,18 +53,14 @@ Item {
     property bool _readyForOsd: false
     property int _lastReportedPercent: -1
 
-    onBrightnessPercentChanged: {
-        if (root._readyForOsd) {
-            if (root.brightnessPercent !== root._lastReportedPercent) {
-                root._lastReportedPercent = root.brightnessPercent;
-                root.brightnessChangedTriggered(root.brightnessPercent);
-            }
-        }
+    Component.onCompleted: {
+        root.refresh();
+        root.checkMonitors();
     }
 
     Timer {
         id: initTimer
-        interval: 1200
+        interval: 800
         running: true
         onTriggered: {
             root._readyForOsd = true;
@@ -128,6 +124,7 @@ Item {
                     let val = parseInt(pctStr);
                     if (!isNaN(val)) {
                         root.laptopBrightness = val;
+                        root._lastReportedPercent = val;
                     }
                 }
             }

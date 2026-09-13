@@ -89,8 +89,34 @@ ShellRoot {
         function openDisplays(): void {
             ControlCenterService.openDisplays();
         }
+        function openTheme(): void {
+            ControlCenterService.openTheme();
+        }
+        function openSounds(): void {
+            ControlCenterService.openSounds();
+        }
+        function openFonts(): void {
+            ControlCenterService.openFonts();
+        }
         function close(): void {
             ControlCenterService.close();
+        }
+    }
+
+    IpcHandler {
+        target: "sound"
+        function setTheme(theme: string): void {
+            SoundService.setTheme(theme);
+        }
+        function play(sound: string): void {
+            SoundService.play(sound);
+        }
+    }
+
+    IpcHandler {
+        target: "font"
+        function setFont(font: string): void {
+            FontService.setFont(font);
         }
     }
 
@@ -129,6 +155,12 @@ ShellRoot {
         }
         function clear(): void {
             ClipboardService.clearAll();
+        }
+        function select(idx: int): void {
+            ClipboardService.selectIndex(idx);
+        }
+        function togglePin(id: string): void {
+            ClipboardService.togglePin(id);
         }
     }
 

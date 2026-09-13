@@ -497,40 +497,39 @@ Item {
                                 Image {
                                     anchors.fill: parent
                                     source: (modelData.isScreenshot && modelData.screenshotPath) ? ("file://" + modelData.screenshotPath) : ""
-                                    sourceSize.width: 320
-                                    sourceSize.height: 100
-                                    fillMode: Image.PreserveAspectCrop
+                                    fillMode: Image.PreserveAspectFit
                                     asynchronous: true
                                     cache: false
                                     smooth: true
                                 }
 
-                                // Sombra inferior sutil para el nombre del archivo
+                                // Badge flotante compacto para el nombre de la captura sin degradados
                                 Rectangle {
-                                    anchors.left: parent.left
-                                    anchors.right: parent.right
-                                    anchors.bottom: parent.bottom
-                                    height: 24
-                                    gradient: Gradient {
-                                        GradientStop { position: 0.0; color: "transparent" }
-                                        GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.72) }
-                                    }
-                                }
-
-                                Text {
                                     anchors.left: parent.left
                                     anchors.bottom: parent.bottom
                                     anchors.margins: 4
-                                    text: {
-                                        if (!modelData.screenshotPath) return "";
-                                        let parts = modelData.screenshotPath.split("/");
-                                        return parts[parts.length - 1];
+                                    implicitHeight: 18
+                                    implicitWidth: Math.min(parent.width - 8, centerShotNameText.implicitWidth + 10)
+                                    radius: 9
+                                    color: Qt.rgba(0, 0, 0, 0.65)
+                                    border.width: 1
+                                    border.color: Qt.rgba(255, 255, 255, 0.12)
+                                    z: 2
+
+                                    Text {
+                                        id: centerShotNameText
+                                        anchors.centerIn: parent
+                                        text: {
+                                            if (!modelData.screenshotPath) return "";
+                                            let parts = modelData.screenshotPath.split("/");
+                                            return parts[parts.length - 1];
+                                        }
+                                        font.family: "JetBrainsMono Nerd Font Propo"
+                                        font.pixelSize: 9
+                                        color: Qt.rgba(255, 255, 255, 0.95)
+                                        elide: Text.ElideMiddle
+                                        width: Math.min(implicitWidth, parent.parent.width - 16)
                                     }
-                                    font.family: "JetBrainsMono Nerd Font Propo"
-                                    font.pixelSize: 10
-                                    color: Qt.rgba(255, 255, 255, 0.9)
-                                    elide: Text.ElideMiddle
-                                    width: parent.width - 10
                                 }
 
                                 MouseArea {

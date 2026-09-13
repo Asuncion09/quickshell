@@ -49,7 +49,11 @@ Item {
         id: initTimer
         interval: 1500
         running: true
-        onTriggered: root._readyForOsd = true
+        onTriggered: {
+            root._readyForOsd = true;
+            root._lastReportedPercent = root.volumePercent;
+            root._lastReportedMuted = root.isMuted;
+        }
     }
 
     property int currentPercent: 50

@@ -154,6 +154,14 @@ Item {
                             }
                             return;
                         }
+                        if ((event.key === Qt.Key_P && (event.modifiers & Qt.ControlModifier)) || (event.key === Qt.Key_P && searchField.text === "")) {
+                            event.accepted = true;
+                            let list = ClipboardService.filteredHistory;
+                            if (list.length > 0 && ClipboardService.selectedIndex >= 0 && ClipboardService.selectedIndex < list.length) {
+                                ClipboardService.togglePin(list[ClipboardService.selectedIndex].id);
+                            }
+                            return;
+                        }
                     }
                 }
 
@@ -193,7 +201,9 @@ Item {
                         return `${ClipboardService.filteredHistory.length} matches`;
                     }
                     let count = ClipboardService.history.length;
-                    return count === 1 ? "1 saved clip" : `${count} saved clips`;
+                    let pinnedCount = ClipboardService.history.filter(h => h.pinned).length;
+                    let base = count === 1 ? "1 saved clip" : `${count} saved clips`;
+                    return pinnedCount > 0 ? `${base} • ${pinnedCount} pinned` : base;
                 }
                 font.family: Theme.fontFamily
                 font.pixelSize: 10
@@ -344,11 +354,13 @@ Item {
                     radius: 7
 
                     readonly property bool isSelected: index === ClipboardService.selectedIndex
-                    readonly property bool isItemHovered: itemMouse.containsMouse || delMouse.containsMouse
+                    readonly property bool isItemHovered: itemMouse.containsMouse || delMouse.containsMouse || pinMouse.containsMouse
 
                     color: isSelected ? Theme.surfaceKeyFocus : (isItemHovered ? Theme.surfaceHover : "transparent")
-                    border.width: isSelected ? 1 : 0
-                    border.color: isSelected ? Theme.borderCard : "transparent"
+                    border.width: (isSelected || modelData.pinned) ? 1 : 0
+                    border.color: isSelected 
+                                  ? Theme.borderCard 
+                                  : (modelData.pinned ? Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.35) : "transparent")
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
                     Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
@@ -434,6 +446,35 @@ Item {
                                     color: Theme.textSecondary
                                 }
                             }
+
+                            // Tipo: Imagen / Captura de Pantalla
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: 6
+                                visible: modelData.type === "image"
+                                color: Qt.rgba(255, 255, 255, 0.06)
+                                border.width: 1
+                                border.color: Theme.borderCard
+                                clip: true
+
+                                Image {
+                                    anchors.fill: parent
+                                    source: modelData.imagePath ? ("file://" + modelData.imagePath) : ""
+                                    fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                    sourceSize: Qt.size(52, 52)
+                                    visible: status === Image.Ready
+                                }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "󰋩"
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 13
+                                    color: Theme.highlight
+                                    visible: !modelData.imagePath
+                                }
+                            }
                         }
 
                         // 2. Contenido del Texto
@@ -459,6 +500,11 @@ Item {
 
                                 Text {
                                     text: {
+                                        if (modelData.type === "image") {
+                                            let ext = (modelData.mime || "").split("/")[1] || "IMG";
+                                            let kb = Math.round((modelData.charCount || 0) / 1024);
+                                            return `${ext.toUpperCase()} • ${kb} KB`;
+                                        }
                                         if (modelData.lines > 1) {
                                             return `${modelData.lines} lines • ${modelData.charCount} chars`;
                                         }
@@ -491,6 +537,43 @@ Item {
                         RowLayout {
                             spacing: 4
                             Layout.alignment: Qt.AlignVCenter
+
+                            // Botón de Fijar (Pin / Unpin)
+                            Rectangle {
+                                id: pinBtn
+                                implicitWidth: 22
+                                implicitHeight: 22
+                                radius: 4
+                                z: 10
+                                color: pinMouse.containsMouse 
+                                       ? Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.22)
+                                       : (modelData.pinned ? Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.14) : "transparent")
+                                visible: modelData.pinned || isItemHovered || isSelected
+
+                                Behavior on color { ColorAnimation { duration: Theme.animFast } }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: modelData.pinned ? "󰤱" : "󰤰"
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 11
+                                    color: modelData.pinned ? Theme.highlight : (pinMouse.containsMouse ? Theme.textBright : Theme.textMuted)
+                                }
+
+                                MouseArea {
+                                    id: pinMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    acceptedButtons: Qt.LeftButton
+                                    preventStealing: true
+                                    onPressed: mouse => mouse.accepted = true
+                                    onClicked: mouse => {
+                                        mouse.accepted = true;
+                                        ClipboardService.togglePin(modelData.id);
+                                    }
+                                }
+                            }
 
                             // Botón de eliminar snippet individual
                             Rectangle {

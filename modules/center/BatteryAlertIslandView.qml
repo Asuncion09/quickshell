@@ -27,7 +27,7 @@ Item {
 
     // Color del tema según el estado
     readonly property color alertColor: {
-        if (root.isPluggedNotice) return Theme.success;
+        if (root.isPluggedNotice) return Theme.batteryChargingColor;
         if (root.isCriticalAlert) return Theme.critical;
         if (root.isUnpluggedNotice) {
             if (BatteryService.isWarning) return Theme.warning;
@@ -39,10 +39,10 @@ Item {
     // Borde de la cápsula
     readonly property real alertBorderWidth: Theme.pillBorderWidth
     readonly property color alertBorderColor: {
-        if (root.isPluggedNotice) return Qt.rgba(66/255, 190/255, 101/255, 0.40);
-        if (root.isCriticalAlert) return Qt.rgba(238/255, 83/255, 150/255, 0.50);
+        if (root.isPluggedNotice) return Qt.rgba(alertColor.r, alertColor.g, alertColor.b, 0.40);
+        if (root.isCriticalAlert) return Qt.rgba(alertColor.r, alertColor.g, alertColor.b, 0.50);
         if (root.isUnpluggedNotice) {
-            if (BatteryService.isWarning) return Qt.rgba(241/255, 196/255, 15/255, 0.40);
+            if (BatteryService.isWarning) return Qt.rgba(alertColor.r, alertColor.g, alertColor.b, 0.40);
             return Qt.rgba(1, 1, 1, 0.16);
         }
         return "transparent";
@@ -53,7 +53,7 @@ Item {
 
     // Color del ícono según el estado semántico
     readonly property color iconColor: {
-        if (root.isPluggedNotice) return Theme.success;
+        if (root.isPluggedNotice) return Theme.batteryChargingColor;
         if (root.isCriticalAlert) return Theme.critical;
         if (root.isUnpluggedNotice && BatteryService.isWarning) return Theme.warning;
         return Theme.textSecondary;

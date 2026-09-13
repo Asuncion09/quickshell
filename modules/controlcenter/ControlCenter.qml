@@ -12,7 +12,7 @@ Item {
     property bool _isOpen: false
     property bool isFocusedMonitor: true
     property string monitorName: ""
-    property int currentView: 0 // 0 = Principal, 1 = Wi-Fi, 2 = Bluetooth, 3 = Sound, 4 = Settings, 5 = Wallpaper, 6 = Displays
+    property int currentView: 0 // 0 = Principal, 1 = Wi-Fi, 2 = Bluetooth, 3 = Sound, 4 = Settings, 5 = Wallpaper, 6 = Displays, 7 = Theme
     property int focusedIndex: 0 // 0..11 para los elementos del panel principal
     property bool isKeyNavActive: false // Solo se activa al presionar flechas o teclado
 
@@ -152,12 +152,17 @@ Item {
         function onRequestedViewChanged() {
             if (ControlCenterService.requestedView > 0) {
                 let target = ControlCenterService.targetMonitor;
-                let shouldOpen = (target !== "") ? (target === root.monitorName) : root.isFocusedMonitor;
+                let shouldOpen = (target !== "") ? (target === root.monitorName) : (root._isOpen || root.isFocusedMonitor);
                 if (shouldOpen) {
+                    if (ControlCenterService.requestedView === 7) {
+                        themeView.currentTab = ControlCenterService.themeInitialTab;
+                    }
                     root.currentView = ControlCenterService.requestedView;
                     root.open();
                 }
-                ControlCenterService.requestedView = 0;
+                Qt.callLater(() => {
+                    ControlCenterService.requestedView = 0;
+                });
             }
         }
     }
@@ -232,6 +237,7 @@ Item {
                 if (root.currentView === 4) return settingsView.implicitHeight + 22;
                 if (root.currentView === 5) return wallpaperView.implicitHeight + 22;
                 if (root.currentView === 6) return displayView.implicitHeight + 22;
+                if (root.currentView === 7) return themeView.implicitHeight + 22;
                 return contentColumn.implicitHeight + 22;
             }
 
@@ -267,7 +273,7 @@ Item {
                         wifiView.cancelPassword();
                     } else if (root.currentView === 6 && displayView.openMenu !== "") {
                         displayView.openMenu = "";
-                    } else if (root.currentView === 3 || root.currentView === 5 || root.currentView === 6) {
+                    } else if (root.currentView === 3 || root.currentView === 5 || root.currentView === 6 || root.currentView === 7) {
                         root.currentView = 4;
                         Qt.callLater(() => mainCard.forceActiveFocus());
                     } else if (root.currentView !== 0) {
@@ -290,7 +296,7 @@ Item {
                         displayView.openMenu = "";
                         return;
                     }
-                    if (root.currentView === 3 || root.currentView === 5 || root.currentView === 6) {
+                    if (root.currentView === 3 || root.currentView === 5 || root.currentView === 6 || root.currentView === 7) {
                         event.accepted = true;
                         root.currentView = 4;
                         Qt.callLater(() => mainCard.forceActiveFocus());
@@ -357,6 +363,15 @@ Item {
                 // --- GESTIÓN DE SUBVISTA DISPLAYS (currentView === 6) ---
                 if (root.currentView === 6) {
                     if (displayView.handleKey(event)) {
+                        event.accepted = true;
+                        return;
+                    }
+                    return;
+                }
+
+                // --- GESTIÓN DE SUBVISTA TEMA (currentView === 7) ---
+                if (root.currentView === 7) {
+                    if (themeView.handleKey(event)) {
                         event.accepted = true;
                         return;
                     }
@@ -828,6 +843,11 @@ Item {
                         Qt.callLater(() => mainCard.forceActiveFocus());
                     }
 
+                    onThemeRequested: {
+                        root.currentView = 7;
+                        Qt.callLater(() => mainCard.forceActiveFocus());
+                    }
+
                     Behavior on opacity {
                         NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
                     }
@@ -881,6 +901,36 @@ Item {
                     opacity: root.currentView === 6 ? 1.0 : 0.0
                     x: root.currentView === 6 ? 0 : 20
                     scale: root.currentView === 6 ? 1.0 : 0.98
+                    visible: opacity > 0.01
+
+                    onBackRequested: {
+                        root.currentView = 4;
+                        Qt.callLater(() => mainCard.forceActiveFocus());
+                    }
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+                    }
+                    Behavior on x {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+                    }
+                    Behavior on scale {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+                    }
+                }
+
+                // ==========================================
+                // VISTA 7: Configuración de Tema (Theme Style)
+                // ==========================================
+                ThemeDetailView {
+                    id: themeView
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+
+                    opacity: root.currentView === 7 ? 1.0 : 0.0
+                    x: root.currentView === 7 ? 0 : 20
+                    scale: root.currentView === 7 ? 1.0 : 0.98
                     visible: opacity > 0.01
 
                     onBackRequested: {

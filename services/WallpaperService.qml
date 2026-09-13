@@ -7,8 +7,8 @@ import "../theme"
 Item {
     id: root
 
-    // Ruta del fondo de pantalla actualmente activo
-    property string currentWallpaper: Quickshell.env("HOME") + "/.config/hypr/media/neighbor.png"
+    // Ruta del fondo de pantalla actualmente activo (cargado de forma persistente desde state/wallpaper.txt)
+    property string currentWallpaper: ""
 
     // Lista de wallpapers detectados: [{ name: "neighbor", path: "/..." }]
     property var wallpapers: []
