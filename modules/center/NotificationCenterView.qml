@@ -54,24 +54,26 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.topMargin: 4
+        anchors.topMargin: 10
         anchors.bottomMargin: 8
-        anchors.leftMargin: 4
-        anchors.rightMargin: 4
+        anchors.leftMargin: 2
+        anchors.rightMargin: 2
         spacing: 6
 
         // --- 1. Cabecera del Centro de Notificaciones ---
         RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 26
+            Layout.preferredHeight: 32
+            Layout.leftMargin: 6
+            Layout.rightMargin: 6
             spacing: 6
 
             // Icono de campana y título (Clic para cerrar y volver al reloj, sin hover visual)
             Rectangle {
                 id: titleBtn
                 implicitWidth: titleRow.implicitWidth + 8
-                implicitHeight: 26
-                radius: 6
+                implicitHeight: 32
+                radius: 7
                 color: "transparent"
                 border.width: 0
                 Layout.alignment: Qt.AlignVCenter
@@ -84,7 +86,7 @@ Item {
                     Text {
                         text: NotificationService.dnd ? "󰂛" : "󰂚"
                         font.family: Theme.fontFamily
-                        font.pixelSize: 14
+                        font.pixelSize: 15
                         color: NotificationService.dnd ? Theme.warning : Theme.highlight
                         Layout.alignment: Qt.AlignVCenter
                     }
@@ -101,8 +103,8 @@ Item {
                     Rectangle {
                         visible: NotificationService.count > 0
                         implicitWidth: Math.max(18, countText.implicitWidth + 8)
-                        implicitHeight: 16
-                        radius: 8
+                        implicitHeight: 18
+                        radius: 9
                         color: Theme.surfaceBase
                         border.color: Theme.borderCard
                         border.width: 1
@@ -133,7 +135,7 @@ Item {
 
             Item {
                 Layout.fillWidth: true
-                implicitHeight: 26
+                implicitHeight: 32
 
                 MouseArea {
                     anchors.fill: parent
@@ -147,9 +149,9 @@ Item {
 
             // Botón de Modo No Molestar (DND) (Píldora circular borderless)
             Rectangle {
-                implicitWidth: 26
-                implicitHeight: 26
-                radius: 13
+                implicitWidth: 30
+                implicitHeight: 30
+                radius: 15
                 color: NotificationService.dnd 
                        ? (dndMouse.containsMouse ? Qt.rgba(241/255, 196/255, 15/255, 0.28) : Qt.rgba(241/255, 196/255, 15/255, 0.18))
                        : (dndMouse.containsMouse ? Theme.surfaceHover : "transparent")
@@ -164,7 +166,7 @@ Item {
                     anchors.centerIn: parent
                     text: NotificationService.dnd ? "󰂛" : "󰂚"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 13
+                    font.pixelSize: 14
                     color: NotificationService.dnd ? Theme.warning : (dndMouse.containsMouse ? Theme.text : Theme.textSecondary)
                 }
 
@@ -179,9 +181,9 @@ Item {
 
             // Botón de Limpiar todas (Píldora circular borderless)
             Rectangle {
-                implicitWidth: 26
-                implicitHeight: 26
-                radius: 13
+                implicitWidth: 30
+                implicitHeight: 30
+                radius: 15
                 visible: NotificationService.count > 0
                 color: clearMouse.containsMouse ? Theme.surfaceHover : "transparent"
                 border.width: 0
@@ -195,7 +197,7 @@ Item {
                     anchors.centerIn: parent
                     text: "󰎟"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 13
+                    font.pixelSize: 14
                     color: clearMouse.containsMouse ? Theme.critical : Theme.textSecondary
                 }
 

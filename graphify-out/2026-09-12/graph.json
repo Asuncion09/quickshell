@@ -665,7 +665,7 @@
       "node_kind": "heading",
       "norm_label": "1. habilitar copr para quickshell, matugen y herramientas hyprland",
       "source_file": "README.md",
-      "source_location": "L99"
+      "source_location": "L118"
     },
     {
       "id": "readme_2_paquetes_y_dependencias_del_sistema",
@@ -677,7 +677,7 @@
       "node_kind": "heading",
       "norm_label": "2. paquetes y dependencias del sistema",
       "source_file": "README.md",
-      "source_location": "L105"
+      "source_location": "L124"
     },
     {
       "id": "readme_3_tipograf\u00eda_e_iconos",
@@ -689,7 +689,7 @@
       "node_kind": "heading",
       "norm_label": "3. tipografia e iconos",
       "source_file": "README.md",
-      "source_location": "L145"
+      "source_location": "L168"
     },
     {
       "id": "readme_atajos_de_teclado_recomendados",
@@ -701,7 +701,7 @@
       "node_kind": "heading",
       "norm_label": "atajos de teclado recomendados",
       "source_file": "README.md",
-      "source_location": "L167"
+      "source_location": "L192"
     },
     {
       "id": "readme_autoinicio",
@@ -713,7 +713,7 @@
       "node_kind": "heading",
       "norm_label": "autoinicio",
       "source_file": "README.md",
-      "source_location": "L161"
+      "source_location": "L186"
     },
     {
       "id": "readme_caracter\u00edsticas_destacadas",
@@ -737,7 +737,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udce1 control por terminal / ipc",
       "source_file": "README.md",
-      "source_location": "L203"
+      "source_location": "L232"
     },
     {
       "id": "readme_estructura_del_proyecto",
@@ -749,7 +749,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\uddc2\ufe0f estructura del proyecto",
       "source_file": "README.md",
-      "source_location": "L223"
+      "source_location": "L256"
     },
     {
       "id": "readme_integraci\u00f3n_con_hyprland_hyprland_conf",
@@ -761,7 +761,7 @@
       "node_kind": "heading",
       "norm_label": "\u2328\ufe0f integracion con hyprland (`hyprland.conf`)",
       "source_file": "README.md",
-      "source_location": "L157"
+      "source_location": "L182"
     },
     {
       "id": "readme_quickshell_desktop_shell_para_hyprland",
@@ -785,7 +785,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udce6 requisitos e instalacion en fedora",
       "source_file": "README.md",
-      "source_location": "L97"
+      "source_location": "L116"
     },
     {
       "id": "readme_resumen_de_utilidades_clave",
@@ -797,7 +797,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udccb resumen de utilidades clave:",
       "source_file": "README.md",
-      "source_location": "L134"
+      "source_location": "L156"
     },
     {
       "id": "readme_sistema_de_tematizaci\u00f3n_dual_matugen_default",
@@ -809,7 +809,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83c\udfa8 sistema de tematizacion dual (matugen & default)",
       "source_file": "README.md",
-      "source_location": "L84"
+      "source_location": "L103"
     },
     {
       "id": "readme_soluci\u00f3n_de_problemas_frecuentes",
@@ -821,115 +821,127 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udee0\ufe0f solucion de problemas frecuentes",
       "source_file": "README.md",
-      "source_location": "L270"
+      "source_location": "L310"
     },
     {
       "id": "readme_barra_superior_completa_top_bar",
       "label": "Barra Superior Completa (Top Bar)",
       "_origin": "ast",
       "community": 11,
-      "community_name": "\ud83d\udcf8 Demostraci\u00f3n Visual",
+      "community_name": "Paneles y Di\u00e1logos",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "barra superior completa (top bar)",
       "source_file": "README.md",
-      "source_location": "L22"
+      "source_location": "L26"
     },
     {
-      "id": "readme_centro_de_control_y_submen\u00fa_de_ajustes_settings",
-      "label": "\ud83c\udf9b\ufe0f Centro de Control y Submen\u00fa de Ajustes (Settings)",
+      "id": "readme_centro_de_control_y_submen\u00fas_avanzados",
+      "label": "\ud83c\udf9b\ufe0f Centro de Control y Submen\u00fas Avanzados",
       "_origin": "ast",
       "community": 11,
-      "community_name": "\ud83d\udcf8 Demostraci\u00f3n Visual",
+      "community_name": "Paneles y Di\u00e1logos",
       "file_type": "document",
       "node_kind": "heading",
-      "norm_label": "\ud83c\udf9b\ufe0f centro de control y submenu de ajustes (settings)",
+      "norm_label": "\ud83c\udf9b\ufe0f centro de control y submenus avanzados",
       "source_file": "README.md",
-      "source_location": "L48"
+      "source_location": "L52"
     },
     {
       "id": "readme_centro_de_notificaciones",
       "label": "\ud83d\udd14 Centro de Notificaciones",
       "_origin": "ast",
       "community": 11,
-      "community_name": "\ud83d\udcf8 Demostraci\u00f3n Visual",
+      "community_name": "Paneles y Di\u00e1logos",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "\ud83d\udd14 centro de notificaciones",
       "source_file": "README.md",
-      "source_location": "L57"
+      "source_location": "L68"
     },
     {
       "id": "readme_conmutador_de_ventanas_alt_tab",
       "label": "\ud83d\udd00 Conmutador de Ventanas (Alt + Tab)",
       "_origin": "ast",
       "community": 11,
-      "community_name": "\ud83d\udcf8 Demostraci\u00f3n Visual",
+      "community_name": "Paneles y Di\u00e1logos",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "\ud83d\udd00 conmutador de ventanas (alt + tab)",
       "source_file": "README.md",
-      "source_location": "L63"
+      "source_location": "L82"
     },
     {
       "id": "readme_demostraci\u00f3n_visual",
       "label": "\ud83d\udcf8 Demostraci\u00f3n Visual",
       "_origin": "ast",
       "community": 11,
-      "community_name": "\ud83d\udcf8 Demostraci\u00f3n Visual",
+      "community_name": "Paneles y Di\u00e1logos",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "\ud83d\udcf8 demostracion visual",
       "source_file": "README.md",
-      "source_location": "L20"
+      "source_location": "L24"
+    },
+    {
+      "id": "readme_gestor_de_portapapeles_clipboard",
+      "label": "\ud83d\udccb Gestor de Portapapeles (Clipboard)",
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "Paneles y Di\u00e1logos",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "\ud83d\udccb gestor de portapapeles (clipboard)",
+      "source_file": "README.md",
+      "source_location": "L77"
     },
     {
       "id": "readme_lanzador_de_aplicaciones_spotlight",
       "label": "\ud83d\udd0d Lanzador de Aplicaciones (Spotlight)",
       "_origin": "ast",
       "community": 11,
-      "community_name": "\ud83d\udcf8 Demostraci\u00f3n Visual",
+      "community_name": "Paneles y Di\u00e1logos",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "\ud83d\udd0d lanzador de aplicaciones (spotlight)",
       "source_file": "README.md",
-      "source_location": "L42"
+      "source_location": "L46"
     },
     {
       "id": "readme_m\u00f3dulos_principales",
       "label": "M\u00f3dulos Principales",
       "_origin": "ast",
       "community": 11,
-      "community_name": "\ud83d\udcf8 Demostraci\u00f3n Visual",
+      "community_name": "Paneles y Di\u00e1logos",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "modulos principales",
       "source_file": "README.md",
-      "source_location": "L28"
+      "source_location": "L32"
     },
     {
       "id": "readme_notificaciones_en_pantalla_osd_y_alertas",
       "label": "\ud83c\udf9b\ufe0f Notificaciones en Pantalla (OSD) y Alertas",
       "_origin": "ast",
       "community": 11,
-      "community_name": "\ud83d\udcf8 Demostraci\u00f3n Visual",
+      "community_name": "Paneles y Di\u00e1logos",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "\ud83c\udf9b\ufe0f notificaciones en pantalla (osd) y alertas",
       "source_file": "README.md",
-      "source_location": "L71"
+      "source_location": "L90"
     },
     {
       "id": "readme_paneles_y_di\u00e1logos",
       "label": "Paneles y Di\u00e1logos",
       "_origin": "ast",
       "community": 11,
-      "community_name": "\ud83d\udcf8 Demostraci\u00f3n Visual",
+      "community_name": "Paneles y Di\u00e1logos",
       "file_type": "document",
       "node_kind": "heading",
       "norm_label": "paneles y dialogos",
       "source_file": "README.md",
-      "source_location": "L40"
+      "source_location": "L44"
     },
     {
       "id": "agents_rules_graphify",
@@ -1029,6 +1041,17 @@
       "file_type": "code",
       "norm_label": "persist_monitors.py",
       "source_file": "scripts/persist_monitors.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_list_fonts",
+      "label": "list_fonts.py",
+      "_origin": "ast",
+      "community": 31,
+      "community_name": "list_fonts.py",
+      "file_type": "code",
+      "norm_label": "list_fonts.py",
+      "source_file": "scripts/list_fonts.py",
       "source_location": "L1"
     },
     {
@@ -2559,7 +2582,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L134",
+      "source_location": "L156",
       "weight": 1.0
     },
     {
@@ -2570,7 +2593,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L22",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -2581,7 +2604,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L28",
+      "source_location": "L32",
       "weight": 1.0
     },
     {
@@ -2592,7 +2615,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L40",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -2603,7 +2626,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L71",
+      "source_location": "L90",
       "weight": 1.0
     },
     {
@@ -2614,7 +2637,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L161",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -2625,7 +2648,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L167",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -2636,18 +2659,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L42",
+      "source_location": "L46",
       "weight": 1.0
     },
     {
       "source": "readme_paneles_y_di\u00e1logos",
-      "target": "readme_centro_de_control_y_submen\u00fa_de_ajustes_settings",
+      "target": "readme_centro_de_control_y_submen\u00fas_avanzados",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L48",
+      "source_location": "L52",
       "weight": 1.0
     },
     {
@@ -2658,7 +2681,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L57",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_paneles_y_di\u00e1logos",
+      "target": "readme_gestor_de_portapapeles_clipboard",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L77",
       "weight": 1.0
     },
     {
@@ -2669,62 +2703,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L63",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_quickshell_desktop_shell_para_hyprland",
-      "target": "readme_integraci\u00f3n_con_hyprland_hyprland_conf",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L157",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_quickshell_desktop_shell_para_hyprland",
-      "target": "readme_demostraci\u00f3n_visual",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L20",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_quickshell_desktop_shell_para_hyprland",
-      "target": "readme_control_por_terminal_ipc",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L203",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_quickshell_desktop_shell_para_hyprland",
-      "target": "readme_estructura_del_proyecto",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L223",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_quickshell_desktop_shell_para_hyprland",
-      "target": "readme_soluci\u00f3n_de_problemas_frecuentes",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L270",
+      "source_location": "L82",
       "weight": 1.0
     },
     {
@@ -2735,7 +2714,73 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L84",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_quickshell_desktop_shell_para_hyprland",
+      "target": "readme_requisitos_e_instalaci\u00f3n_en_fedora",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_quickshell_desktop_shell_para_hyprland",
+      "target": "readme_integraci\u00f3n_con_hyprland_hyprland_conf",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L182",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_quickshell_desktop_shell_para_hyprland",
+      "target": "readme_control_por_terminal_ipc",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L232",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_quickshell_desktop_shell_para_hyprland",
+      "target": "readme_demostraci\u00f3n_visual",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_quickshell_desktop_shell_para_hyprland",
+      "target": "readme_estructura_del_proyecto",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L256",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_quickshell_desktop_shell_para_hyprland",
+      "target": "readme_soluci\u00f3n_de_problemas_frecuentes",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": "L310",
       "weight": 1.0
     },
     {
@@ -2750,14 +2795,14 @@
       "weight": 1.0
     },
     {
-      "source": "readme_quickshell_desktop_shell_para_hyprland",
-      "target": "readme_requisitos_e_instalaci\u00f3n_en_fedora",
+      "source": "readme_requisitos_e_instalaci\u00f3n_en_fedora",
+      "target": "readme_1_habilitar_copr_para_quickshell_matugen_y_herramientas_hyprland",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L97",
+      "source_location": "L118",
       "weight": 1.0
     },
     {
@@ -2768,7 +2813,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L105",
+      "source_location": "L124",
       "weight": 1.0
     },
     {
@@ -2779,18 +2824,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L145",
-      "weight": 1.0
-    },
-    {
-      "source": "readme_requisitos_e_instalaci\u00f3n_en_fedora",
-      "target": "readme_1_habilitar_copr_para_quickshell_matugen_y_herramientas_hyprland",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": "L99",
+      "source_location": "L168",
       "weight": 1.0
     },
     {
@@ -3810,5 +3844,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "83b0f9f05982b353dad35103f092a4d029f284b1"
+  "built_at_commit": "a609d597fc76c03d0dc8c5abd7c38e84656581d1"
 }

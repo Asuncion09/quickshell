@@ -464,14 +464,15 @@ Item {
                 implicitHeight: 28
                 radius: 14
                 readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 0
-                color: isKeyFocused ? Theme.surfaceKeyFocus : Theme.surfaceHover
-                opacity: (isKeyFocused || backMouse.containsMouse) ? 1.0 : 0.0
+                color: isKeyFocused ? Theme.surfaceKeyFocus : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
                 border.width: isKeyFocused ? 1.5 : 0
                 border.color: Theme.highlight
 
                 scale: backMouse.pressed ? 0.90 : 1.0
                 Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                Behavior on opacity { NumberAnimation { duration: Theme.animFast } }
+                Behavior on border.width { NumberAnimation { duration: 40 } }
+                Behavior on border.color { ColorAnimation { duration: 40 } }
+                Behavior on color { ColorAnimation { duration: backMouse.containsMouse ? Theme.animFast : 40 } }
 
                 Text {
                     anchors.centerIn: parent
@@ -480,6 +481,7 @@ Item {
                     font.pixelSize: 15
                     font.weight: Font.DemiBold
                     color: (backMouse.containsMouse || backBtn.isKeyFocused) ? Theme.text : Theme.textSecondary
+                    Behavior on color { ColorAnimation { duration: backMouse.containsMouse ? Theme.animFast : 40 } }
                 }
 
                 MouseArea {
