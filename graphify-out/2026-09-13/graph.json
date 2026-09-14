@@ -749,7 +749,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\uddc2\ufe0f estructura del proyecto",
       "source_file": "README.md",
-      "source_location": "L257"
+      "source_location": "L258"
     },
     {
       "id": "readme_integraci\u00f3n_con_hyprland_hyprland_conf",
@@ -821,7 +821,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udee0\ufe0f solucion de problemas frecuentes",
       "source_file": "README.md",
-      "source_location": "L309"
+      "source_location": "L312"
     },
     {
       "id": "readme_barra_superior_completa_top_bar",
@@ -1041,6 +1041,17 @@
       "file_type": "code",
       "norm_label": "persist_monitors.py",
       "source_file": "scripts/persist_monitors.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_list_fonts",
+      "label": "list_fonts.py",
+      "_origin": "ast",
+      "community": 31,
+      "community_name": "list_fonts.py",
+      "file_type": "code",
+      "norm_label": "list_fonts.py",
+      "source_file": "scripts/list_fonts.py",
       "source_location": "L1"
     },
     {
@@ -2758,7 +2769,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L257",
+      "source_location": "L258",
       "weight": 1.0
     },
     {
@@ -2769,7 +2780,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L309",
+      "source_location": "L312",
       "weight": 1.0
     },
     {
@@ -3833,5 +3844,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "122ac43e82eca1bdf2a5d384dc94aa87a5a3e2aa"
+  "built_at_commit": "a609d597fc76c03d0dc8c5abd7c38e84656581d1"
 }

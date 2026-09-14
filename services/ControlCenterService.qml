@@ -68,10 +68,6 @@ Item {
         root.openTheme(1);
     }
 
-    function openFonts() {
-        root.openTheme(2);
-    }
-
 
     function close() {
         root.isOpen = false;

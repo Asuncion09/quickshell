@@ -156,7 +156,7 @@ Item {
         if (matugenProc.running) matugenProc.running = false;
         matugenProc.command = [
             "sh", "-c",
-            "mkdir -p \"$HOME/.config/quickshell/state\" && /usr/bin/matugen image \"$1\" --source-color-index 0 -j hex | jq -c . | tee \"$HOME/.config/quickshell/state/dynamic_theme.json\"",
+            "mkdir -p \"$HOME/.config/quickshell/state\" && /usr/bin/matugen image \"$1\" --source-color-index 0 -t scheme-fidelity -j hex | jq -c . | tee \"$HOME/.config/quickshell/state/dynamic_theme.json\"",
             "_", cleanPath
         ];
         matugenProc.running = true;

@@ -240,7 +240,7 @@ Item {
                     }
 
                     Text {
-                        text: (Theme.themeMode === "matugen" ? "Material You" : "Obsidian Blue") + " • " + SoundService.currentThemeName + " • " + FontService.currentFontName
+                        text: (Theme.themeMode === "matugen" ? "Material You" : "Obsidian Blue") + " • " + SoundService.currentThemeName
                         font.family: Theme.fontFamily
                         font.pixelSize: 10
                         font.weight: Font.Normal

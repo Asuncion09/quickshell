@@ -14,7 +14,7 @@ Item {
 
     signal backRequested()
 
-    property int currentTab: 0 // 0: Colors, 1: Sounds, 2: Fonts
+    property int currentTab: 0 // 0: Colors, 1: Sounds
     property int navIndex: 0
     property bool isKeyNavActive: false
 
@@ -35,7 +35,7 @@ Item {
 
         if (root.currentTab === 0) {
             if (root.navIndex === 1) {
-                root.currentTab = (root.currentTab + 1) % 3;
+                root.currentTab = (root.currentTab + 1) % 2;
                 return;
             }
             if (root.navIndex === 2) {
@@ -48,7 +48,7 @@ Item {
             }
         } else if (root.currentTab === 1) {
             if (root.navIndex === 1) {
-                root.currentTab = (root.currentTab + 1) % 3;
+                root.currentTab = (root.currentTab + 1) % 2;
                 return;
             }
             if (root.navIndex === 2) {
@@ -65,17 +65,6 @@ Item {
                 }
                 return;
             }
-        } else {
-            // Tab 2: Fonts
-            if (root.navIndex === 1) {
-                root.currentTab = (root.currentTab + 1) % 3;
-                return;
-            }
-            let fontIdx = root.navIndex - 2;
-            if (fontIdx >= 0 && fontIdx < FontService.availableFonts.length) {
-                FontService.setFont(FontService.availableFonts[fontIdx].id);
-                return;
-            }
         }
     }
 
@@ -83,10 +72,8 @@ Item {
         let totalItems = 4;
         if (root.currentTab === 0) {
             totalItems = 4;
-        } else if (root.currentTab === 1) {
-            totalItems = 3 + SoundService.soundThemes.length;
         } else {
-            totalItems = 2 + FontService.availableFonts.length;
+            totalItems = 3 + SoundService.soundThemes.length;
         }
 
         if (!root.isKeyNavActive) {
@@ -114,12 +101,12 @@ Item {
                 root.backRequested();
                 return true;
             }
-            root.currentTab = (root.currentTab - 1 + 3) % 3;
+            root.currentTab = (root.currentTab - 1 + 2) % 2;
             return true;
         }
 
         if (event.key === Qt.Key_Right) {
-            root.currentTab = (root.currentTab + 1) % 3;
+            root.currentTab = (root.currentTab + 1) % 2;
             return true;
         }
 
@@ -303,45 +290,6 @@ Item {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: root.currentTab = 1
-                    }
-                }
-
-                // Tab 2: Fonts
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    radius: 6
-                    readonly property bool isTabActive: root.currentTab === 2
-                    color: isTabActive ? Theme.surfaceHover : (tabFontsMouse.containsMouse ? Qt.rgba(255,255,255,0.04) : "transparent")
-                    border.width: isTabActive ? 1 : 0
-                    border.color: isTabActive ? Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.4) : "transparent"
-
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
-
-                    RowLayout {
-                        anchors.centerIn: parent
-                        spacing: 5
-                        Text {
-                            text: "󰬚"
-                            font.family: Theme.fontFamily
-                            font.pixelSize: 12
-                            color: parent.parent.isTabActive ? Theme.highlight : Theme.textMuted
-                        }
-                        Text {
-                            text: "Fonts"
-                            font.family: Theme.fontFamily
-                            font.pixelSize: 11
-                            font.weight: parent.parent.isTabActive ? Font.DemiBold : Font.Normal
-                            color: parent.parent.isTabActive ? Theme.textBright : Theme.textMuted
-                        }
-                    }
-
-                    MouseArea {
-                        id: tabFontsMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: root.currentTab = 2
                     }
                 }
             }
@@ -766,134 +714,6 @@ Item {
                                 SoundService.preview("message-new-instant", modelData.id);
                             }
                         }
-                    }
-                }
-            }
-        }
-
-        // ==========================================
-        // 5. TAB 2: SYSTEM FONTS
-        // ==========================================
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 8
-            visible: root.currentTab === 2
-
-            // Font cards
-            Repeater {
-                model: FontService.availableFonts
-
-                delegate: Rectangle {
-                    id: fontCard
-                    required property var modelData
-                    required property int index
-
-                    Layout.fillWidth: true
-                    implicitHeight: 46
-                    radius: 10
-
-                    readonly property bool isSelected: FontService.currentFont === modelData.id
-                    readonly property bool isFocused: root.isKeyNavActive && root.navIndex === (index + 2)
-                    readonly property bool isHovered: fontMouse.containsMouse
-
-                    color: isFocused ? Theme.surfaceKeyFocus : (isHovered ? Theme.surfaceHover : Theme.surfaceBase)
-                    border.width: isFocused ? 1.5 : (isSelected ? 1.5 : 1)
-                    border.color: isFocused ? Theme.highlight : (isSelected ? Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.5) : Theme.borderModal)
-
-                    scale: fontMouse.pressed ? 0.98 : 1.0
-                    Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
-                    Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
-                    Behavior on border.width { NumberAnimation { duration: 40 } }
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 10
-                        anchors.rightMargin: 12
-                        spacing: 10
-
-                        Rectangle {
-                            implicitWidth: 30
-                            implicitHeight: 30
-                            radius: 8
-                            Layout.alignment: Qt.AlignVCenter
-                            color: fontCard.isSelected
-                                   ? Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.16)
-                                   : Qt.rgba(255, 255, 255, 0.04)
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "󰬚"
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 15
-                                color: fontCard.isSelected ? Theme.highlight : Theme.text
-                            }
-                        }
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 1
-                            Layout.alignment: Qt.AlignVCenter
-
-                            Text {
-                                text: modelData.name
-                                font.family: modelData.id
-                                font.pixelSize: 12
-                                font.weight: Font.DemiBold
-                                color: Theme.textBright
-                            }
-
-                            Text {
-                                text: modelData.desc
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 10
-                                font.weight: Font.Normal
-                                color: Theme.textMuted
-                                elide: Text.ElideRight
-                                Layout.fillWidth: true
-                            }
-                        }
-
-                        // Preview glyph in that font
-                        Text {
-                            text: "Aa"
-                            font.family: modelData.id
-                            font.pixelSize: 13
-                            font.weight: Font.Medium
-                            color: fontCard.isSelected ? Theme.highlight : Theme.textSecondary
-                            Layout.alignment: Qt.AlignVCenter
-                            Layout.rightMargin: 2
-                        }
-
-                        // Radio Check Indicator
-                        Rectangle {
-                            implicitWidth: 18
-                            implicitHeight: 18
-                            radius: 9
-                            Layout.alignment: Qt.AlignVCenter
-                            color: fontCard.isSelected ? Theme.highlight : "transparent"
-                            border.width: fontCard.isSelected ? 0 : 1.5
-                            border.color: fontCard.isSelected ? "transparent" : Theme.textMuted
-
-                            Behavior on color { ColorAnimation { duration: Theme.animFast } }
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "󰄬"
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 10
-                                color: Theme.bgDark
-                                visible: fontCard.isSelected
-                            }
-                        }
-                    }
-
-                    MouseArea {
-                        id: fontMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: FontService.setFont(modelData.id)
                     }
                 }
             }

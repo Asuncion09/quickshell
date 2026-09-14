@@ -239,9 +239,8 @@ Quickshell expone una API completa por IPC accesible mediante `quickshell ipc ca
 | :--- | :--- | :--- |
 | `theme` | `setMode("default" \| "matugen")`, `toggle()` | Cambia o alterna el modo de tema entre fijo y dinámico. |
 | `sound` | `setTheme(theme)`, `play(sound)` | Asigna el tema de sonido activo del sistema o reproduce una muestra. |
-| `font` | `setFont(font)` | Cambia en caliente la tipografía del sistema (`Theme.fontFamily`) sin reiniciar. |
 | `wallpaper` | `next()`, `prev()`, `set(path)`, `scan()` | Navega o asigna un fondo de pantalla con animación suave. |
-| `controlcenter` | `toggle()`, `open()`, `close()`, `openSettings()`, `openAudio()`, `openWallpaper()`, `openDisplays()`, `openTheme()`, `openSounds()`, `openFonts()` | Controla la apertura del Centro de Control o submenús específicos. |
+| `controlcenter` | `toggle()`, `open()`, `close()`, `openSettings()`, `openAudio()`, `openWallpaper()`, `openDisplays()`, `openTheme()`, `openSounds()` | Controla la apertura del Centro de Control o submenús específicos. |
 | `launcher` | `toggle()`, `open()`, `close()`, `next()`, `prev()`, `launch()` | Controla el lanzador Spotlight. |
 | `clipboard` | `toggle()`, `open()`, `close()`, `select(idx)`, `togglePin(id)`, `clear()` | Gestiona el historial de portapapeles, fijado de clips (Pin) y selección. |
 | `notifications` | `toggle()`, `open()`, `close()`, `clear()`, `dnd()`, `expand()` | Controla el centro de notificaciones, modo no molestar y expansión de toasts. |
@@ -264,7 +263,7 @@ Quickshell expone una API completa por IPC accesible mediante `quickshell ipc ca
 ├── modules/                 # Vistas y capas visuales de la interfaz
 │   ├── bar/                 # Lienzo y píldoras horizontales de la barra superior
 │   ├── center/              # Isla dinámica (Reloj, Media, Notificaciones, Portapapeles, Polkit)
-│   ├── controlcenter/       # Centro de Control, Ajustes, Theme Style (Colors, Sounds, Fonts), Displays, Wallpapers y Audio
+│   ├── controlcenter/       # Centro de Control, Ajustes, Theme Style (Colors, Sounds), Displays, Wallpapers y Audio
 │   ├── hardware/            # Indicadores de estado de hardware (Batería, Red, Audio)
 │   ├── launcher/            # Botón del lanzador de aplicaciones
 │   ├── lock/                # Ventana y superficie de bloqueo de pantalla
@@ -277,7 +276,6 @@ Quickshell expone una API completa por IPC accesible mediante `quickshell ipc ca
 │   └── workspaces/          # Puntos interactivos y sincronización de workspaces
 ├── scripts/                 # Scripts auxiliares y demonios en Python
 │   ├── clip_daemon.py       # Demonio de portapapeles con socket IPC y soporte de imágenes
-│   ├── list_fonts.py        # Descubrimiento e indexación de fuentes instaladas
 │   └── list_sound_themes.py # Detección e indexación de temas de sonido del sistema
 ├── services/                # Servicios singleton reactivos y conectores de sistema
 │   ├── AudioService.qml     # Control de sinks/sources mediante wpctl
@@ -287,7 +285,6 @@ Quickshell expone una API completa por IPC accesible mediante `quickshell ipc ca
 │   ├── ClipboardService.qml # Demonio y registro de portapapeles con soporte de imágenes y pin
 │   ├── ControlCenterService.qml # Estado global del panel de control
 │   ├── DisplayService.qml   # Detección y ajustes de resolución/Hz con hyprctl
-│   ├── FontService.qml      # Detección, persistencia y aplicación dinámica de fuentes
 │   ├── LauncherService.qml  # Indexación de .desktop, matemáticas y web
 │   ├── LockService.qml      # Lógica de bloqueo de pantalla y pam
 │   ├── MediaService.qml     # Cliente MPRIS de reproducción multimedia
@@ -300,9 +297,9 @@ Quickshell expone una API completa por IPC accesible mediante `quickshell ipc ca
 │   ├── SoundThemeService.qml# Gestión de temas sonoros instalados
 │   ├── SwitcherService.qml  # Historial MRU y navegación de ventanas
 │   └── WallpaperService.qml # Servicio de escaneo, persistencia y extracción con Matugen
-├── state/                   # Estado persistente (wallpaper.txt, theme_mode.txt, font.txt, sound_theme.txt, etc.)
+├── state/                   # Estado persistente (wallpaper.txt, theme_mode.txt, sound_theme.txt, etc.)
 ├── theme/
-│   └── Theme.qml            # Tokens semánticos globales, paletas fijas y dinámicas, tipografía reactiva
+│   └── Theme.qml            # Tokens semánticos globales, paletas fijas y dinámicas, tipografía JetBrains Mono Propo
 ├── shell.qml                # Punto de entrada principal y registro de controladores IPC
 └── README.md                # Documentación técnica completa
 ```

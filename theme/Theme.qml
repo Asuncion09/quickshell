@@ -129,7 +129,7 @@ QtObject {
     readonly property real pillShadowOffsetY: 3.5
 
     // --- Tipografía ---
-    property string fontFamily: "JetBrainsMono Nerd Font Propo"
+    readonly property string fontFamily: "JetBrainsMono Nerd Font Propo"
     readonly property int fontSize: 13
     readonly property int launcherFontSize: 15
     readonly property int iconSize: 16

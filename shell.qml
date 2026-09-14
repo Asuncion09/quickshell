@@ -95,9 +95,6 @@ ShellRoot {
         function openSounds(): void {
             ControlCenterService.openSounds();
         }
-        function openFonts(): void {
-            ControlCenterService.openFonts();
-        }
         function close(): void {
             ControlCenterService.close();
         }
@@ -110,13 +107,6 @@ ShellRoot {
         }
         function play(sound: string): void {
             SoundService.play(sound);
-        }
-    }
-
-    IpcHandler {
-        target: "font"
-        function setFont(font: string): void {
-            FontService.setFont(font);
         }
     }
 
