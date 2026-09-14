@@ -204,11 +204,21 @@ Item {
     readonly property int modalHeight: 395
 
     readonly property int launcherWidth: modalWidth
-    readonly property int launcherHeight: modalHeight
+    readonly property int launcherHeight: {
+        let count = LauncherService.filteredItems.length;
+        if (count <= 0) return 140;
+        let visibleCount = Math.min(7, count);
+        return 59 + (visibleCount * 42) + ((visibleCount - 1) * 4);
+    }
     readonly property int notificationCenterWidth: modalWidth
     readonly property int notificationCenterHeight: modalHeight
     readonly property int clipboardWidth: modalWidth
-    readonly property int clipboardHeight: modalHeight
+    readonly property int clipboardHeight: {
+        let count = ClipboardService.filteredHistory.length;
+        if (count <= 0) return 205;
+        let visibleCount = Math.min(6, count);
+        return 83 + (visibleCount * 48) + ((visibleCount - 1) * 4);
+    }
 
     implicitWidth: {
         if (root.isPolkitActive) {
@@ -233,8 +243,14 @@ Item {
         if (root.isPolkitActive) {
             return polkitIslandView.implicitHeight;
         }
-        if (root.isClipboardActive || root.isLauncherActive || root.isNotificationCenterActive) {
-            return modalHeight;
+        if (root.isClipboardActive) {
+            return root.clipboardHeight;
+        }
+        if (root.isLauncherActive) {
+            return root.launcherHeight;
+        }
+        if (root.isNotificationCenterActive) {
+            return root.notificationCenterHeight;
         }
         if (OsdService.isVisible) {
             return 28;
@@ -479,8 +495,8 @@ Item {
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.topMargin: 10
-            anchors.bottomMargin: 8
+            anchors.topMargin: 8
+            anchors.bottomMargin: 6
             anchors.leftMargin: 2
             anchors.rightMargin: 2
             spacing: 6
@@ -588,7 +604,7 @@ Item {
             // --- Línea Divisoria Sutil ---
             Rectangle {
                 Layout.fillWidth: true
-                height: 1
+                Layout.preferredHeight: 1
                 color: Theme.dividerColor
                 visible: LauncherService.filteredItems.length > 0
             }
@@ -596,7 +612,7 @@ Item {
             // --- Lista de Aplicaciones y Spotlight con Scroll por Hardware ---
             Item {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 280
+                Layout.fillHeight: true
                 clip: true
 
                 Text {

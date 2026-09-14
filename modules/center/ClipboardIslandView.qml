@@ -66,8 +66,8 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.topMargin: 10
-        anchors.bottomMargin: 8
+        anchors.topMargin: 8
+        anchors.bottomMargin: 6
         anchors.leftMargin: 2
         anchors.rightMargin: 2
         spacing: 6
@@ -274,14 +274,14 @@ Item {
         // Divisor Sutil
         Rectangle {
             Layout.fillWidth: true
-            height: 1
+            Layout.preferredHeight: 1
             color: Theme.dividerColor
         }
 
         // --- 3. Lista de Elementos del Portapapeles ---
         Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: 256
+            Layout.fillHeight: true
             clip: true
 
             // Estado Vacío
