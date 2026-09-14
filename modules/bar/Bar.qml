@@ -185,6 +185,7 @@ PanelWindow {
             Pill {
                 id: leftPill
                 animateSize: false
+                paddingHorizontal: 7
 
                 WorkspacesModule {
                     id: workspaces

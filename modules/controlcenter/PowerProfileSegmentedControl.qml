@@ -11,7 +11,7 @@ Item {
     property int pressedIndex: -1
     property bool completed: false
 
-    implicitWidth: 280
+    implicitWidth: 320
     implicitHeight: 38
     Layout.fillWidth: true
 
@@ -121,7 +121,7 @@ Item {
                         Text {
                             text: baseSegItem.modelData.label
                             font.family: Theme.fontFamily
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             font.weight: Font.Medium
                             color: (root.hoveredIndex === baseSegItem.index || (root.focused && root.activeIndex === baseSegItem.index))
                                    ? Theme.text : Theme.textSecondary
@@ -218,7 +218,7 @@ Item {
                                 Text {
                                     text: modelData.label
                                     font.family: Theme.fontFamily
-                                    font.pixelSize: 11
+                                    font.pixelSize: 12
                                     font.weight: Font.DemiBold
                                     color: root.getProfileTextColor(root.activeIndex)
                                     Layout.alignment: Qt.AlignVCenter

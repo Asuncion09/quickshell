@@ -9,7 +9,7 @@ import "../../services"
 Item {
     id: root
 
-    implicitWidth: 280
+    implicitWidth: 320
     implicitHeight: contentCol.implicitHeight
     height: implicitHeight
     Layout.fillWidth: true
@@ -659,7 +659,7 @@ Item {
             Text {
                 text: "Wi-Fi"
                 font.family: Theme.fontFamily
-                font.pixelSize: 13
+                font.pixelSize: 14
                 font.weight: Font.DemiBold
                 color: Theme.text
                 Layout.alignment: Qt.AlignVCenter
@@ -818,7 +818,7 @@ Item {
                             Layout.fillWidth: true
                             text: root.selectedSsid
                             font.family: Theme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: 13
                             font.weight: Font.DemiBold
                             color: Theme.text
                             elide: Text.ElideRight
@@ -828,7 +828,7 @@ Item {
                             Layout.fillWidth: true
                             text: "Enter network password"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 10
+                            font.pixelSize: 12
                             color: Theme.textMuted
                         }
                     }
@@ -865,7 +865,7 @@ Item {
                             text: root.passwordText
                             echoMode: root.showPassword ? TextInput.Normal : TextInput.Password
                             font.family: Theme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: 13
                             color: Theme.text
                             verticalAlignment: TextInput.AlignVCenter
                             clip: true
@@ -883,7 +883,7 @@ Item {
                             Text {
                                 text: "Password..."
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 11
+                                font.pixelSize: 12
                                 color: Theme.textMuted
                                 visible: !passInput.text && !passInput.activeFocus
                                 anchors.verticalCenter: parent.verticalCenter
@@ -925,7 +925,7 @@ Item {
                     visible: ControlCenterService.wifiErrorMessage !== ""
                     text: ControlCenterService.wifiErrorMessage
                     font.family: Theme.fontFamily
-                    font.pixelSize: 10
+                    font.pixelSize: 12
                     color: Theme.critical
                     wrapMode: Text.Wrap
                 }
@@ -947,7 +947,7 @@ Item {
                             anchors.centerIn: parent
                             text: "Cancel"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             color: Theme.textSecondary
                         }
 
@@ -973,7 +973,7 @@ Item {
                             anchors.centerIn: parent
                             text: root.isConnectingNet(root.selectedSsid) ? "Connecting..." : "Connect"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             font.weight: Font.Bold
                             color: Theme.textOnAccent
                         }
@@ -1000,7 +1000,7 @@ Item {
                 let enabled = NetworkService.isWifiEnabled;
                 if (!enabled) return 70;
                 if (root.displayNetworks.length === 0) return 70;
-                return Math.min(root.selectedSsid !== "" ? 150 : 270, scrollCol.implicitHeight);
+                return Math.min(root.selectedSsid !== "" ? 150 : 305, scrollCol.implicitHeight);
             }
             clip: true
 
@@ -1021,7 +1021,7 @@ Item {
                     Layout.alignment: Qt.AlignHCenter
                     text: "Wi-Fi disabled"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     color: Theme.textSecondary
                 }
             }
@@ -1051,7 +1051,7 @@ Item {
                     Layout.alignment: Qt.AlignHCenter
                     text: (!root.hasCompletedScan || root.isScanning) ? "Searching for networks..." : "No networks found"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     color: Theme.textSecondary
                 }
             }
@@ -1081,7 +1081,7 @@ Item {
                         Text {
                             text: "Known networks"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             font.weight: Font.DemiBold
                             color: Theme.textSecondary
                             Layout.leftMargin: 4
@@ -1135,7 +1135,7 @@ Item {
                                             Layout.fillWidth: true
                                             text: modelData.name
                                             font.family: Theme.fontFamily
-                                            font.pixelSize: 11
+                                            font.pixelSize: 13
                                             font.weight: modelData.connected ? Font.DemiBold : Font.Normal
                                             color: Theme.text
                                             elide: Text.ElideRight
@@ -1146,7 +1146,7 @@ Item {
                                             visible: root.isConnectingNet(modelData.name)
                                             text: "Connecting..."
                                             font.family: Theme.fontFamily
-                                            font.pixelSize: 9
+                                            font.pixelSize: 11
                                             color: Theme.wsActiveColor
                                         }
                                     }
@@ -1167,7 +1167,7 @@ Item {
                                         Text {
                                             text: "Connected"
                                             font.family: Theme.fontFamily
-                                            font.pixelSize: 10
+                                            font.pixelSize: 12
                                             font.weight: Font.Medium
                                             color: Theme.textSecondary
                                         }
@@ -1237,7 +1237,7 @@ Item {
                             Text {
                                 text: "Available networks"
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 11
+                                font.pixelSize: 12
                                 font.weight: Font.DemiBold
                                 color: Theme.textSecondary
                                 Layout.leftMargin: 4
@@ -1247,7 +1247,7 @@ Item {
                                 visible: root.isScanning
                                 text: "Searching..."
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 9
+                                font.pixelSize: 11
                                 color: Theme.wsActiveColor
                                 Layout.rightMargin: 4
                             }
@@ -1263,7 +1263,7 @@ Item {
                                 anchors.centerIn: parent
                                 text: (!root.hasCompletedScan || root.isScanning) ? "Searching for networks..." : "No networks nearby"
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 10
+                                font.pixelSize: 12
                                 color: Theme.textSecondary
                             }
                         }
@@ -1308,7 +1308,7 @@ Item {
                                             Layout.fillWidth: true
                                             text: modelData.name
                                             font.family: Theme.fontFamily
-                                            font.pixelSize: 11
+                                            font.pixelSize: 13
                                             color: Theme.text
                                             elide: Text.ElideRight
                                         }
@@ -1318,7 +1318,7 @@ Item {
                                             visible: root.isConnectingNet(modelData.name)
                                             text: "Connecting..."
                                             font.family: Theme.fontFamily
-                                            font.pixelSize: 9
+                                            font.pixelSize: 11
                                             color: Theme.wsActiveColor
                                         }
                                     }
@@ -1328,7 +1328,7 @@ Item {
                                         visible: modelData.isProtected
                                         text: "󰌾"
                                         font.family: Theme.fontFamily
-                                        font.pixelSize: 11
+                                        font.pixelSize: 12
                                         color: Theme.textMuted
                                         Layout.alignment: Qt.AlignVCenter
                                     }
@@ -1336,7 +1336,7 @@ Item {
                                     Text {
                                         text: root.isConnectingNet(modelData.name) ? "..." : "Connect"
                                         font.family: Theme.fontFamily
-                                        font.pixelSize: 10
+                                        font.pixelSize: 12
                                         font.weight: Font.Medium
                                         color: availNetMouse.containsMouse ? Theme.wsActiveColor : Theme.textMuted
                                         Layout.alignment: Qt.AlignVCenter

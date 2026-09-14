@@ -35,7 +35,7 @@ Item {
         root.valueChangedByUser(next);
     }
 
-    implicitWidth: 280
+    implicitWidth: 320
     implicitHeight: 40
     Layout.fillWidth: true
 
@@ -148,7 +148,7 @@ Item {
             Text {
                 text: root.isMuted ? "MUTED" : `${root.value}%`
                 font.family: Theme.fontFamily
-                font.pixelSize: 11
+                font.pixelSize: 13
                 font.weight: Font.DemiBold
                 color: {
                     let isCovered = (root.value - root.minValue) >= ((root.maxValue - root.minValue) * 0.88);
@@ -221,6 +221,7 @@ Item {
             }
 
             onWheel: wheel => {
+                wheel.accepted = true;
                 if (wheel.angleDelta.y > 0) {
                     root.stepUp();
                 } else if (wheel.angleDelta.y < 0) {

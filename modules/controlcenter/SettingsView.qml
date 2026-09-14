@@ -7,7 +7,7 @@ import "../../services"
 Item {
     id: root
 
-    implicitWidth: 280
+    implicitWidth: 320
     implicitHeight: contentCol.implicitHeight
     height: implicitHeight
     Layout.fillWidth: true
@@ -17,13 +17,14 @@ Item {
     signal soundRequested()
     signal wallpaperRequested()
     signal displaysRequested()
+    signal shortcutsRequested()
 
     property int navIndex: 0
     property bool isKeyNavActive: false
 
     readonly property color dynamicColor: (Theme.dynamicPalette && Theme.dynamicPalette.colors && Theme.dynamicPalette.colors.primary)
                                           ? Theme.dynamicPalette.colors.primary.dark.color
-                                          : "#81d3dd"
+                                          : Theme.highlight
 
     onVisibleChanged: {
         root.isKeyNavActive = false;
@@ -51,10 +52,14 @@ Item {
             root.displaysRequested();
             return;
         }
+        if (root.navIndex === 5) {
+            root.shortcutsRequested();
+            return;
+        }
     }
 
     function handleKey(event) {
-        let totalItems = 5; // 0: Volver, 1: Theme Style, 2: Wallpaper, 3: Sound, 4: Displays
+        let totalItems = 6; // 0: Volver, 1: Theme Style, 2: Wallpaper, 3: Sound, 4: Displays, 5: Shortcuts
 
         if (!root.isKeyNavActive) {
             if (event.key === Qt.Key_Down || event.key === Qt.Key_Up || event.key === Qt.Key_Right || event.key === Qt.Key_Left || event.key === Qt.Key_Tab) {
@@ -156,7 +161,7 @@ Item {
             Text {
                 text: "Settings"
                 font.family: Theme.fontFamily
-                font.pixelSize: 13
+                font.pixelSize: 14
                 font.weight: Font.DemiBold
                 color: Theme.text
                 Layout.alignment: Qt.AlignVCenter
@@ -178,7 +183,7 @@ Item {
         Text {
             text: "APPEARANCE"
             font.family: Theme.fontFamily
-            font.pixelSize: 10
+            font.pixelSize: 12
             font.weight: Font.DemiBold
             color: Theme.textMuted
             Layout.leftMargin: 4
@@ -234,7 +239,7 @@ Item {
                     Text {
                         text: "Theme Style"
                         font.family: Theme.fontFamily
-                        font.pixelSize: 12
+                        font.pixelSize: 13
                         font.weight: Font.DemiBold
                         color: Theme.textBright
                     }
@@ -242,7 +247,7 @@ Item {
                     Text {
                         text: (Theme.themeMode === "matugen" ? "Material You" : "Obsidian Blue") + " • " + SoundService.currentThemeName
                         font.family: Theme.fontFamily
-                        font.pixelSize: 10
+                        font.pixelSize: 12
                         font.weight: Font.Normal
                         color: Theme.textMuted
                         elide: Text.ElideRight
@@ -254,7 +259,7 @@ Item {
                 Text {
                     text: "󰅂"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 13
+                    font.pixelSize: 14
                     color: themeSettingCard.isHovered || themeSettingCard.isFocused ? Theme.textBright : Theme.textMuted
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
@@ -319,7 +324,7 @@ Item {
                     Text {
                         text: "Wallpaper"
                         font.family: Theme.fontFamily
-                        font.pixelSize: 12
+                        font.pixelSize: 13
                         font.weight: Font.DemiBold
                         color: Theme.textBright
                     }
@@ -332,7 +337,7 @@ Item {
                             return parts[parts.length - 1];
                         }
                         font.family: Theme.fontFamily
-                        font.pixelSize: 10
+                        font.pixelSize: 12
                         font.weight: Font.Normal
                         color: Theme.textMuted
                         elide: Text.ElideRight
@@ -344,7 +349,7 @@ Item {
                 Text {
                     text: "󰅂"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 13
+                    font.pixelSize: 14
                     color: wallpaperSettingCard.isHovered || wallpaperSettingCard.isFocused ? Theme.textBright : Theme.textMuted
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
@@ -366,7 +371,7 @@ Item {
         Text {
             text: "SYSTEM"
             font.family: Theme.fontFamily
-            font.pixelSize: 10
+            font.pixelSize: 12
             font.weight: Font.DemiBold
             color: Theme.textMuted
             Layout.leftMargin: 4
@@ -422,7 +427,7 @@ Item {
                     Text {
                         text: "Sound"
                         font.family: Theme.fontFamily
-                        font.pixelSize: 12
+                        font.pixelSize: 13
                         font.weight: Font.DemiBold
                         color: Theme.textBright
                     }
@@ -430,7 +435,7 @@ Item {
                     Text {
                         text: AudioService.outputDescription || "Audio devices & volume"
                         font.family: Theme.fontFamily
-                        font.pixelSize: 10
+                        font.pixelSize: 12
                         font.weight: Font.Normal
                         color: Theme.textMuted
                         elide: Text.ElideRight
@@ -442,7 +447,7 @@ Item {
                 Text {
                     text: "󰅂"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 13
+                    font.pixelSize: 14
                     color: soundSettingCard.isHovered || soundSettingCard.isFocused ? Theme.textBright : Theme.textMuted
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
@@ -507,7 +512,7 @@ Item {
                     Text {
                         text: "Displays"
                         font.family: Theme.fontFamily
-                        font.pixelSize: 12
+                        font.pixelSize: 13
                         font.weight: Font.DemiBold
                         color: Theme.textBright
                     }
@@ -522,7 +527,7 @@ Item {
                             return "Resolution, scale & arrangement";
                         }
                         font.family: Theme.fontFamily
-                        font.pixelSize: 10
+                        font.pixelSize: 12
                         font.weight: Font.Normal
                         color: Theme.textMuted
                         elide: Text.ElideRight
@@ -534,7 +539,7 @@ Item {
                 Text {
                     text: "󰅂"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 13
+                    font.pixelSize: 14
                     color: displaysSettingCard.isHovered || displaysSettingCard.isFocused ? Theme.textBright : Theme.textMuted
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
@@ -547,6 +552,104 @@ Item {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: root.displaysRequested()
+            }
+        }
+
+        // ==========================================
+        // 4. SECCIÓN DE SISTEMA Y ATAJOS
+        // ==========================================
+        Text {
+            text: "SYSTEM"
+            font.family: Theme.fontFamily
+            font.pixelSize: 12
+            font.weight: Font.DemiBold
+            color: Theme.textMuted
+            Layout.leftMargin: 4
+            Layout.topMargin: 4
+        }
+
+        // Tarjeta Interactiva 5: Atajos de Teclado
+        Rectangle {
+            id: shortcutsSettingCard
+            Layout.fillWidth: true
+            implicitHeight: 48
+            radius: 10
+
+            readonly property bool isFocused: root.isKeyNavActive && root.navIndex === 5
+            readonly property bool isHovered: shortcutsMouse.containsMouse
+
+            color: isFocused ? Theme.surfaceKeyFocus : (isHovered ? Theme.surfaceHover : Theme.surfaceBase)
+            border.width: isFocused ? 1.5 : 0
+            border.color: Theme.highlight
+
+            scale: shortcutsMouse.pressed ? 0.98 : 1.0
+            Behavior on scale { NumberAnimation { duration: Theme.animFast } }
+            Behavior on color { ColorAnimation { duration: Theme.animFast } }
+            Behavior on border.width { NumberAnimation { duration: 40 } }
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 10
+                anchors.rightMargin: 12
+                spacing: 10
+
+                // Icono temático de Teclado
+                Rectangle {
+                    implicitWidth: 32
+                    implicitHeight: 32
+                    radius: 8
+                    color: Qt.rgba(Theme.highlight.r, Theme.highlight.g, Theme.highlight.b, 0.16)
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "󰌌"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 16
+                        color: Theme.highlight
+                    }
+                }
+
+                // Textos (Título y subtítulo descriptivo)
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+
+                    Text {
+                        text: "Shortcuts"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 13
+                        font.weight: Font.DemiBold
+                        color: Theme.textBright
+                    }
+
+                    Text {
+                        text: "Atajos de teclado y gestos del sistema"
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 12
+                        font.weight: Font.Normal
+                        color: Theme.textMuted
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
+                    }
+                }
+
+                // Chevron indicador de submenú
+                Text {
+                    text: "󰅂"
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 14
+                    color: shortcutsSettingCard.isHovered || shortcutsSettingCard.isFocused ? Theme.textBright : Theme.textMuted
+
+                    Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                }
+            }
+
+            MouseArea {
+                id: shortcutsMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.shortcutsRequested()
             }
         }
     }

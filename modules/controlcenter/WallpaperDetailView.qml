@@ -8,7 +8,7 @@ import "../../services"
 Item {
     id: root
 
-    implicitWidth: 304
+    implicitWidth: 320
     implicitHeight: contentCol.implicitHeight
     height: implicitHeight
     Layout.fillWidth: true
@@ -172,7 +172,7 @@ Item {
             Text {
                 text: "Wallpaper"
                 font.family: Theme.fontFamily
-                font.pixelSize: 13
+                font.pixelSize: 14
                 font.weight: Font.DemiBold
                 color: Theme.text
                 Layout.alignment: Qt.AlignVCenter
@@ -183,7 +183,7 @@ Item {
             Text {
                 text: WallpaperService.wallpapers ? (WallpaperService.wallpapers.length + " available") : ""
                 font.family: Theme.fontFamily
-                font.pixelSize: 10
+                font.pixelSize: 12
                 color: Theme.textMuted
                 Layout.alignment: Qt.AlignVCenter
             }
@@ -264,7 +264,7 @@ Item {
                                 return parts[parts.length - 1];
                             }
                             font.family: Theme.fontFamily
-                            font.pixelSize: 10
+                            font.pixelSize: 12
                             font.weight: Font.DemiBold
                             color: Theme.textBright
                             elide: Text.ElideRight
@@ -274,7 +274,7 @@ Item {
                         Text {
                             text: "Active"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 9
+                            font.pixelSize: 11
                             font.weight: Font.Normal
                             color: Theme.wsActiveColor
                         }
@@ -306,7 +306,7 @@ Item {
         Text {
             text: "SELECT WALLPAPER"
             font.family: Theme.fontFamily
-            font.pixelSize: 10
+            font.pixelSize: 12
             font.weight: Font.DemiBold
             color: Theme.textMuted
             Layout.leftMargin: 4
@@ -387,7 +387,7 @@ Item {
                                 anchors.margins: 6
                                 text: modelData.name
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 9
+                                font.pixelSize: 12
                                 font.weight: (cardItem.isHovered || cardItem.isActive) ? Font.DemiBold : Font.Normal
                                 color: (cardItem.isHovered || cardItem.isActive) ? Theme.textBright : Qt.rgba(1, 1, 1, 0.80)
                                 elide: Text.ElideRight
@@ -438,7 +438,7 @@ Item {
                             anchors.verticalCenterOffset: 0.5
                             text: "󰄬"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 10
+                            font.pixelSize: 11
                             font.weight: Font.Bold
                             color: Theme.textOnAccent
                         }

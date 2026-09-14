@@ -36,6 +36,16 @@ Item {
 
     property int requestedView: 0
 
+    function openWifi() {
+        root.requestedView = 1;
+        root.open();
+    }
+
+    function openBluetooth() {
+        root.requestedView = 2;
+        root.open();
+    }
+
     function openSettings() {
         root.requestedView = 4;
         root.open();
@@ -66,6 +76,11 @@ Item {
 
     function openSounds() {
         root.openTheme(1);
+    }
+
+    function openShortcuts() {
+        root.requestedView = 8;
+        root.open();
     }
 
 

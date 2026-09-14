@@ -7,7 +7,7 @@ import "../../services"
 Item {
     id: root
 
-    implicitWidth: 280
+    implicitWidth: 320
     implicitHeight: contentCol.implicitHeight
     height: implicitHeight
     Layout.fillWidth: true
@@ -183,7 +183,7 @@ Item {
             Text {
                 text: "Theme Style"
                 font.family: Theme.fontFamily
-                font.pixelSize: 13
+                font.pixelSize: 14
                 font.weight: Font.DemiBold
                 color: Theme.text
                 Layout.alignment: Qt.AlignVCenter
@@ -200,7 +200,7 @@ Item {
         }
 
         // ==========================================
-        // 2. SEGMENTED TAB SELECTOR (3 TABS)
+        // 2. SEGMENTED TAB SELECTOR (2 TABS: Colors, Sounds)
         // ==========================================
         Rectangle {
             Layout.fillWidth: true
@@ -233,13 +233,13 @@ Item {
                         Text {
                             text: "󰔎"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: 13
                             color: parent.parent.isTabActive ? Theme.highlight : Theme.textMuted
                         }
                         Text {
                             text: "Colors"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             font.weight: parent.parent.isTabActive ? Font.DemiBold : Font.Normal
                             color: parent.parent.isTabActive ? Theme.textBright : Theme.textMuted
                         }
@@ -272,13 +272,13 @@ Item {
                         Text {
                             text: "󰓃"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: 13
                             color: parent.parent.isTabActive ? Theme.highlight : Theme.textMuted
                         }
                         Text {
                             text: "Sounds"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             font.weight: parent.parent.isTabActive ? Font.DemiBold : Font.Normal
                             color: parent.parent.isTabActive ? Theme.textBright : Theme.textMuted
                         }
@@ -354,7 +354,7 @@ Item {
                         Text {
                             text: "Material You"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: 13
                             font.weight: Font.DemiBold
                             color: Theme.textBright
                         }
@@ -362,7 +362,7 @@ Item {
                         Text {
                             text: "Dynamic wallpaper colors"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 10
+                            font.pixelSize: 12
                             font.weight: Font.Normal
                             color: Theme.textMuted
                             Layout.fillWidth: true
@@ -385,7 +385,7 @@ Item {
                             anchors.centerIn: parent
                             text: "󰄬"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 10
+                            font.pixelSize: 11
                             color: Theme.bgDark
                             visible: matugenCard.isSelected
                         }
@@ -452,7 +452,7 @@ Item {
                         Text {
                             text: "Obsidian Blue"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: 13
                             font.weight: Font.DemiBold
                             color: Theme.textBright
                         }
@@ -460,7 +460,7 @@ Item {
                         Text {
                             text: "Default dark theme"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 10
+                            font.pixelSize: 12
                             font.weight: Font.Normal
                             color: Theme.textMuted
                             Layout.fillWidth: true
@@ -483,7 +483,7 @@ Item {
                             anchors.centerIn: parent
                             text: "󰄬"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 10
+                            font.pixelSize: 11
                             color: Theme.bgDark
                             visible: defaultCard.isSelected
                         }
@@ -554,7 +554,7 @@ Item {
                         Text {
                             text: "Sound effects"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: 13
                             font.weight: Font.DemiBold
                             color: Theme.textBright
                         }
@@ -562,7 +562,7 @@ Item {
                         Text {
                             text: SoundService.soundEnabled ? "Notifications & alerts" : "Muted system sounds"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 10
+                            font.pixelSize: 12
                             font.weight: Font.Normal
                             color: Theme.textMuted
                             elide: Text.ElideRight
@@ -663,7 +663,7 @@ Item {
                             Text {
                                 text: modelData.name
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 12
+                                font.pixelSize: 13
                                 font.weight: Font.DemiBold
                                 color: Theme.textBright
                             }
@@ -671,7 +671,7 @@ Item {
                             Text {
                                 text: modelData.desc
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 10
+                                font.pixelSize: 12
                                 font.weight: Font.Normal
                                 color: Theme.textMuted
                                 elide: Text.ElideRight
@@ -695,7 +695,7 @@ Item {
                                 anchors.centerIn: parent
                                 text: "󰄬"
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 10
+                                font.pixelSize: 11
                                 color: Theme.bgDark
                                 visible: soundThemeCard.isSelected
                             }

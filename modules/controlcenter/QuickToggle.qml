@@ -101,7 +101,7 @@ Item {
                     id: titleText
                     text: root.title
                     font.family: Theme.fontFamily
-                    font.pixelSize: 11
+                    font.pixelSize: 13
                     font.weight: Font.DemiBold
                     color: root.active ? Theme.textOnAccent : Theme.text
                     elide: Text.ElideRight
@@ -117,7 +117,7 @@ Item {
                     visible: root.loading
                     text: "󰑐"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     color: root.active ? Theme.textOnAccent : Theme.wsActiveColor
                     Layout.alignment: Qt.AlignVCenter
 

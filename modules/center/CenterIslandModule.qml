@@ -200,8 +200,8 @@ Item {
     }
 
     // Dimensiones unificadas para las vistas modales de la Isla (Launcher, Notificaciones, Clipboard)
-    readonly property int modalWidth: 370 - (6 * 2) // 358px (+40px más ancho)
-    readonly property int modalHeight: 343
+    readonly property int modalWidth: 422 - (6 * 2) // 410px
+    readonly property int modalHeight: 395
 
     readonly property int launcherWidth: modalWidth
     readonly property int launcherHeight: modalHeight

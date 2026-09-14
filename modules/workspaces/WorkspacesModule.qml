@@ -49,6 +49,42 @@ RowLayout {
         wsProcess.running = true;
     }
 
+    // Cooldown anti-rebote para touchpad y rueda del ratón
+    property bool _wheelLocked: false
+    Timer {
+        id: wheelCooldown
+        interval: 200
+        onTriggered: root._wheelLocked = false
+    }
+
+    // Navegación secuencial por los workspaces con la rueda del ratón
+    function stepWorkspace(direction) {
+        if (root._wheelLocked) return;
+        if (!root.workspaceIds || root.workspaceIds.length === 0) return;
+        let currentIndex = root.workspaceIds.indexOf(root.currentScreenActiveWs);
+        if (currentIndex === -1) currentIndex = 0;
+        let nextIndex = Math.max(0, Math.min(root.workspaceIds.length - 1, currentIndex + direction));
+        if (nextIndex !== currentIndex) {
+            root._wheelLocked = true;
+            wheelCooldown.restart();
+            root.switchToWorkspace(root.workspaceIds[nextIndex]);
+        }
+    }
+
+    // WheelHandler para alternar de workspace mediante scroll sobre el módulo
+    WheelHandler {
+        target: null
+        orientation: Qt.Vertical | Qt.Horizontal
+        onWheel: event => {
+            let delta = event.angleDelta.y !== 0 ? event.angleDelta.y : event.angleDelta.x;
+            if (delta > 0) {
+                root.stepWorkspace(-1);
+            } else if (delta < 0) {
+                root.stepWorkspace(1);
+            }
+        }
+    }
+
     // Contador reactivo para forzar reevaluación inmediata ante eventos de ventanas en Hyprland
     property int _eventVersion: 0
 

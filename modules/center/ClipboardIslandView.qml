@@ -40,7 +40,7 @@ Item {
     function ensureItemVisible(idx) {
         if (!clipListView || clipListView.count === 0) return;
         let slotHeight = 52; // 48 item height + 4 spacing
-        let visibleCount = 5; // 5 ítems completos en pantalla
+        let visibleCount = 6; // 6 ítems completos en pantalla
         let topIndex = Math.round(clipListView.contentY / slotHeight);
         let bottomIndex = topIndex + visibleCount - 1;
 

@@ -665,7 +665,7 @@
       "node_kind": "heading",
       "norm_label": "1. habilitar copr para quickshell, matugen y herramientas hyprland",
       "source_file": "README.md",
-      "source_location": "L118"
+      "source_location": "L117"
     },
     {
       "id": "readme_2_paquetes_y_dependencias_del_sistema",
@@ -677,7 +677,7 @@
       "node_kind": "heading",
       "norm_label": "2. paquetes y dependencias del sistema",
       "source_file": "README.md",
-      "source_location": "L124"
+      "source_location": "L123"
     },
     {
       "id": "readme_3_tipograf\u00eda_e_iconos",
@@ -689,7 +689,7 @@
       "node_kind": "heading",
       "norm_label": "3. tipografia e iconos",
       "source_file": "README.md",
-      "source_location": "L170"
+      "source_location": "L169"
     },
     {
       "id": "readme_atajos_de_teclado_recomendados",
@@ -701,7 +701,7 @@
       "node_kind": "heading",
       "norm_label": "atajos de teclado recomendados",
       "source_file": "README.md",
-      "source_location": "L194"
+      "source_location": "L193"
     },
     {
       "id": "readme_autoinicio",
@@ -713,7 +713,7 @@
       "node_kind": "heading",
       "norm_label": "autoinicio",
       "source_file": "README.md",
-      "source_location": "L188"
+      "source_location": "L187"
     },
     {
       "id": "readme_caracter\u00edsticas_destacadas",
@@ -737,7 +737,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udce1 control por terminal / ipc",
       "source_file": "README.md",
-      "source_location": "L234"
+      "source_location": "L233"
     },
     {
       "id": "readme_estructura_del_proyecto",
@@ -749,7 +749,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\uddc2\ufe0f estructura del proyecto",
       "source_file": "README.md",
-      "source_location": "L258"
+      "source_location": "L256"
     },
     {
       "id": "readme_integraci\u00f3n_con_hyprland_hyprland_conf",
@@ -761,7 +761,7 @@
       "node_kind": "heading",
       "norm_label": "\u2328\ufe0f integracion con hyprland (`hyprland.conf`)",
       "source_file": "README.md",
-      "source_location": "L184"
+      "source_location": "L183"
     },
     {
       "id": "readme_quickshell_desktop_shell_para_hyprland",
@@ -785,7 +785,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udce6 requisitos e instalacion en fedora",
       "source_file": "README.md",
-      "source_location": "L116"
+      "source_location": "L115"
     },
     {
       "id": "readme_resumen_de_utilidades_clave",
@@ -797,7 +797,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udccb resumen de utilidades clave:",
       "source_file": "README.md",
-      "source_location": "L156"
+      "source_location": "L155"
     },
     {
       "id": "readme_sistema_de_tematizaci\u00f3n_dual_matugen_default",
@@ -809,7 +809,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83c\udfa8 sistema de tematizacion dual (matugen & default)",
       "source_file": "README.md",
-      "source_location": "L103"
+      "source_location": "L102"
     },
     {
       "id": "readme_soluci\u00f3n_de_problemas_frecuentes",
@@ -821,7 +821,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udee0\ufe0f solucion de problemas frecuentes",
       "source_file": "README.md",
-      "source_location": "L312"
+      "source_location": "L308"
     },
     {
       "id": "readme_barra_superior_completa_top_bar",
@@ -857,7 +857,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udd14 centro de notificaciones",
       "source_file": "README.md",
-      "source_location": "L68"
+      "source_location": "L67"
     },
     {
       "id": "readme_conmutador_de_ventanas_alt_tab",
@@ -869,7 +869,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udd00 conmutador de ventanas (alt + tab)",
       "source_file": "README.md",
-      "source_location": "L82"
+      "source_location": "L81"
     },
     {
       "id": "readme_demostraci\u00f3n_visual",
@@ -893,7 +893,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udccb gestor de portapapeles (clipboard)",
       "source_file": "README.md",
-      "source_location": "L77"
+      "source_location": "L76"
     },
     {
       "id": "readme_lanzador_de_aplicaciones_spotlight",
@@ -929,7 +929,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83c\udf9b\ufe0f notificaciones en pantalla (osd) y alertas",
       "source_file": "README.md",
-      "source_location": "L90"
+      "source_location": "L89"
     },
     {
       "id": "readme_paneles_y_di\u00e1logos",
@@ -1041,17 +1041,6 @@
       "file_type": "code",
       "norm_label": "persist_monitors.py",
       "source_file": "scripts/persist_monitors.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "scripts_list_fonts",
-      "label": "list_fonts.py",
-      "_origin": "ast",
-      "community": 31,
-      "community_name": "list_fonts.py",
-      "file_type": "code",
-      "norm_label": "list_fonts.py",
-      "source_file": "scripts/list_fonts.py",
       "source_location": "L1"
     },
     {
@@ -2582,7 +2571,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L156",
+      "source_location": "L155",
       "weight": 1.0
     },
     {
@@ -2626,7 +2615,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L90",
+      "source_location": "L89",
       "weight": 1.0
     },
     {
@@ -2637,7 +2626,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L188",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -2648,7 +2637,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L194",
+      "source_location": "L193",
       "weight": 1.0
     },
     {
@@ -2681,7 +2670,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L68",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
@@ -2692,7 +2681,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L77",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -2703,7 +2692,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L82",
+      "source_location": "L81",
       "weight": 1.0
     },
     {
@@ -2714,7 +2703,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L103",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -2725,7 +2714,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L116",
+      "source_location": "L115",
       "weight": 1.0
     },
     {
@@ -2736,7 +2725,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L184",
+      "source_location": "L183",
       "weight": 1.0
     },
     {
@@ -2747,7 +2736,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L234",
+      "source_location": "L233",
       "weight": 1.0
     },
     {
@@ -2769,7 +2758,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L258",
+      "source_location": "L256",
       "weight": 1.0
     },
     {
@@ -2780,7 +2769,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L312",
+      "source_location": "L308",
       "weight": 1.0
     },
     {
@@ -2802,7 +2791,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L118",
+      "source_location": "L117",
       "weight": 1.0
     },
     {
@@ -2813,7 +2802,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L124",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -2824,7 +2813,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L170",
+      "source_location": "L169",
       "weight": 1.0
     },
     {
@@ -3844,5 +3833,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "a609d597fc76c03d0dc8c5abd7c38e84656581d1"
+  "built_at_commit": "19cc5e784c106cba09920bb411f46c4c2d601e95"
 }

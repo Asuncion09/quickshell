@@ -16,15 +16,6 @@ Item {
     property bool soundEnabled: true
     property string defaultSoundPath: "/usr/share/sounds/freedesktop/stereo/message-new-instant.oga"
 
-    // Procesos alternados para evitar colisiones o bloqueos cuando llegan notificaciones continuas
-    property int _soundProcTurn: 0
-    Process {
-        id: soundProc1
-    }
-    Process {
-        id: soundProc2
-    }
-
     function playSound(customPath) {
         if (!root.soundEnabled || !SoundService.soundEnabled) return;
         if (customPath && customPath !== "") {

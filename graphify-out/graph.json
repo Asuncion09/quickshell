@@ -665,7 +665,7 @@
       "node_kind": "heading",
       "norm_label": "1. habilitar copr para quickshell, matugen y herramientas hyprland",
       "source_file": "README.md",
-      "source_location": "L118"
+      "source_location": "L117"
     },
     {
       "id": "readme_2_paquetes_y_dependencias_del_sistema",
@@ -677,7 +677,7 @@
       "node_kind": "heading",
       "norm_label": "2. paquetes y dependencias del sistema",
       "source_file": "README.md",
-      "source_location": "L124"
+      "source_location": "L123"
     },
     {
       "id": "readme_3_tipograf\u00eda_e_iconos",
@@ -689,7 +689,7 @@
       "node_kind": "heading",
       "norm_label": "3. tipografia e iconos",
       "source_file": "README.md",
-      "source_location": "L170"
+      "source_location": "L169"
     },
     {
       "id": "readme_atajos_de_teclado_recomendados",
@@ -701,7 +701,7 @@
       "node_kind": "heading",
       "norm_label": "atajos de teclado recomendados",
       "source_file": "README.md",
-      "source_location": "L194"
+      "source_location": "L193"
     },
     {
       "id": "readme_autoinicio",
@@ -713,7 +713,7 @@
       "node_kind": "heading",
       "norm_label": "autoinicio",
       "source_file": "README.md",
-      "source_location": "L188"
+      "source_location": "L187"
     },
     {
       "id": "readme_caracter\u00edsticas_destacadas",
@@ -737,7 +737,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udce1 control por terminal / ipc",
       "source_file": "README.md",
-      "source_location": "L234"
+      "source_location": "L233"
     },
     {
       "id": "readme_estructura_del_proyecto",
@@ -749,7 +749,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\uddc2\ufe0f estructura del proyecto",
       "source_file": "README.md",
-      "source_location": "L257"
+      "source_location": "L256"
     },
     {
       "id": "readme_integraci\u00f3n_con_hyprland_hyprland_conf",
@@ -761,7 +761,7 @@
       "node_kind": "heading",
       "norm_label": "\u2328\ufe0f integracion con hyprland (`hyprland.conf`)",
       "source_file": "README.md",
-      "source_location": "L184"
+      "source_location": "L183"
     },
     {
       "id": "readme_quickshell_desktop_shell_para_hyprland",
@@ -785,7 +785,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udce6 requisitos e instalacion en fedora",
       "source_file": "README.md",
-      "source_location": "L116"
+      "source_location": "L115"
     },
     {
       "id": "readme_resumen_de_utilidades_clave",
@@ -797,7 +797,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udccb resumen de utilidades clave:",
       "source_file": "README.md",
-      "source_location": "L156"
+      "source_location": "L155"
     },
     {
       "id": "readme_sistema_de_tematizaci\u00f3n_dual_matugen_default",
@@ -809,7 +809,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83c\udfa8 sistema de tematizacion dual (matugen & default)",
       "source_file": "README.md",
-      "source_location": "L103"
+      "source_location": "L102"
     },
     {
       "id": "readme_soluci\u00f3n_de_problemas_frecuentes",
@@ -821,7 +821,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udee0\ufe0f solucion de problemas frecuentes",
       "source_file": "README.md",
-      "source_location": "L309"
+      "source_location": "L308"
     },
     {
       "id": "readme_barra_superior_completa_top_bar",
@@ -857,7 +857,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udd14 centro de notificaciones",
       "source_file": "README.md",
-      "source_location": "L68"
+      "source_location": "L67"
     },
     {
       "id": "readme_conmutador_de_ventanas_alt_tab",
@@ -869,7 +869,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udd00 conmutador de ventanas (alt + tab)",
       "source_file": "README.md",
-      "source_location": "L82"
+      "source_location": "L81"
     },
     {
       "id": "readme_demostraci\u00f3n_visual",
@@ -893,7 +893,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83d\udccb gestor de portapapeles (clipboard)",
       "source_file": "README.md",
-      "source_location": "L77"
+      "source_location": "L76"
     },
     {
       "id": "readme_lanzador_de_aplicaciones_spotlight",
@@ -929,7 +929,7 @@
       "node_kind": "heading",
       "norm_label": "\ud83c\udf9b\ufe0f notificaciones en pantalla (osd) y alertas",
       "source_file": "README.md",
-      "source_location": "L90"
+      "source_location": "L89"
     },
     {
       "id": "readme_paneles_y_di\u00e1logos",
@@ -1041,6 +1041,166 @@
       "file_type": "code",
       "norm_label": "persist_monitors.py",
       "source_file": "scripts/persist_monitors.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "agents_skills_quickshell_design_skill",
+      "label": "SKILL.md",
+      "_origin": "ast",
+      "community": 31,
+      "community_name": "Gu\u00eda de Dise\u00f1o y Est\u00e1ndares UI para Quickshell en Hyprland",
+      "file_type": "document",
+      "frontmatter": {
+        "name": "quickshell-design",
+        "description": "&gt;-"
+      },
+      "node_kind": "page",
+      "norm_label": "skill.md",
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L1"
+    },
+    {
+      "id": "agents_skills_quickshell_design_skill_1_reglas_de_oro_mandatorias",
+      "label": "1. Reglas de Oro (Mandatorias)",
+      "_origin": "ast",
+      "community": 31,
+      "community_name": "Gu\u00eda de Dise\u00f1o y Est\u00e1ndares UI para Quickshell en Hyprland",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "1. reglas de oro (mandatorias)",
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L16"
+    },
+    {
+      "id": "agents_skills_quickshell_design_skill_2_cat\u00e1logo_de_tokens_sem\u00e1nticos_theme_theme_qml",
+      "label": "2. Cat\u00e1logo de Tokens Sem\u00e1nticos (`theme/Theme.qml`)",
+      "_origin": "ast",
+      "community": 31,
+      "community_name": "Gu\u00eda de Dise\u00f1o y Est\u00e1ndares UI para Quickshell en Hyprland",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "2. catalogo de tokens semanticos (`theme/theme.qml`)",
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L35"
+    },
+    {
+      "id": "agents_skills_quickshell_design_skill_3_gu\u00eda_de_construcci\u00f3n_de_componentes",
+      "label": "3. Gu\u00eda de Construcci\u00f3n de Componentes",
+      "_origin": "ast",
+      "community": 31,
+      "community_name": "Gu\u00eda de Dise\u00f1o y Est\u00e1ndares UI para Quickshell en Hyprland",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "3. guia de construccion de componentes",
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L62"
+    },
+    {
+      "id": "agents_skills_quickshell_design_skill_4_patr\u00f3n_est\u00e1ndar_de_navegaci\u00f3n_por_teclado",
+      "label": "4. Patr\u00f3n Est\u00e1ndar de Navegaci\u00f3n por Teclado",
+      "_origin": "ast",
+      "community": 31,
+      "community_name": "Gu\u00eda de Dise\u00f1o y Est\u00e1ndares UI para Quickshell en Hyprland",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "4. patron estandar de navegacion por teclado",
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L161"
+    },
+    {
+      "id": "agents_skills_quickshell_design_skill_5_reglas_de_wayland_layershell_y_ventanas",
+      "label": "5. Reglas de Wayland LayerShell y Ventanas",
+      "_origin": "ast",
+      "community": 31,
+      "community_name": "Gu\u00eda de Dise\u00f1o y Est\u00e1ndares UI para Quickshell en Hyprland",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "5. reglas de wayland layershell y ventanas",
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L214"
+    },
+    {
+      "id": "agents_skills_quickshell_design_skill_6_modularizaci\u00f3n_de_vistas_complejas",
+      "label": "6. Modularizaci\u00f3n de Vistas Complejas",
+      "_origin": "ast",
+      "community": 31,
+      "community_name": "Gu\u00eda de Dise\u00f1o y Est\u00e1ndares UI para Quickshell en Hyprland",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "6. modularizacion de vistas complejas",
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L239"
+    },
+    {
+      "id": "agents_skills_quickshell_design_skill_a_fila_de_control_interactiva_tarjetas_agrupadas",
+      "label": "A. Fila de Control Interactiva (Tarjetas Agrupadas)",
+      "_origin": "ast",
+      "community": 31,
+      "community_name": "Gu\u00eda de Dise\u00f1o y Est\u00e1ndares UI para Quickshell en Hyprland",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "a. fila de control interactiva (tarjetas agrupadas)",
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L64"
+    },
+    {
+      "id": "agents_skills_quickshell_design_skill_b_etiquetas_de_encabezado_de_secci\u00f3n",
+      "label": "B. Etiquetas de Encabezado de Secci\u00f3n",
+      "_origin": "ast",
+      "community": 31,
+      "community_name": "Gu\u00eda de Dise\u00f1o y Est\u00e1ndares UI para Quickshell en Hyprland",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "b. etiquetas de encabezado de seccion",
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L141"
+    },
+    {
+      "id": "agents_skills_quickshell_design_skill_c_bot\u00f3n_de_acci\u00f3n_aplicar_estado_reactivo",
+      "label": "C. Bot\u00f3n de Acci\u00f3n / Aplicar (Estado Reactivo)",
+      "_origin": "ast",
+      "community": 31,
+      "community_name": "Gu\u00eda de Dise\u00f1o y Est\u00e1ndares UI para Quickshell en Hyprland",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "c. boton de accion / aplicar (estado reactivo)",
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L154"
+    },
+    {
+      "id": "agents_skills_quickshell_design_skill_gu\u00eda_de_dise\u00f1o_y_est\u00e1ndares_ui_para_quickshell_en_hyprland",
+      "label": "Gu\u00eda de Dise\u00f1o y Est\u00e1ndares UI para Quickshell en Hyprland",
+      "_origin": "ast",
+      "community": 31,
+      "community_name": "Gu\u00eda de Dise\u00f1o y Est\u00e1ndares UI para Quickshell en Hyprland",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "guia de diseno y estandares ui para quickshell en hyprland",
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L10"
+    },
+    {
+      "id": "agents_rules_quickshell_design",
+      "label": "quickshell-design.md",
+      "_origin": "ast",
+      "community": 32,
+      "community_name": "quickshell-design.md",
+      "file_type": "document",
+      "node_kind": "page",
+      "norm_label": "quickshell-design.md",
+      "source_file": ".agents/rules/quickshell-design.md",
+      "source_location": "L1"
+    },
+    {
+      "id": "agents_rules_quickshell_design_quickshell_ui_design_styling_rules",
+      "label": "Quickshell UI Design & Styling Rules",
+      "_origin": "ast",
+      "community": 32,
+      "community_name": "quickshell-design.md",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "quickshell ui design & styling rules",
+      "source_file": ".agents/rules/quickshell-design.md",
       "source_location": "L1"
     },
     {
@@ -2542,6 +2702,127 @@
       "weight": 1.0
     },
     {
+      "source": "agents_rules_quickshell_design",
+      "target": "agents_rules_quickshell_design_quickshell_ui_design_styling_rules",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents/rules/quickshell-design.md",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_skills_quickshell_design_skill",
+      "target": "agents_skills_quickshell_design_skill_gu\u00eda_de_dise\u00f1o_y_est\u00e1ndares_ui_para_quickshell_en_hyprland",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_skills_quickshell_design_skill_3_gu\u00eda_de_construcci\u00f3n_de_componentes",
+      "target": "agents_skills_quickshell_design_skill_b_etiquetas_de_encabezado_de_secci\u00f3n",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_skills_quickshell_design_skill_3_gu\u00eda_de_construcci\u00f3n_de_componentes",
+      "target": "agents_skills_quickshell_design_skill_c_bot\u00f3n_de_acci\u00f3n_aplicar_estado_reactivo",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L154",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_skills_quickshell_design_skill_3_gu\u00eda_de_construcci\u00f3n_de_componentes",
+      "target": "agents_skills_quickshell_design_skill_a_fila_de_control_interactiva_tarjetas_agrupadas",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_skills_quickshell_design_skill_gu\u00eda_de_dise\u00f1o_y_est\u00e1ndares_ui_para_quickshell_en_hyprland",
+      "target": "agents_skills_quickshell_design_skill_1_reglas_de_oro_mandatorias",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_skills_quickshell_design_skill_gu\u00eda_de_dise\u00f1o_y_est\u00e1ndares_ui_para_quickshell_en_hyprland",
+      "target": "agents_skills_quickshell_design_skill_4_patr\u00f3n_est\u00e1ndar_de_navegaci\u00f3n_por_teclado",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L161",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_skills_quickshell_design_skill_gu\u00eda_de_dise\u00f1o_y_est\u00e1ndares_ui_para_quickshell_en_hyprland",
+      "target": "agents_skills_quickshell_design_skill_5_reglas_de_wayland_layershell_y_ventanas",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L214",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_skills_quickshell_design_skill_gu\u00eda_de_dise\u00f1o_y_est\u00e1ndares_ui_para_quickshell_en_hyprland",
+      "target": "agents_skills_quickshell_design_skill_6_modularizaci\u00f3n_de_vistas_complejas",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L239",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_skills_quickshell_design_skill_gu\u00eda_de_dise\u00f1o_y_est\u00e1ndares_ui_para_quickshell_en_hyprland",
+      "target": "agents_skills_quickshell_design_skill_2_cat\u00e1logo_de_tokens_sem\u00e1nticos_theme_theme_qml",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_skills_quickshell_design_skill_gu\u00eda_de_dise\u00f1o_y_est\u00e1ndares_ui_para_quickshell_en_hyprland",
+      "target": "agents_skills_quickshell_design_skill_3_gu\u00eda_de_construcci\u00f3n_de_componentes",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents/skills/quickshell-design/SKILL.md",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
       "source": "agents_workflows_graphify",
       "target": "agents_workflows_graphify_workflow_graphify",
       "relation": "contains",
@@ -2571,7 +2852,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L156",
+      "source_location": "L155",
       "weight": 1.0
     },
     {
@@ -2615,7 +2896,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L90",
+      "source_location": "L89",
       "weight": 1.0
     },
     {
@@ -2626,7 +2907,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L188",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -2637,7 +2918,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L194",
+      "source_location": "L193",
       "weight": 1.0
     },
     {
@@ -2670,7 +2951,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L68",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
@@ -2681,7 +2962,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L77",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -2692,7 +2973,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L82",
+      "source_location": "L81",
       "weight": 1.0
     },
     {
@@ -2703,7 +2984,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L103",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -2714,7 +2995,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L116",
+      "source_location": "L115",
       "weight": 1.0
     },
     {
@@ -2725,7 +3006,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L184",
+      "source_location": "L183",
       "weight": 1.0
     },
     {
@@ -2736,7 +3017,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L234",
+      "source_location": "L233",
       "weight": 1.0
     },
     {
@@ -2758,7 +3039,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L257",
+      "source_location": "L256",
       "weight": 1.0
     },
     {
@@ -2769,7 +3050,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L309",
+      "source_location": "L308",
       "weight": 1.0
     },
     {
@@ -2791,7 +3072,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L118",
+      "source_location": "L117",
       "weight": 1.0
     },
     {
@@ -2802,7 +3083,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L124",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -2813,7 +3094,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
-      "source_location": "L170",
+      "source_location": "L169",
       "weight": 1.0
     },
     {
@@ -3833,5 +4114,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "122ac43e82eca1bdf2a5d384dc94aa87a5a3e2aa"
+  "built_at_commit": "19cc5e784c106cba09920bb411f46c4c2d601e95"
 }

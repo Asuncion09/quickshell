@@ -13,6 +13,7 @@ Item {
     property bool isFocusedMonitor: true
     property string monitorName: ""
     property int currentView: 0 // 0 = Principal, 1 = Wi-Fi, 2 = Bluetooth, 3 = Sound, 4 = Settings, 5 = Wallpaper, 6 = Displays, 7 = Theme
+    property var navStack: []
     property int focusedIndex: 0 // 0..11 para los elementos del panel principal
     property bool isKeyNavActive: false // Solo se activa al presionar flechas o teclado
 
@@ -20,7 +21,35 @@ Item {
         Qt.callLater(() => mainCard.forceActiveFocus());
     }
 
-    implicitWidth: 318 + 8
+    function navigateTo(targetView) {
+        if (root.currentView !== targetView) {
+            let stack = root.navStack.slice();
+            stack.push(root.currentView);
+            root.navStack = stack;
+            root.currentView = targetView;
+        }
+        Qt.callLater(() => mainCard.forceActiveFocus());
+    }
+
+    function goBack() {
+        if (root.currentView === 0) {
+            root.close();
+            root.navStack = [];
+            return;
+        }
+
+        let stack = root.navStack.slice();
+        if (stack.length > 0) {
+            let prevView = stack.pop();
+            root.navStack = stack;
+            root.currentView = prevView;
+            Qt.callLater(() => mainCard.forceActiveFocus());
+        } else {
+            root.close();
+        }
+    }
+
+    implicitWidth: 360 + 8
     implicitHeight: mainCard.implicitHeight + 14
     width: implicitWidth
     height: implicitHeight
@@ -35,14 +64,16 @@ Item {
             case 4: ControlCenterService.pickColor(); break;
             case 5: ControlCenterService.captureRegion(); break;
             case 6: AudioService.toggleMute(); break;
-            case 7: break; // No hacer nada en el slider de brillo (solo flechas izquierda/derecha)
-            case 8: powerProfiles.stepNext(); break;
-            case 9:
-                root.currentView = 4;
-                Qt.callLater(() => mainCard.forceActiveFocus());
+            case 7: root.navigateTo(3); break; // Botón externo detalle audio
+            case 8:
+                let cur = BrightnessService.getBrightness(root.monitorName);
+                BrightnessService.setBrightness(cur > 10 ? 10 : 100, root.monitorName);
                 break;
-            case 10: ControlCenterService.lockScreen(); break;
-            case 11:
+            case 9: root.navigateTo(6); break; // Botón externo detalle pantallas
+            case 10: powerProfiles.stepNext(); break;
+            case 11: root.navigateTo(4); break;
+            case 12: ControlCenterService.lockScreen(); break;
+            case 13:
                 ControlCenterService.togglePowerMenu();
                 if (ControlCenterService.isPowerMenuOpen) {
                     batCard.powerNavIndex = 4;
@@ -54,21 +85,23 @@ Item {
 
     function triggerEnterAction(idx) {
         switch (idx) {
-            case 0: root.currentView = 1; break;
-            case 1: root.currentView = 2; break;
+            case 0: root.navigateTo(1); break;
+            case 1: root.navigateTo(2); break;
             case 2: ControlCenterService.toggleMicMute(); break;
             case 3: ControlCenterService.toggleCaffeine(); break;
             case 4: ControlCenterService.pickColor(); break;
             case 5: ControlCenterService.captureRegion(); break;
-            case 6: AudioService.toggleMute(); break;
-            case 7: break; // No hacer nada en el slider de brillo (solo flechas izquierda/derecha)
-            case 8: powerProfiles.stepNext(); break;
-            case 9:
-                root.currentView = 4;
-                Qt.callLater(() => mainCard.forceActiveFocus());
+            case 6: AudioService.toggleMute(); break; // En el slider, Enter silencia
+            case 7: root.navigateTo(3); break;        // En el botón externo, Enter abre AudioDetailView
+            case 8:
+                let cur = BrightnessService.getBrightness(root.monitorName);
+                BrightnessService.setBrightness(cur > 10 ? 10 : 100, root.monitorName);
                 break;
-            case 10: ControlCenterService.lockScreen(); break;
-            case 11:
+            case 9: root.navigateTo(6); break;        // En el botón externo, Enter abre DisplayDetailView
+            case 10: powerProfiles.stepNext(); break;
+            case 11: root.navigateTo(4); break;
+            case 12: ControlCenterService.lockScreen(); break;
+            case 13:
                 ControlCenterService.togglePowerMenu();
                 if (ControlCenterService.isPowerMenuOpen) {
                     batCard.powerNavIndex = 4;
@@ -84,6 +117,7 @@ Item {
         onTriggered: {
             if (!root._isOpen) {
                 root.currentView = 0;
+                root.navStack = [];
             }
         }
     }
@@ -145,6 +179,13 @@ Item {
             let target = ControlCenterService.targetMonitor;
             let shouldOpen = (target !== "") ? (target === root.monitorName) : root.isFocusedMonitor;
             if (ControlCenterService.hasPasskeyPrompt && shouldOpen) {
+                if (!root._isOpen) {
+                    root.navStack = [];
+                } else if (root.currentView !== 2) {
+                    let stack = root.navStack.slice();
+                    stack.push(root.currentView);
+                    root.navStack = stack;
+                }
                 root.currentView = 2;
                 root.open();
             }
@@ -156,6 +197,13 @@ Item {
                 if (shouldOpen) {
                     if (ControlCenterService.requestedView === 7) {
                         themeView.currentTab = ControlCenterService.themeInitialTab;
+                    }
+                    if (!root._isOpen) {
+                        root.navStack = [];
+                    } else if (root.currentView !== ControlCenterService.requestedView) {
+                        let stack = root.navStack.slice();
+                        stack.push(root.currentView);
+                        root.navStack = stack;
                     }
                     root.currentView = ControlCenterService.requestedView;
                     root.open();
@@ -238,6 +286,7 @@ Item {
                 if (root.currentView === 5) return wallpaperView.implicitHeight + 22;
                 if (root.currentView === 6) return displayView.implicitHeight + 22;
                 if (root.currentView === 7) return themeView.implicitHeight + 22;
+                if (root.currentView === 8) return shortcutsView.implicitHeight + 22;
                 return contentColumn.implicitHeight + 22;
             }
 
@@ -273,16 +322,10 @@ Item {
                         wifiView.cancelPassword();
                     } else if (root.currentView === 6 && displayView.openMenu !== "") {
                         displayView.openMenu = "";
-                    } else if (root.currentView === 3 || root.currentView === 5 || root.currentView === 6 || root.currentView === 7) {
-                        root.currentView = 4;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
-                    } else if (root.currentView !== 0) {
-                        root.currentView = 0;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
                     } else if (ControlCenterService.isPowerMenuOpen) {
                         ControlCenterService.closePowerMenu();
                     } else {
-                        root.close();
+                        root.goBack();
                     }
                     return;
                 }
@@ -296,21 +339,14 @@ Item {
                         displayView.openMenu = "";
                         return;
                     }
-                    if (root.currentView === 3 || root.currentView === 5 || root.currentView === 6 || root.currentView === 7) {
+                    if (ControlCenterService.isPowerMenuOpen) {
                         event.accepted = true;
-                        root.currentView = 4;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
+                        ControlCenterService.closePowerMenu();
                         return;
                     }
                     if (root.currentView !== 0) {
                         event.accepted = true;
-                        root.currentView = 0;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
-                        return;
-                    }
-                    if (ControlCenterService.isPowerMenuOpen) {
-                        event.accepted = true;
-                        ControlCenterService.closePowerMenu();
+                        root.goBack();
                         return;
                     }
                 }
@@ -378,6 +414,15 @@ Item {
                     return;
                 }
 
+                // --- GESTIÓN DE SUBVISTA ATAJOS (currentView === 8) ---
+                if (root.currentView === 8) {
+                    if (shortcutsView.handleKey(event)) {
+                        event.accepted = true;
+                        return;
+                    }
+                    return;
+                }
+
                 // --- GESTIÓN DE MENÚ DE APAGADO (isPowerMenuOpen) ---
                 if (ControlCenterService.isPowerMenuOpen) {
                     if (event.key === Qt.Key_Right || event.key === Qt.Key_Tab) {
@@ -398,7 +443,7 @@ Item {
                     if (event.key === Qt.Key_Up || event.key === Qt.Key_Down) {
                         event.accepted = true;
                         ControlCenterService.closePowerMenu();
-                        root.focusedIndex = 11;
+                        root.focusedIndex = 13;
                         return;
                     }
                     return;
@@ -431,15 +476,15 @@ Item {
                 if (event.key === Qt.Key_Tab) {
                     event.accepted = true;
                     if (event.modifiers & Qt.ShiftModifier) {
-                        root.focusedIndex = (root.focusedIndex + 11) % 12;
+                        root.focusedIndex = (root.focusedIndex + 13) % 14;
                     } else {
-                        root.focusedIndex = (root.focusedIndex + 1) % 12;
+                        root.focusedIndex = (root.focusedIndex + 1) % 14;
                     }
                     return;
                 }
                 if (event.key === Qt.Key_Backtab) {
                     event.accepted = true;
-                    root.focusedIndex = (root.focusedIndex + 11) % 12;
+                    root.focusedIndex = (root.focusedIndex + 13) % 14;
                     return;
                 }
 
@@ -448,12 +493,12 @@ Item {
                     event.accepted = true;
                     if (root.focusedIndex === 6) {
                         sliderVol.stepUp();
-                    } else if (root.focusedIndex === 7) {
-                        sliderBri.stepUp();
                     } else if (root.focusedIndex === 8) {
+                        sliderBri.stepUp();
+                    } else if (root.focusedIndex === 10) {
                         powerProfiles.stepNext();
                     } else {
-                        root.focusedIndex = (root.focusedIndex + 1) % 12;
+                        root.focusedIndex = (root.focusedIndex + 1) % 14;
                     }
                     return;
                 }
@@ -463,12 +508,16 @@ Item {
                     event.accepted = true;
                     if (root.focusedIndex === 6) {
                         sliderVol.stepDown();
-                    } else if (root.focusedIndex === 7) {
-                        sliderBri.stepDown();
                     } else if (root.focusedIndex === 8) {
+                        sliderBri.stepDown();
+                    } else if (root.focusedIndex === 7) {
+                        root.focusedIndex = 6;
+                    } else if (root.focusedIndex === 9) {
+                        root.focusedIndex = 8;
+                    } else if (root.focusedIndex === 10) {
                         powerProfiles.stepPrev();
                     } else {
-                        root.focusedIndex = (root.focusedIndex + 11) % 12;
+                        root.focusedIndex = (root.focusedIndex + 13) % 14;
                     }
                     return;
                 }
@@ -478,27 +527,30 @@ Item {
                     event.accepted = true;
                     if (root.focusedIndex === 0) root.focusedIndex = 2;       // Wi-Fi -> Mic
                     else if (root.focusedIndex === 1) root.focusedIndex = 4;  // BT -> ColorPicker
-                    else if (root.focusedIndex >= 2 && root.focusedIndex <= 5) root.focusedIndex = 6; // Quick icons -> Slider Vol
-                    else if (root.focusedIndex === 6) root.focusedIndex = 7;  // Slider Vol -> Slider Brillo
-                    else if (root.focusedIndex === 7) root.focusedIndex = 8;  // Slider Brillo -> Perfiles
-                    else if (root.focusedIndex === 8) root.focusedIndex = 9;  // Perfiles -> Settings
-                    else if (root.focusedIndex === 9) root.focusedIndex = 0;  // Settings -> Wi-Fi (wrap)
-                    else if (root.focusedIndex === 10) root.focusedIndex = 0; // Lock -> Wi-Fi (wrap)
-                    else if (root.focusedIndex === 11) root.focusedIndex = 1; // Power -> BT (wrap)
+                    else if (root.focusedIndex >= 2 && root.focusedIndex <= 4) root.focusedIndex = 6; // Quick icons -> Slider Vol
+                    else if (root.focusedIndex === 5) root.focusedIndex = 7;  // RegionShot (columna der) -> Btn Audio Detail
+                    else if (root.focusedIndex === 6) root.focusedIndex = 8;  // Slider Vol -> Slider Brillo
+                    else if (root.focusedIndex === 7) root.focusedIndex = 9;  // Btn Audio Detail -> Btn Display Detail
+                    else if (root.focusedIndex === 8 || root.focusedIndex === 9) root.focusedIndex = 10; // Sliders/Detalles -> Perfiles
+                    else if (root.focusedIndex === 10) root.focusedIndex = 11; // Perfiles -> Settings
+                    else if (root.focusedIndex === 11 || root.focusedIndex === 12) root.focusedIndex = 0; // Settings/Lock -> Wi-Fi (wrap)
+                    else if (root.focusedIndex === 13) root.focusedIndex = 1; // Power -> BT (wrap)
                     return;
                 }
 
                 // Flecha Arriba (↑)
                 if (event.key === Qt.Key_Up) {
                     event.accepted = true;
-                    if (root.focusedIndex === 0) root.focusedIndex = 9;       // Wi-Fi -> Settings (wrap)
-                    else if (root.focusedIndex === 1) root.focusedIndex = 11; // BT -> Power (wrap)
+                    if (root.focusedIndex === 0) root.focusedIndex = 11;      // Wi-Fi -> Settings (wrap)
+                    else if (root.focusedIndex === 1) root.focusedIndex = 13; // BT -> Power (wrap)
                     else if (root.focusedIndex === 2 || root.focusedIndex === 3) root.focusedIndex = 0; // Mic/Caffeine -> Wi-Fi
                     else if (root.focusedIndex === 4 || root.focusedIndex === 5) root.focusedIndex = 1; // ColorPicker/RegionShot -> BT
                     else if (root.focusedIndex === 6) root.focusedIndex = 2;  // Slider Vol -> Mic
-                    else if (root.focusedIndex === 7) root.focusedIndex = 6;  // Slider Brillo -> Slider Vol
-                    else if (root.focusedIndex === 8) root.focusedIndex = 7;  // Perfiles -> Slider Brillo
-                    else if (root.focusedIndex >= 9 && root.focusedIndex <= 11) root.focusedIndex = 8; // Botones inferiores -> Perfiles
+                    else if (root.focusedIndex === 7) root.focusedIndex = 5;  // Btn Audio Detail -> RegionShot
+                    else if (root.focusedIndex === 8) root.focusedIndex = 6;  // Slider Brillo -> Slider Vol
+                    else if (root.focusedIndex === 9) root.focusedIndex = 7;  // Btn Display Detail -> Btn Audio Detail
+                    else if (root.focusedIndex === 10) root.focusedIndex = 8; // Perfiles -> Slider Brillo
+                    else if (root.focusedIndex >= 11 && root.focusedIndex <= 13) root.focusedIndex = 10; // Botones inferiores -> Perfiles
                     return;
                 }
 
@@ -574,8 +626,7 @@ Item {
                                 hasSubmenu: true
                                 onClicked: ControlCenterService.toggleWifi()
                                 onSubmenuClicked: {
-                                    root.currentView = 1;
-                                    Qt.callLater(() => mainCard.forceActiveFocus());
+                                    root.navigateTo(1);
                                 }
                             }
 
@@ -589,8 +640,7 @@ Item {
                                 hasSubmenu: true
                                 onClicked: ControlCenterService.toggleBluetooth()
                                 onSubmenuClicked: {
-                                    root.currentView = 2;
-                                    Qt.callLater(() => mainCard.forceActiveFocus());
+                                    root.navigateTo(2);
                                 }
                             }
                         }
@@ -644,41 +694,83 @@ Item {
                             color: Theme.dividerColor
                         }
 
-                        // 3. Controles Deslizantes (Volumen y Brillo)
+                        // 3. Controles Deslizantes (Volumen y Brillo) con botones externos de acceso a detalle
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 8
 
-                            // Slider de Volumen
-                            SliderControl {
-                                id: sliderVol
-                                focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 6
-                                icon: AudioService.icon
-                                value: AudioService.currentPercent
-                                isMuted: AudioService.isMuted
-                                accentColor: Theme.wsActiveColor
-                                minValue: 0
-                                maxValue: 100
-                                step: 5
-                                onValueChangedByUser: pct => AudioService.setVolume(pct)
-                                onIconClicked: AudioService.toggleMute()
+                            // Fila de Volumen: Slider + Botón externo de Detalle de Audio
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 8
+
+                                SliderControl {
+                                    id: sliderVol
+                                    Layout.fillWidth: true
+                                    focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 6
+                                    icon: AudioService.icon
+                                    value: AudioService.currentPercent
+                                    isMuted: AudioService.isMuted
+                                    accentColor: Theme.wsActiveColor
+                                    minValue: 0
+                                    maxValue: 100
+                                    step: 5
+                                    onValueChangedByUser: pct => AudioService.setVolume(pct)
+                                    onIconClicked: AudioService.toggleMute()
+                                }
+
+                                QuickIconButton {
+                                    id: btnAudioDetail
+                                    implicitWidth: 38
+                                    implicitHeight: 40
+                                    Layout.preferredWidth: 38
+                                    Layout.preferredHeight: 40
+                                    Layout.fillWidth: false
+                                    radius: 12
+                                    icon: "󰅂"
+                                    tooltipText: "Ajustes de Audio"
+                                    active: false
+                                    focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 7
+                                    onClicked: root.navigateTo(3)
+                                }
                             }
 
-                            // Slider de Brillo Contextual (regula automáticamente la pantalla donde se encuentra este panel)
-                            SliderControl {
-                                id: sliderBri
-                                focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 7
-                                icon: BrightnessService.getIcon(root.monitorName)
-                                value: BrightnessService.getBrightness(root.monitorName)
-                                isMuted: false
-                                accentColor: Theme.wsActiveColor
-                                minValue: 5
-                                maxValue: 100
-                                step: 5
-                                onValueChangedByUser: pct => BrightnessService.setBrightness(pct, root.monitorName)
-                                onIconClicked: {
-                                    let cur = BrightnessService.getBrightness(root.monitorName);
-                                    BrightnessService.setBrightness(cur > 10 ? 10 : 100, root.monitorName);
+                            // Fila de Brillo Contextual: Slider + Botón externo de Detalle de Pantallas
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 8
+
+                                SliderControl {
+                                    id: sliderBri
+                                    Layout.fillWidth: true
+                                    focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 8
+                                    icon: BrightnessService.getIcon(root.monitorName)
+                                    value: BrightnessService.getBrightness(root.monitorName)
+                                    isMuted: false
+                                    accentColor: Theme.wsActiveColor
+                                    minValue: 5
+                                    maxValue: 100
+                                    step: 5
+                                    onValueChangedByUser: pct => BrightnessService.setBrightness(pct, root.monitorName)
+                                    onIconClicked: {
+                                        let cur = BrightnessService.getBrightness(root.monitorName);
+                                        BrightnessService.setBrightness(cur > 10 ? 10 : 100, root.monitorName);
+                                    }
+                                }
+
+                                QuickIconButton {
+                                    id: btnDisplayDetail
+                                    implicitWidth: 38
+                                    implicitHeight: 40
+                                    Layout.preferredWidth: 38
+                                    Layout.preferredHeight: 40
+                                    Layout.fillWidth: false
+                                    radius: 12
+                                    icon: "󰅂"
+                                    tooltipText: "Ajustes de Pantallas"
+                                    active: false
+                                    focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 9
+                                    onClicked: root.navigateTo(6)
                                 }
                             }
                         }
@@ -694,7 +786,7 @@ Item {
                         PowerProfileSegmentedControl {
                             id: powerProfiles
                             Layout.fillWidth: true
-                            focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 8
+                            focused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 10
                         }
 
                         // Línea divisoria fina
@@ -708,12 +800,11 @@ Item {
                         BatteryCard {
                             id: batCard
                             Layout.fillWidth: true
-                            settingsFocused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 9
-                            lockFocused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 10
-                            powerFocused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 11
+                            settingsFocused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 11
+                            lockFocused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 12
+                            powerFocused: root.currentView === 0 && root.isKeyNavActive && root.focusedIndex === 13
                             onSettingsClicked: {
-                                root.currentView = 4;
-                                Qt.callLater(() => mainCard.forceActiveFocus());
+                                root.navigateTo(4);
                             }
                         }
                     }
@@ -733,10 +824,7 @@ Item {
                     scale: root.currentView === 1 ? 1.0 : 0.98
                     visible: opacity > 0.01
 
-                    onBackRequested: {
-                        root.currentView = 0;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
-                    }
+                    onBackRequested: root.goBack()
 
                     Behavior on opacity {
                         NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
@@ -763,10 +851,7 @@ Item {
                     scale: root.currentView === 2 ? 1.0 : 0.98
                     visible: opacity > 0.01
 
-                    onBackRequested: {
-                        root.currentView = 0;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
-                    }
+                    onBackRequested: root.goBack()
 
                     Behavior on opacity {
                         NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
@@ -793,10 +878,7 @@ Item {
                     scale: root.currentView === 3 ? 1.0 : 0.98
                     visible: opacity > 0.01
 
-                    onBackRequested: {
-                        root.currentView = 4;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
-                    }
+                    onBackRequested: root.goBack()
 
                     Behavior on opacity {
                         NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
@@ -823,30 +905,13 @@ Item {
                     scale: root.currentView === 4 ? 1.0 : 0.98
                     visible: opacity > 0.01
 
-                    onBackRequested: {
-                        root.currentView = 0;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
-                    }
+                    onBackRequested: root.goBack()
 
-                    onSoundRequested: {
-                        root.currentView = 3;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
-                    }
-
-                    onWallpaperRequested: {
-                        root.currentView = 5;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
-                    }
-
-                    onDisplaysRequested: {
-                        root.currentView = 6;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
-                    }
-
-                    onThemeRequested: {
-                        root.currentView = 7;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
-                    }
+                    onSoundRequested: root.navigateTo(3)
+                    onWallpaperRequested: root.navigateTo(5)
+                    onDisplaysRequested: root.navigateTo(6)
+                    onThemeRequested: root.navigateTo(7)
+                    onShortcutsRequested: root.navigateTo(8)
 
                     Behavior on opacity {
                         NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
@@ -873,10 +938,7 @@ Item {
                     scale: root.currentView === 5 ? 1.0 : 0.98
                     visible: opacity > 0.01
 
-                    onBackRequested: {
-                        root.currentView = 4;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
-                    }
+                    onBackRequested: root.goBack()
 
                     Behavior on opacity {
                         NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
@@ -903,10 +965,7 @@ Item {
                     scale: root.currentView === 6 ? 1.0 : 0.98
                     visible: opacity > 0.01
 
-                    onBackRequested: {
-                        root.currentView = 4;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
-                    }
+                    onBackRequested: root.goBack()
 
                     Behavior on opacity {
                         NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
@@ -933,10 +992,34 @@ Item {
                     scale: root.currentView === 7 ? 1.0 : 0.98
                     visible: opacity > 0.01
 
-                    onBackRequested: {
-                        root.currentView = 4;
-                        Qt.callLater(() => mainCard.forceActiveFocus());
+                    onBackRequested: root.goBack()
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
                     }
+                    Behavior on x {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+                    }
+                    Behavior on scale {
+                        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+                    }
+                }
+
+                // ==========================================
+                // VISTA 8: Atajos de Teclado del Sistema
+                // ==========================================
+                ShortcutsDetailView {
+                    id: shortcutsView
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+
+                    opacity: root.currentView === 8 ? 1.0 : 0.0
+                    x: root.currentView === 8 ? 0 : 20
+                    scale: root.currentView === 8 ? 1.0 : 0.98
+                    visible: opacity > 0.01
+
+                    onBackRequested: root.goBack()
 
                     Behavior on opacity {
                         NumberAnimation { duration: 220; easing.type: Easing.OutCubic }

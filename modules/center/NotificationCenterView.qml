@@ -13,10 +13,133 @@ Item {
 
     focus: true
 
-    Keys.onPressed: event => {
+    property int focusedIndex: 0
+    property bool isKeyNavActive: false
+
+    onFocusedIndexChanged: {
+        if (root.isKeyNavActive && NotificationService.count > 0) {
+            notifListView.positionViewAtIndex(root.focusedIndex, ListView.Contain);
+        }
+    }
+
+    function handleKey(event) {
+        let total = NotificationService.count;
+
+        // 1. Tecla Escape: Cerrar el centro de notificaciones
         if (event.key === Qt.Key_Escape) {
-            event.accepted = true;
             NotificationService.closeCenter();
+            return true;
+        }
+
+        // Si no hay notificaciones, permitir únicamente atajos globales del centro (ej. DND)
+        if (total <= 0) {
+            if (event.key === Qt.Key_T) {
+                NotificationService.toggleDnd();
+                return true;
+            }
+            return false;
+        }
+
+        // 2. Activar modo navegación por teclado al presionar flechas o teclas de salto
+        if (!root.isKeyNavActive) {
+            if (event.key === Qt.Key_Down || event.key === Qt.Key_Up ||
+                event.key === Qt.Key_Tab  || event.key === Qt.Key_Backtab ||
+                event.key === Qt.Key_J    || event.key === Qt.Key_K) {
+                root.isKeyNavActive = true;
+                root.focusedIndex = (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab || event.key === Qt.Key_K)
+                                    ? (total - 1) : 0;
+                return true;
+            }
+        }
+
+        // 3. Navegación hacia abajo (Down, Tab, J)
+        if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab || event.key === Qt.Key_J) {
+            root.isKeyNavActive = true;
+            root.focusedIndex = (root.focusedIndex + 1) % total;
+            return true;
+        }
+
+        // 4. Navegación hacia arriba (Up, Backtab / Shift+Tab, K)
+        if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab || event.key === Qt.Key_K) {
+            root.isKeyNavActive = true;
+            root.focusedIndex = (root.focusedIndex - 1 + total) % total;
+            return true;
+        }
+
+        // 5. Ir al inicio (Home) o al final (End)
+        if (event.key === Qt.Key_Home) {
+            root.isKeyNavActive = true;
+            root.focusedIndex = 0;
+            return true;
+        }
+        if (event.key === Qt.Key_End) {
+            root.isKeyNavActive = true;
+            root.focusedIndex = total - 1;
+            return true;
+        }
+
+        // 6. Activar la notificación seleccionada (Return, Enter, Space)
+        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+            if (root.focusedIndex >= 0 && root.focusedIndex < total) {
+                let item = NotificationService.notifications[root.focusedIndex];
+                if (item) {
+                    NotificationService.activateNotification(item.id);
+                }
+            }
+            return true;
+        }
+
+        // 7. Descartar la notificación seleccionada (Delete, Backspace, D)
+        if (event.key === Qt.Key_Delete || event.key === Qt.Key_Backspace || event.key === Qt.Key_D) {
+            if (root.focusedIndex >= 0 && root.focusedIndex < total) {
+                let item = NotificationService.notifications[root.focusedIndex];
+                if (item) {
+                    NotificationService.dismiss(item.id);
+                    if (root.focusedIndex >= total - 1) {
+                        root.focusedIndex = Math.max(0, total - 2);
+                    }
+                }
+            }
+            return true;
+        }
+
+        // 8. Copiar recurso o texto de la notificación seleccionada (Y / Ctrl+C)
+        if (event.key === Qt.Key_Y || ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_C)) {
+            if (root.focusedIndex >= 0 && root.focusedIndex < total) {
+                let item = NotificationService.notifications[root.focusedIndex];
+                if (item) {
+                    if (item.isScreenshot && item.screenshotPath) {
+                        NotificationService.copyScreenshotImage(item.screenshotPath);
+                    } else if (item.isColorPicker && item.pickedColor) {
+                        NotificationService.copyText(item.pickedColor);
+                    } else if (item.body) {
+                        NotificationService.copyText(item.body);
+                    }
+                }
+            }
+            return true;
+        }
+
+        // 9. Limpiar todo el historial (C o Shift+Delete)
+        if (event.key === Qt.Key_C || ((event.modifiers & Qt.ShiftModifier) && event.key === Qt.Key_Delete)) {
+            NotificationService.clearAll();
+            root.focusedIndex = 0;
+            root.isKeyNavActive = false;
+            return true;
+        }
+
+        // 10. Alternar modo No Molestar (T)
+        if (event.key === Qt.Key_T) {
+            NotificationService.toggleDnd();
+            return true;
+        }
+
+        return false;
+    }
+
+    Keys.onPressed: event => {
+        if (root.handleKey(event)) {
+            event.accepted = true;
         }
     }
 
@@ -35,8 +158,18 @@ Item {
         target: NotificationService
         function onIsCenterOpenChanged() {
             if (NotificationService.isCenterOpen) {
+                root.isKeyNavActive = false;
+                root.focusedIndex = 0;
                 Qt.callLater(() => root.forceActiveFocus());
                 focusTimer.restart();
+            }
+        }
+        function onCountChanged() {
+            if (NotificationService.count === 0) {
+                root.focusedIndex = 0;
+                root.isKeyNavActive = false;
+            } else if (root.focusedIndex >= NotificationService.count) {
+                root.focusedIndex = Math.max(0, NotificationService.count - 1);
             }
         }
     }
@@ -48,6 +181,7 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onPressed: mouse => {
             mouse.accepted = true;
+            root.isKeyNavActive = false;
             root.forceActiveFocus();
         }
     }
@@ -153,7 +287,7 @@ Item {
                 implicitHeight: 30
                 radius: 15
                 color: NotificationService.dnd 
-                       ? (dndMouse.containsMouse ? Qt.rgba(241/255, 196/255, 15/255, 0.28) : Qt.rgba(241/255, 196/255, 15/255, 0.18))
+                       ? (dndMouse.containsMouse ? Qt.rgba(Theme.warning.r, Theme.warning.g, Theme.warning.b, 0.28) : Qt.rgba(Theme.warning.r, Theme.warning.g, Theme.warning.b, 0.18))
                        : (dndMouse.containsMouse ? Theme.surfaceHover : "transparent")
                 border.width: 0
                 Layout.alignment: Qt.AlignVCenter
@@ -234,7 +368,7 @@ Item {
                     text: "󰂚"
                     font.family: Theme.fontFamily
                     font.pixelSize: 32
-                    color: Qt.rgba(1, 1, 1, 0.12)
+                    color: Theme.textDisabled
                     Layout.alignment: Qt.AlignHCenter
                 }
 
@@ -289,6 +423,9 @@ Item {
                 delegate: Item {
                     id: cardWrapper
                     readonly property var notifItem: modelData
+                    readonly property int itemIndex: index
+                    readonly property bool isKeyFocused: root.isKeyNavActive && root.focusedIndex === itemIndex
+
                     width: (notifListView.contentHeight > notifListView.height) ? (notifListView.width - 8) : notifListView.width
                     implicitHeight: cardBg.height + 8
                     height: implicitHeight
@@ -309,9 +446,9 @@ Item {
                         visible: Theme.pillShadowEnabled
                         shadowEnabled: true
                         shadowColor: Theme.shadowColor
-                        shadowOpacity: cardHover.hovered ? 0.78 : 0.55
+                        shadowOpacity: cardWrapper.isKeyFocused ? 0.88 : (cardHover.hovered ? 0.78 : 0.55)
                         shadowBlur: 0.50
-                        shadowVerticalOffset: cardHover.hovered ? 3.5 : 2.0
+                        shadowVerticalOffset: cardWrapper.isKeyFocused ? 3.5 : (cardHover.hovered ? 3.5 : 2.0)
                         shadowHorizontalOffset: 0
                         autoPaddingEnabled: true
 
@@ -335,10 +472,13 @@ Item {
                         height: cardContent.implicitHeight + 16
                         radius: 10
 
+                        scale: cardWrapper.isKeyFocused ? 1.01 : 1.0
+                        Behavior on scale { NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuad } }
+
                         // Superficie tonal táctil idéntica a los módulos del Centro de Control
-                        color: cardHover.hovered ? Theme.surfaceHover : Theme.surfaceBase
-                        border.width: 1
-                        border.color: cardHover.hovered ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.08)
+                        color: cardWrapper.isKeyFocused ? Theme.surfaceKeyFocus : (cardHover.hovered ? Theme.surfaceHover : Theme.surfaceBase)
+                        border.width: cardWrapper.isKeyFocused ? 1.5 : 1
+                        border.color: cardWrapper.isKeyFocused ? Theme.highlight : (cardHover.hovered ? Theme.borderCard : Theme.borderDark)
 
                         Behavior on color { ColorAnimation { duration: Theme.animFast } }
                         Behavior on border.color { ColorAnimation { duration: Theme.animFast } }
@@ -354,6 +494,7 @@ Item {
                             cursorShape: Qt.PointingHandCursor
                             z: -1
                             onClicked: {
+                                root.isKeyNavActive = false;
                                 if (cardWrapper.notifItem) {
                                     NotificationService.activateNotification(cardWrapper.notifItem.id);
                                 }
@@ -445,7 +586,7 @@ Item {
                                     implicitWidth: 20
                                     implicitHeight: 20
                                     radius: 10
-                                    color: itemDismissMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.12) : "transparent"
+                                    color: itemDismissMouse.containsMouse ? Theme.surfaceHover : "transparent"
                                     border.width: 0
                                     Layout.alignment: Qt.AlignVCenter
 
@@ -467,6 +608,7 @@ Item {
                                         hoverEnabled: true
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
+                                            root.isKeyNavActive = false;
                                             NotificationService.dismiss(modelData.id);
                                         }
                                     }
@@ -493,7 +635,7 @@ Item {
                                 Layout.fillWidth: true
                                 implicitHeight: 88
                                 radius: 6
-                                color: Qt.rgba(0, 0, 0, 0.4)
+                                color: Theme.bgDarkest
                                 clip: true
 
                                 Image {
@@ -513,9 +655,9 @@ Item {
                                     implicitHeight: 18
                                     implicitWidth: Math.min(parent.width - 8, centerShotNameText.implicitWidth + 10)
                                     radius: 9
-                                    color: Qt.rgba(0, 0, 0, 0.65)
+                                    color: Theme.surfaceBase
                                     border.width: 1
-                                    border.color: Qt.rgba(255, 255, 255, 0.12)
+                                    border.color: Theme.borderCard
                                     z: 2
 
                                     Text {
@@ -526,9 +668,9 @@ Item {
                                             let parts = modelData.screenshotPath.split("/");
                                             return parts[parts.length - 1];
                                         }
-                                        font.family: "JetBrainsMono Nerd Font Propo"
+                                        font.family: Theme.fontFamily
                                         font.pixelSize: 9
-                                        color: Qt.rgba(255, 255, 255, 0.95)
+                                        color: Theme.textBright
                                         elide: Text.ElideMiddle
                                         width: Math.min(implicitWidth, parent.parent.width - 16)
                                     }
@@ -579,9 +721,9 @@ Item {
                                     implicitWidth: delCenterShotLbl.implicitWidth + 16
                                     implicitHeight: 24
                                     radius: 12
-                                    color: delCenterShotM.containsMouse ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.08)
+                                    color: delCenterShotM.containsMouse ? Theme.surfaceHover : Theme.surfaceBase
                                     border.width: 1
-                                    border.color: delCenterShotM.containsMouse ? Qt.rgba(1, 1, 1, 0.22) : Qt.rgba(1, 1, 1, 0.08)
+                                    border.color: delCenterShotM.containsMouse ? Theme.borderCard : Theme.borderDark
 
                                     Text {
                                         id: delCenterShotLbl
@@ -608,9 +750,9 @@ Item {
                                 Layout.fillWidth: true
                                 implicitHeight: 52
                                 radius: 8
-                                color: Qt.rgba(0, 0, 0, 0.35)
+                                color: Theme.surfaceBase
                                 border.width: 1
-                                border.color: Qt.rgba(255, 255, 255, 0.08)
+                                border.color: Theme.borderDark
 
                                 RowLayout {
                                     anchors.fill: parent
@@ -623,7 +765,7 @@ Item {
                                         radius: 6
                                         color: modelData.pickedColor || "transparent"
                                         border.width: 1
-                                        border.color: Qt.rgba(255, 255, 255, 0.25)
+                                        border.color: Theme.borderCard
                                     }
 
                                     ColumnLayout {
@@ -651,7 +793,7 @@ Item {
                                         implicitWidth: 30
                                         implicitHeight: 30
                                         radius: 15
-                                        color: copyHexHistMouse.containsMouse ? Theme.wsActiveColor : Qt.rgba(1, 1, 1, 0.08)
+                                        color: copyHexHistMouse.containsMouse ? Theme.wsActiveColor : Theme.surfaceHover
 
                                         Behavior on color { ColorAnimation { duration: Theme.animFast } }
 
@@ -680,7 +822,7 @@ Item {
                                 Layout.fillWidth: true
                                 implicitHeight: bodyText.implicitHeight + (isCmd ? 10 : 0)
                                 radius: 6
-                                color: isCmd ? Qt.rgba(0, 0, 0, 0.35) : "transparent"
+                                color: isCmd ? Theme.bgDarkest : "transparent"
                                 border.width: 0
                                 visible: (!modelData.isScreenshot || !modelData.screenshotPath) && !modelData.isColorPicker && modelData.body && modelData.body !== ""
 
@@ -704,7 +846,7 @@ Item {
                                     font.family: bodyBox.isCmd ? "JetBrainsMono Nerd Font Propo" : Theme.fontFamily
                                     font.pixelSize: bodyBox.isCmd ? 11 : 12
                                     font.weight: Font.Normal
-                                    color: bodyBox.isCmd ? Qt.rgba(1, 1, 1, 0.88) : Theme.textSecondary
+                                    color: bodyBox.isCmd ? Theme.textBright : Theme.textSecondary
                                     wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                                     maximumLineCount: 3
                                     elide: Text.ElideRight
@@ -725,7 +867,7 @@ Item {
                                         implicitWidth: actionLabel.implicitWidth + 18
                                         implicitHeight: 24
                                         radius: 12
-                                        color: actionMouse.containsMouse ? Theme.wsActiveColor : Qt.rgba(1, 1, 1, 0.08)
+                                        color: actionMouse.containsMouse ? Theme.wsActiveColor : Theme.surfaceHover
                                         border.width: 0
 
                                         scale: actionMouse.pressed ? 0.92 : 1.0
@@ -789,8 +931,8 @@ Item {
 
                     // Color sutil integrado a la paleta oscura
                     color: scrollMouse.pressed 
-                           ? Qt.rgba(1, 1, 1, 0.55) 
-                           : (scrollMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.35) : Qt.rgba(1, 1, 1, 0.18))
+                           ? Theme.highlight 
+                           : (scrollMouse.containsMouse ? Theme.textSecondary : Theme.borderCard)
 
                     Behavior on color { ColorAnimation { duration: Theme.animFast } }
                     Behavior on width { NumberAnimation { duration: Theme.animFast } }

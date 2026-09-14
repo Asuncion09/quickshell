@@ -77,6 +77,12 @@ ShellRoot {
         function open(): void {
             ControlCenterService.open();
         }
+        function openWifi(): void {
+            ControlCenterService.openWifi();
+        }
+        function openBluetooth(): void {
+            ControlCenterService.openBluetooth();
+        }
         function openSettings(): void {
             ControlCenterService.openSettings();
         }
@@ -94,6 +100,9 @@ ShellRoot {
         }
         function openSounds(): void {
             ControlCenterService.openSounds();
+        }
+        function openShortcuts(): void {
+            ControlCenterService.openShortcuts();
         }
         function close(): void {
             ControlCenterService.close();

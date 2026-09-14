@@ -7,7 +7,7 @@ import "../../services"
 Item {
     id: root
 
-    implicitWidth: 280
+    implicitWidth: 320
     implicitHeight: contentCol.implicitHeight
     height: implicitHeight
     Layout.fillWidth: true
@@ -197,7 +197,7 @@ Item {
             Text {
                 text: "Sound"
                 font.family: Theme.fontFamily
-                font.pixelSize: 13
+                font.pixelSize: 14
                 font.weight: Font.DemiBold
                 color: Theme.text
                 Layout.alignment: Qt.AlignVCenter
@@ -231,7 +231,7 @@ Item {
                 Text {
                     text: "Output devices"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     font.weight: Font.DemiBold
                     color: Theme.textSecondary
                     Layout.alignment: Qt.AlignVCenter
@@ -242,7 +242,7 @@ Item {
                 Text {
                     text: AudioService.sinks.length + (AudioService.sinks.length === 1 ? " device" : " devices")
                     font.family: Theme.fontFamily
-                    font.pixelSize: 10
+                    font.pixelSize: 12
                     color: Theme.textMuted
                     Layout.alignment: Qt.AlignVCenter
                 }
@@ -273,7 +273,7 @@ Item {
                         Text {
                             text: "No output devices found"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             color: Theme.textSecondary
                         }
                     }
@@ -329,7 +329,7 @@ Item {
                                 Layout.alignment: Qt.AlignVCenter
                                 text: modelData.name || "Output Device"
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 11
+                                font.pixelSize: 13
                                 font.weight: modelData.isDefault ? Font.DemiBold : Font.Normal
                                 color: modelData.isDefault ? Theme.textBright : (sinkMouse.containsMouse ? Theme.text : Theme.textSecondary)
                                 elide: Text.ElideRight
@@ -399,7 +399,7 @@ Item {
                 Text {
                     text: "Input devices"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     font.weight: Font.DemiBold
                     color: Theme.textSecondary
                     Layout.alignment: Qt.AlignVCenter
@@ -410,7 +410,7 @@ Item {
                 Text {
                     text: AudioService.sources.length + (AudioService.sources.length === 1 ? " device" : " devices")
                     font.family: Theme.fontFamily
-                    font.pixelSize: 10
+                    font.pixelSize: 12
                     color: Theme.textMuted
                     Layout.alignment: Qt.AlignVCenter
                 }
@@ -441,7 +441,7 @@ Item {
                         Text {
                             text: "No input devices found"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             color: Theme.textSecondary
                         }
                     }
@@ -497,7 +497,7 @@ Item {
                                 Layout.alignment: Qt.AlignVCenter
                                 text: modelData.name || "Microphone"
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 11
+                                font.pixelSize: 13
                                 font.weight: modelData.isDefault ? Font.DemiBold : Font.Normal
                                 color: modelData.isDefault ? Theme.textBright : (srcMouse.containsMouse ? Theme.text : Theme.textSecondary)
                                 elide: Text.ElideRight

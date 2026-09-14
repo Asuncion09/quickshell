@@ -1,16 +1,16 @@
 # Graph Report - quickshell  (2026-09-13)
 
 ## Corpus Check
-- 15 files · ~21,211 words
+- 17 files · ~22,588 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 147 nodes · 175 edges · 31 communities (6 shown, 23 thin omitted)
+- 160 nodes · 186 edges · 33 communities (7 shown, 24 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `122ac43e`
+- Built from commit: `19cc5e78`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -44,18 +44,20 @@
 - System Tray and Hardware Indicators Screenshot
 - Workspaces and Taskbar Screenshot
 - Active Wallpaper State Path
+- Guía de Diseño y Estándares UI para Quickshell en Hyprland
+- quickshell-design.md
 
 ## God Nodes (most connected - your core abstractions)
 1. `Unused Code Report` - 33 edges
 2. `ClipboardDaemon` - 20 edges
 3. `BluezAgent` - 14 edges
 4. `🚀 Quickshell Desktop Shell para Hyprland` - 9 edges
-5. `send_client()` - 6 edges
-6. `Paneles y Diálogos` - 6 edges
-7. `📸 Demostración Visual` - 5 edges
-8. `main()` - 4 edges
-9. `get_images_dir()` - 4 edges
-10. `detect_image()` - 4 edges
+5. `Guía de Diseño y Estándares UI para Quickshell en Hyprland` - 7 edges
+6. `send_client()` - 6 edges
+7. `Paneles y Diálogos` - 6 edges
+8. `📸 Demostración Visual` - 5 edges
+9. `main()` - 4 edges
+10. `get_images_dir()` - 4 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `main()` --calls--> `ClipboardDaemon`  [EXTRACTED]
@@ -64,7 +66,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (31 total, 23 thin omitted)
+## Communities (33 total, 24 thin omitted)
 
 ### Community 1 - "ClipboardDaemon"
 Cohesion: 0.19
@@ -90,20 +92,24 @@ Nodes (14): 1. Habilitar Copr para Quickshell, Matugen y Herramientas Hyprland, 
 Cohesion: 0.20
 Nodes (10): Barra Superior Completa (Top Bar), 🎛️ Centro de Control y Submenús Avanzados, 🔔 Centro de Notificaciones, 🔀 Conmutador de Ventanas (Alt + Tab), 📸 Demostración Visual, 📋 Gestor de Portapapeles (Clipboard), 🔍 Lanzador de Aplicaciones (Spotlight), Módulos Principales (+2 more)
 
+### Community 31 - "Guía de Diseño y Estándares UI para Quickshell en Hyprland"
+Cohesion: 0.18
+Nodes (10): 1. Reglas de Oro (Mandatorias), 2. Catálogo de Tokens Semánticos (`theme/Theme.qml`), 3. Guía de Construcción de Componentes, 4. Patrón Estándar de Navegación por Teclado, 5. Reglas de Wayland LayerShell y Ventanas, 6. Modularización de Vistas Complejas, A. Fila de Control Interactiva (Tarjetas Agrupadas), B. Etiquetas de Encabezado de Sección (+2 more)
+
 ## Knowledge Gaps
-- **74 isolated node(s):** `apply-profile.sh script`, `ryzenadj-balanced.sh script`, `ryzenadj-gaming.sh script`, `ryzenadj-power-save.sh script`, `graphify` (+69 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 93 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **23 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **83 isolated node(s):** `apply-profile.sh script`, `ryzenadj-balanced.sh script`, `ryzenadj-gaming.sh script`, `ryzenadj-power-save.sh script`, `graphify` (+78 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 104 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **24 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `ClipboardDaemon` connect `ClipboardDaemon` to `clip_daemon.py`?**
-  _High betweenness centrality (0.039) - this node is a cross-community bridge._
+  _High betweenness centrality (0.033) - this node is a cross-community bridge._
 - **Why does `🚀 Quickshell Desktop Shell para Hyprland` connect `🚀 Quickshell Desktop Shell para Hyprland` to `Paneles y Diálogos`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+  _High betweenness centrality (0.017) - this node is a cross-community bridge._
 - **What connects `apply-profile.sh script`, `ryzenadj-balanced.sh script`, `ryzenadj-gaming.sh script` to the rest of the system?**
-  _74 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _83 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Unused Code Report` be split into smaller, more focused modules?**
   _Cohesion score 0.058823529411764705 - nodes in this community are weakly interconnected._
 - **Should `🚀 Quickshell Desktop Shell para Hyprland` be split into smaller, more focused modules?**

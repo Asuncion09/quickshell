@@ -34,7 +34,7 @@ Item {
     // Proceso para leer la selección guardada al inicio
     Process {
         id: readStateProc
-        command: ["sh", "-c", "cat " + root.stateFilePath + " 2>/dev/null"]
+        command: ["sh", "-c", 'cat "$1" 2>/dev/null || true', "_", root.stateFilePath]
         stdout: SplitParser {
             onRead: data => {
                 let saved = data.trim();
@@ -51,7 +51,7 @@ Item {
     // Proceso para leer el modo de tema persistido ("default" | "matugen")
     Process {
         id: readThemeModeProc
-        command: ["sh", "-c", "cat " + root.themeStateFilePath + " 2>/dev/null"]
+        command: ["sh", "-c", 'cat "$1" 2>/dev/null || true', "_", root.themeStateFilePath]
         stdout: SplitParser {
             onRead: data => {
                 let mode = data.trim();
@@ -65,7 +65,7 @@ Item {
     // Proceso para cargar la paleta dinámica guardada en caché al iniciar
     Process {
         id: readCachedPaletteProc
-        command: ["sh", "-c", "cat " + root.dynamicThemeFilePath + " 2>/dev/null"]
+        command: ["sh", "-c", 'cat "$1" 2>/dev/null || true', "_", root.dynamicThemeFilePath]
         stdout: SplitParser {
             splitMarker: "\n"
             onRead: data => {
@@ -169,7 +169,10 @@ Item {
         if (saveThemeModeProc.running) saveThemeModeProc.running = false;
         saveThemeModeProc.command = [
             "sh", "-c",
-            "mkdir -p $(dirname " + root.themeStateFilePath + ") && echo -n '" + mode + "' > " + root.themeStateFilePath
+            'mkdir -p "$(dirname "$1")" && printf "%s" "$2" > "$1"',
+            "_",
+            root.themeStateFilePath,
+            mode
         ];
         saveThemeModeProc.running = true;
 
@@ -185,7 +188,13 @@ Item {
 
         // Persistir en disco
         if (saveProc.running) saveProc.running = false;
-        saveProc.command = ["sh", "-c", "mkdir -p $(dirname " + root.stateFilePath + ") && echo '" + cleanPath + "' > " + root.stateFilePath];
+        saveProc.command = [
+            "sh", "-c",
+            'mkdir -p "$(dirname "$1")" && printf "%s\\n" "$2" > "$1"',
+            "_",
+            root.stateFilePath,
+            cleanPath
+        ];
         saveProc.running = true;
 
         // Extraer colores dinámicos asíncronamente

@@ -150,8 +150,10 @@ Item {
         if (saveThemeProc.running) saveThemeProc.running = false;
         saveThemeProc.command = [
             "sh", "-c",
-            "mkdir -p $(dirname " + root.stateThemePath + ") && echo -n '" + themeId + "' > " + root.stateThemePath +
-            " && gsettings set org.gnome.desktop.sound theme-name '" + themeId + "' 2>/dev/null || true"
+            'mkdir -p "$(dirname "$1")" && printf "%s" "$2" > "$1" && gsettings set org.gnome.desktop.sound theme-name "$2" 2>/dev/null || true',
+            "_",
+            root.stateThemePath,
+            themeId
         ];
         saveThemeProc.running = true;
 
@@ -166,8 +168,10 @@ Item {
         if (saveEnabledProc.running) saveEnabledProc.running = false;
         saveEnabledProc.command = [
             "sh", "-c",
-            "mkdir -p $(dirname " + root.stateEnabledPath + ") && echo -n '" + (enabled ? "true" : "false") + "' > " + root.stateEnabledPath +
-            " && gsettings set org.gnome.desktop.sound event-sounds " + (enabled ? "true" : "false") + " 2>/dev/null || true"
+            'mkdir -p "$(dirname "$1")" && printf "%s" "$2" > "$1" && gsettings set org.gnome.desktop.sound event-sounds "$2" 2>/dev/null || true',
+            "_",
+            root.stateEnabledPath,
+            enabled ? "true" : "false"
         ];
         saveEnabledProc.running = true;
 

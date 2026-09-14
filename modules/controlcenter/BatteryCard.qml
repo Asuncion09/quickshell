@@ -6,7 +6,7 @@ import "../../services"
 Item {
     id: root
 
-    implicitWidth: 280
+    implicitWidth: 320
     implicitHeight: 32
     Layout.fillWidth: true
 
@@ -105,7 +105,7 @@ Item {
                     Text {
                         text: `${BatteryService.percentage}%`
                         font.family: Theme.fontFamily
-                        font.pixelSize: 11
+                        font.pixelSize: 13
                         font.weight: Font.DemiBold
                         color: Theme.text
                     }
@@ -341,7 +341,7 @@ Item {
                     anchors.centerIn: parent
                     text: parent.hoveredHint
                     font.family: Theme.fontFamily
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     font.weight: Font.DemiBold
                     color: Theme.textSecondary
                     opacity: text !== "" ? 0.9 : 0.0

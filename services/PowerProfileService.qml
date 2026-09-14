@@ -81,7 +81,13 @@ Item {
 
         // 2. Guardar estado para persistencia entre reinicios
         if (saveStateProc.running) saveStateProc.running = false;
-        saveStateProc.command = ["sh", "-c", "mkdir -p $(dirname " + root.stateFilePath + ") && echo " + p + " > " + root.stateFilePath];
+        saveStateProc.command = [
+            "sh", "-c",
+            'mkdir -p "$(dirname "$1")" && printf "%s\\n" "$2" > "$1"',
+            "_",
+            root.stateFilePath,
+            p
+        ];
         saveStateProc.running = true;
 
         // 3. Mostrar confirmación en la Dynamic Island (OSD)
@@ -101,7 +107,7 @@ Item {
     // Proceso para leer estado guardado al iniciar sesión
     Process {
         id: readStateProc
-        command: ["sh", "-c", "cat " + root.stateFilePath + " 2>/dev/null || true"]
+        command: ["sh", "-c", 'cat "$1" 2>/dev/null || true', "_", root.stateFilePath]
         stdout: SplitParser {
             onRead: data => {
                 let saved = data.trim();

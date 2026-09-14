@@ -11,6 +11,7 @@ Item {
     property bool focused: false
     property color customActiveColor: Theme.wsActiveColor
     property color customActiveTextColor: Theme.textOnAccent
+    property int radius: 10
 
     signal clicked()
 
@@ -31,7 +32,7 @@ Item {
     Rectangle {
         id: bgRect
         anchors.fill: parent
-        radius: 10
+        radius: root.radius
         clip: true
 
         border.width: root.focused ? 1.5 : 0

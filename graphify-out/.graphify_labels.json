@@ -29,5 +29,7 @@
   "27": "System Tray and Hardware Indicators Screenshot",
   "28": "Workspaces and Taskbar Screenshot",
   "29": "Active Wallpaper State Path",
-  "30": "persist_monitors.py"
+  "30": "persist_monitors.py",
+  "31": "Guía de Diseño y Estándares UI para Quickshell en Hyprland",
+  "32": "quickshell-design.md"
 }

@@ -90,24 +90,24 @@ QtObject {
     readonly property color shadowColor: "#000000"
 
     // --- Métricas y Dimensiones de la Barra ---
-    readonly property int barHeight: 32
+    readonly property int barHeight: 36
     readonly property int barMarginTop: 6
     readonly property int barMarginBottom: 0
     readonly property int barMarginLeft: 8
     readonly property int barMarginRight: 8
 
     // --- Dimensiones de Cápsulas (Pills) ---
-    readonly property int pillRadius: 10
+    readonly property int pillRadius: 12
     readonly property int pillBorderWidth: 1
-    readonly property int pillPaddingVertical: 2
-    readonly property int pillPaddingHorizontal: 8
-    readonly property int centerPillPaddingHorizontal: 14
+    readonly property int pillPaddingVertical: 3
+    readonly property int pillPaddingHorizontal: 10
+    readonly property int centerPillPaddingHorizontal: 16
 
     // --- Workspaces Tokens (Estilo GNOME: puntos inactivos compactos y cápsula activa alargada) ---
-    readonly property int wsInactiveWidth: 8
+    readonly property int wsInactiveWidth: 7
     readonly property int wsActiveWidth: 16
-    readonly property int wsHeight: 8
-    readonly property int wsRadius: 4
+    readonly property int wsHeight: 7
+    readonly property real wsRadius: 3.5
 
     readonly property color wsActiveColor: highlight           // #78a9ff en default | primary en Matugen
     readonly property color wsOccupiedColor: (isDynamic && dynamicPalette.colors.tertiary)
@@ -130,9 +130,9 @@ QtObject {
 
     // --- Tipografía ---
     readonly property string fontFamily: "JetBrainsMono Nerd Font Propo"
-    readonly property int fontSize: 13
+    readonly property int fontSize: 14
     readonly property int launcherFontSize: 15
-    readonly property int iconSize: 16
+    readonly property int iconSize: 17
 
     // --- Tiempos de Animación ---
     readonly property int animFast: 120

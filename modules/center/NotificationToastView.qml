@@ -97,17 +97,17 @@ Item {
         if (!hasToast) return 100;
         if (root.isExpanded) {
             if (root.isScreenshot) {
-                return 358;
+                return 410;
             }
-            return 330 - (6 * 2); // 318px
+            return 392 - (6 * 2); // 380px
         }
         let baseW = 8 + 16 + 6;
         let urgencyW = (currentToast && currentToast.urgency === 2) ? 11 : 0;
         let appW = appNameText.implicitWidth + 5;
         let colorDotW = (root.isColorPicker && root.pickedColor !== "") ? 16 : 0;
         let dotW = 8 + 5;
-        let msgW = Math.min(240, messageLabel.implicitWidth);
-        return Math.min(380, Math.max(120, Math.round(baseW + urgencyW + appW + colorDotW + dotW + msgW + 8)));
+        let msgW = Math.min(310, messageLabel.implicitWidth);
+        return Math.min(450, Math.max(120, Math.round(baseW + urgencyW + appW + colorDotW + dotW + msgW + 8)));
     }
 
     // Absorbedor de clics cuando está expandida para evitar que pasen a dismissArea

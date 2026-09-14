@@ -9,7 +9,7 @@ import "../../services"
 Item {
     id: root
 
-    implicitWidth: 280
+    implicitWidth: 320
     implicitHeight: contentCol.implicitHeight
     height: implicitHeight
     Layout.fillWidth: true
@@ -533,7 +533,7 @@ Item {
             Text {
                 text: "Bluetooth"
                 font.family: Theme.fontFamily
-                font.pixelSize: 13
+                font.pixelSize: 14
                 font.weight: Font.DemiBold
                 color: Theme.text
                 Layout.alignment: Qt.AlignVCenter
@@ -688,7 +688,7 @@ Item {
                             Layout.fillWidth: true
                             text: ControlCenterService.promptDeviceName || "Bluetooth Device"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: 13
                             font.weight: Font.DemiBold
                             color: Theme.text
                             elide: Text.ElideRight
@@ -698,7 +698,7 @@ Item {
                             Layout.fillWidth: true
                             text: "Pairing Request"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 10
+                            font.pixelSize: 12
                             color: Theme.textMuted
                         }
                     }
@@ -740,7 +740,7 @@ Item {
                           ? "Enter this code on the device"
                           : "Does it match the code on your screen?"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 10
+                    font.pixelSize: 12
                     color: Theme.textSecondary
                     horizontalAlignment: Text.AlignHCenter
                 }
@@ -762,7 +762,7 @@ Item {
                             anchors.centerIn: parent
                             text: "Decline"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             font.weight: Font.Medium
                             color: rejectMouse.containsMouse ? Theme.critical : Theme.textSecondary
                         }
@@ -789,7 +789,7 @@ Item {
                             anchors.centerIn: parent
                             text: "Confirm"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             font.weight: Font.Bold
                             color: Theme.textOnAccent
                         }
@@ -814,7 +814,7 @@ Item {
             implicitHeight: {
                 if (!BluetoothService.isEnabled) return 70;
                 if (root.pairedDevices.length === 0 && root.availableDevices.length === 0) return 70;
-                return Math.min(ControlCenterService.hasPasskeyPrompt ? 140 : 270, scrollCol.implicitHeight);
+                return Math.min(ControlCenterService.hasPasskeyPrompt ? 140 : 305, scrollCol.implicitHeight);
             }
             clip: true
 
@@ -835,7 +835,7 @@ Item {
                     Layout.alignment: Qt.AlignHCenter
                     text: "Bluetooth disabled"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     color: Theme.textSecondary
                 }
             }
@@ -865,7 +865,7 @@ Item {
                     Layout.alignment: Qt.AlignHCenter
                     text: (!root.hasCompletedScan || root.isScanning) ? "Searching for devices..." : "No devices found"
                     font.family: Theme.fontFamily
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     color: Theme.textSecondary
                 }
             }
@@ -895,7 +895,7 @@ Item {
                         Text {
                             text: "Paired devices"
                             font.family: Theme.fontFamily
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             font.weight: Font.DemiBold
                             color: Theme.textSecondary
                             Layout.leftMargin: 4
@@ -947,7 +947,7 @@ Item {
                                             Layout.fillWidth: true
                                             text: modelData.name || modelData.deviceName || modelData.address || "Device"
                                             font.family: Theme.fontFamily
-                                            font.pixelSize: 11
+                                            font.pixelSize: 13
                                             font.weight: modelData.connected ? Font.DemiBold : Font.Normal
                                             color: Theme.text
                                             elide: Text.ElideRight
@@ -959,7 +959,7 @@ Item {
                                             visible: ControlCenterService.connectingMac === modelData.address
                                             text: "Connecting..."
                                             font.family: Theme.fontFamily
-                                            font.pixelSize: 9
+                                            font.pixelSize: 11
                                             color: Theme.wsActiveColor
                                         }
                                     }
@@ -981,14 +981,14 @@ Item {
                                             Text {
                                                 text: "󰁹"
                                                 font.family: Theme.fontFamily
-                                                font.pixelSize: 11
+                                                font.pixelSize: 12
                                                 color: batBadge.batLevel <= 20 ? Theme.critical : (batBadge.batLevel <= 40 ? Theme.warning : Theme.success)
                                             }
 
                                             Text {
                                                 text: `${batBadge.batLevel}%`
                                                 font.family: Theme.fontFamily
-                                                font.pixelSize: 10
+                                                font.pixelSize: 12
                                                 font.weight: Font.DemiBold
                                                 color: Theme.textSecondary
                                             }
@@ -1011,7 +1011,7 @@ Item {
                                         Text {
                                             text: "Connected"
                                             font.family: Theme.fontFamily
-                                            font.pixelSize: 10
+                                            font.pixelSize: 12
                                             font.weight: Font.Medium
                                             color: Theme.textSecondary
                                         }
@@ -1080,7 +1080,7 @@ Item {
                             Text {
                                 text: "Available devices"
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 11
+                                font.pixelSize: 12
                                 font.weight: Font.DemiBold
                                 color: Theme.textSecondary
                                 Layout.leftMargin: 4
@@ -1090,7 +1090,7 @@ Item {
                                 visible: root.isScanning
                                 text: "Searching..."
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 9
+                                font.pixelSize: 11
                                 color: Theme.wsActiveColor
                                 Layout.rightMargin: 4
                             }
@@ -1106,7 +1106,7 @@ Item {
                                 anchors.centerIn: parent
                                 text: (!root.hasCompletedScan || root.isScanning) ? "Searching for devices..." : "No devices nearby"
                                 font.family: Theme.fontFamily
-                                font.pixelSize: 10
+                                font.pixelSize: 12
                                 color: Theme.textSecondary
                             }
                         }
@@ -1151,7 +1151,7 @@ Item {
                                             Layout.fillWidth: true
                                             text: modelData.name || modelData.deviceName || modelData.address || "Device"
                                             font.family: Theme.fontFamily
-                                            font.pixelSize: 11
+                                            font.pixelSize: 13
                                             color: Theme.text
                                             elide: Text.ElideRight
                                         }
@@ -1161,7 +1161,7 @@ Item {
                                             visible: ControlCenterService.connectingMac === modelData.address
                                             text: "Pairing..."
                                             font.family: Theme.fontFamily
-                                            font.pixelSize: 9
+                                            font.pixelSize: 11
                                             color: Theme.wsActiveColor
                                         }
                                     }
@@ -1169,7 +1169,7 @@ Item {
                                     Text {
                                         text: ControlCenterService.connectingMac === modelData.address ? "..." : "Pair"
                                         font.family: Theme.fontFamily
-                                        font.pixelSize: 10
+                                        font.pixelSize: 12
                                         font.weight: Font.Medium
                                         color: availMouse.containsMouse ? Theme.wsActiveColor : Theme.textMuted
                                         Layout.alignment: Qt.AlignVCenter

@@ -11,4 +11,5 @@ SettingsView 1.0 SettingsView.qml
 WallpaperDetailView 1.0 WallpaperDetailView.qml
 DisplayDetailView 1.0 DisplayDetailView.qml
 ThemeDetailView 1.0 ThemeDetailView.qml
+ShortcutsDetailView 1.0 ShortcutsDetailView.qml
 

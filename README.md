@@ -9,13 +9,13 @@ Incorpora una barra superior flotante estilo *Dynamic Island*, lanzador de aplic
 ## ✨ Características Destacadas
 
 - 🎨 **Sistema Dual de Temas (Default vs Material You)**: Alterna al instante entre la elegante paleta original *Obsidian & Accent Blue* (`#78a9ff`) y el modo dinámico generado automáticamente por **Matugen** a partir de tu fondo de pantalla activo.
-- 🔤 **Selector Dinámico de Fuentes**: Detección y aplicación en caliente de tipografías monoespaciadas y Nerd Fonts del sistema (`JetBrains Mono`, `Caskaydia Cove`, `Hack`, etc.) con propagación reactiva instantánea vía `Theme.fontFamily` sin reiniciar el entorno.
+- 🔤 **Tipografía Estandarizada y Glifos Nerd Fonts**: Tipografía monoespaciada `JetBrainsMono Nerd Font Propo` centralizada de alto rendimiento en `Theme.fontFamily` para una renderización impecable de iconos vectoriales y texto.
 - 🔊 **Gestor de Temas de Sonido del Sistema**: Conmutador maestro de efectos sonoros y selector dinámico de paquetes de sonido (`freedesktop`, `ocean`, `breeze`, `oxygen`, `ubuntu`) con preescucha integrada directa.
 - 🏝️ **Isla Dinámica Central (Dynamic Island)**: Metamorfosis fluida entre reloj tipográfico, controles multimedia (MPRIS), notificaciones OSD integradas (volumen/brillo/micrófono), lanzador Spotlight, centro de notificaciones y gestor de portapapeles con espaciado vertical unificado de 32px.
 - 📋 **Portapapeles con Soporte de Imágenes y Fijado (Pin)**: Detección binaria de imágenes con miniaturas reales en la interfaz, inyección nativa en Wayland (`wl-copy --type`), sistema de clips fijados (`Ctrl+P`) y política de expiración programada de 24 horas.
 - 🖼️ **Gestión de Fondos de Pantalla con Doble Buffer**: Transiciones suaves sin saltos de luz ni parpadeos (*zero white flash*), con galería visual en el Centro de Control y soporte multimonitor.
 - 🖥️ **Configuración Multimonitor (Displays)**: Ajuste interactivo de resolución, frecuencia de refresco (Hz), escalado y rotación de pantallas directamente desde el Centro de Control.
-- 🎛️ **Centro de Control Integral**: Toggles de Wi-Fi y Bluetooth con emparejamiento por PIN, sliders contextuales por pantalla, selector de perfiles de energía (Eco, Balance, Turbo), y submenús dedicados (Theme Style con 3 pestañas, Displays, Audio y Wallpapers).
+- 🎛️ **Centro de Control Integral**: Toggles de Wi-Fi y Bluetooth con emparejamiento por PIN, sliders contextuales por pantalla, selector de perfiles de energía (Eco, Balance, Turbo), y submenús dedicados (Theme Style con 2 pestañas, Displays, Audio y Wallpapers).
 - ⌨️ **Navegación Total por Teclado**: Cada panel, submenú y diálogo cuenta con navegación por flechas (`←` / `→` / `↑` / `↓`), `Tab`, `Espacio`, `Enter` y `Esc`.
 - ⚡ **Rendimiento Óptimo**: 0.0% de consumo de CPU adicional en reposo, bindings de QML puros y llamadas asíncronas no bloqueantes.
 
@@ -51,10 +51,9 @@ Apertura fluida desde la isla central con búsqueda instantánea, calculadora ma
 
 #### 🎛️ Centro de Control y Submenús Avanzados
 Panel de control desplegable con accesos directos (Wi-Fi, Bluetooth, Micrófono, Desvelo/Caffeine, Selector de Color y Captura de Pantalla), sliders interactivos de brillo y volumen, selector de perfiles energéticos y submenús dedicados:
-- **🎨 Theme Style**: Subvista modular estructurada en 3 pestañas:
+- **🎨 Theme Style**: Subvista modular estructurada en 2 pestañas:
   - **`[ Colors ]`**: Conmutador entre el motor dinámico **Material You** (paleta extraída del fondo de pantalla mediante Matugen) y el tema oscuro **Obsidian Blue** por defecto.
   - **`[ Sounds ]`**: Conmutador maestro de efectos sonoros para notificaciones/alertas y selector de paquetes de sonido instalados (`Ocean`, `Breeze`, `Oxygen`, `Freedesktop`, `Ubuntu`) con pre-escucha unificada al seleccionar.
-  - **`[ Fonts ]`**: Selector tipográfico dinámico que detecta automáticamente fuentes instaladas y aplica cambios al vuelo a todo el entorno (`Theme.fontFamily`) sin necesidad de reiniciar.
 - **🖥️ Displays**: Subvista modular para gestión multimonitor con selección interactiva de pantallas, cambio de resolución y frecuencia (Hz), ajuste de escala de interfaz y orientación/rotación, equipada con navegación por teclado y botón de retorno unificado.
 - **🖼️ Wallpapers**: Galería visual de fondos de pantalla locales con previsualización en miniatura y transición *cross-dissolve*.
 - **🔊 Sound**: Selección de dispositivos de salida y entrada (sinks/sources) y gestión de volumen por hardware.
@@ -168,7 +167,7 @@ sudo dnf install -y \
 - **`NetworkManager` (`nmcli`) & `bluez` (`bluetoothctl`)**: Gestión de redes y dispositivos Bluetooth.
 
 ### 3. Tipografía e Iconos
-Instala **JetBrainsMono Nerd Font Propo** (o tus Nerd Fonts preferidas como `CaskaydiaCove` o `Hack`) para garantizar la correcta visualización de todos los iconos y disfrutar del selector tipográfico en caliente:
+Instala **JetBrainsMono Nerd Font Propo** para garantizar la correcta visualización de todos los iconos y glifos tipográficos en la barra, centro de control y widgets:
 ```bash
 mkdir -p ~/.local/share/fonts
 cd /tmp
@@ -177,7 +176,7 @@ tar -xf JetBrainsMono.tar.xz -C ~/.local/share/fonts/
 fc-cache -fv
 ```
 > [!TIP]
-> Cualquier fuente monoespaciada o Nerd Font instalada en el sistema será detectada automáticamente y estará disponible de inmediato en la subvista **Settings > Theme Style > Fonts**.
+> La tipografía del entorno está centralizada globalmente en [`theme/Theme.qml`](theme/Theme.qml) (`Theme.fontFamily`). Si deseas cambiar la fuente por defecto a otra Nerd Font instalada (ej. `CaskaydiaCove Nerd Font Propo`), puedes modificar el token `fontFamily` en dicho archivo.
 
 ---
 
@@ -240,7 +239,7 @@ Quickshell expone una API completa por IPC accesible mediante `quickshell ipc ca
 | `theme` | `setMode("default" \| "matugen")`, `toggle()` | Cambia o alterna el modo de tema entre fijo y dinámico. |
 | `sound` | `setTheme(theme)`, `play(sound)` | Asigna el tema de sonido activo del sistema o reproduce una muestra. |
 | `wallpaper` | `next()`, `prev()`, `set(path)`, `scan()` | Navega o asigna un fondo de pantalla con animación suave. |
-| `controlcenter` | `toggle()`, `open()`, `close()`, `openSettings()`, `openAudio()`, `openWallpaper()`, `openDisplays()`, `openTheme()`, `openSounds()` | Controla la apertura del Centro de Control o submenús específicos. |
+| `controlcenter` | `toggle()`, `open()`, `close()`, `openSettings()`, `openAudio()`, `openWallpaper()`, `openDisplays()`, `openTheme()`, `openSounds()`, `openShortcuts()` | Controla la apertura del Centro de Control o submenús específicos. |
 | `launcher` | `toggle()`, `open()`, `close()`, `next()`, `prev()`, `launch()` | Controla el lanzador Spotlight. |
 | `clipboard` | `toggle()`, `open()`, `close()`, `select(idx)`, `togglePin(id)`, `clear()` | Gestiona el historial de portapapeles, fijado de clips (Pin) y selección. |
 | `notifications` | `toggle()`, `open()`, `close()`, `clear()`, `dnd()`, `expand()` | Controla el centro de notificaciones, modo no molestar y expansión de toasts. |

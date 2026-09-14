@@ -399,11 +399,17 @@ Item {
     // Persistir el estado actual en archivo JSON y en ~/.config/hypr/modules/monitors.lua
     function persistConfig() {
         if (!root.monitors || root.monitors.length === 0) return;
-        let jsonStr = JSON.stringify(root.monitors, null, 2).replace(/"/g, '\\"');
+        let jsonStr = JSON.stringify(root.monitors, null, 2);
         let scriptPath = Quickshell.env("HOME") + "/.config/quickshell/scripts/persist_monitors.py";
-        let cmd = "mkdir -p $(dirname " + root.stateFilePath + ") && echo \"" + jsonStr + "\" > " + root.stateFilePath + " && python3 " + scriptPath;
         if (persistProc.running) persistProc.running = false;
-        persistProc.command = ["sh", "-c", cmd];
+        persistProc.command = [
+            "sh", "-c",
+            'mkdir -p "$(dirname "$1")" && printf "%s\\n" "$2" > "$1" && python3 "$3"',
+            "_",
+            root.stateFilePath,
+            jsonStr,
+            scriptPath
+        ];
         persistProc.running = true;
     }
 

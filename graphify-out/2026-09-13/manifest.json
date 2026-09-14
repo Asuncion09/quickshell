@@ -54,9 +54,9 @@
     "semantic_hash": "6d73634a678cf1e1c71930adf80bd1f0"
   },
   "README.md": {
-    "mtime": 1789261050.1295762,
-    "seen": 1789261078.8803763,
-    "ast_hash": "85e4b344d57820a132146732b863cff4",
+    "mtime": 1789355136.0847516,
+    "seen": 1789355209.5169277,
+    "ast_hash": "e048152ac19131f3a0df2eb21005d184",
     "semantic_hash": ""
   },
   "scripts/unused_code_report.md": {
@@ -66,14 +66,14 @@
     "semantic_hash": "da7017866984cb65dba87583990fc3ff"
   },
   "state/power_profile.txt": {
-    "mtime": 1789337087.8476505,
-    "seen": 1789340561.851598,
+    "mtime": 1789351921.4798832,
+    "seen": 1789355209.5169346,
     "ast_hash": "9bdf9bc213e0c26c63f33081dfa5e3b2",
     "semantic_hash": "9bdf9bc213e0c26c63f33081dfa5e3b2"
   },
   "state/wallpaper.txt": {
-    "mtime": 1789341016.7670083,
-    "seen": 1789341659.0781422,
+    "mtime": 1789344321.7950208,
+    "seen": 1789355209.516949,
     "ast_hash": "e5bfda7db470aef15387b1ca8cdaee7a",
     "semantic_hash": ""
   },
@@ -186,8 +186,8 @@
     "semantic_hash": ""
   },
   "state/dynamic_theme.json": {
-    "mtime": 1789341618.5119975,
-    "seen": 1789341659.0781143,
+    "mtime": 1789344322.255168,
+    "seen": 1789355209.5169106,
     "ast_hash": "6a8334b388e442ab91bde04e048bc595",
     "semantic_hash": ""
   },
@@ -210,21 +210,9 @@
     "semantic_hash": ""
   },
   "state/sound_theme.txt": {
-    "mtime": 1789258136.0293233,
-    "seen": 1789258857.2204888,
+    "mtime": 1789342492.8919797,
+    "seen": 1789344215.3378832,
     "ast_hash": "0ae61bd0474e04c9f1195d4baa0213a0",
-    "semantic_hash": ""
-  },
-  "scripts/list_fonts.py": {
-    "mtime": 1789258406.3806064,
-    "seen": 1789258857.220453,
-    "ast_hash": "17b55eadbe8c065324e95a89acc1fcc2",
-    "semantic_hash": ""
-  },
-  "state/font.txt": {
-    "mtime": 1789259084.0510926,
-    "seen": 1789259740.9202192,
-    "ast_hash": "5fe0af1b7a3d40e33384357bb6577b9e",
     "semantic_hash": ""
   },
   "state/sound_enabled.txt": {
