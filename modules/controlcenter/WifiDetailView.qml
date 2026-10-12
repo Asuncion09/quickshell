@@ -526,29 +526,17 @@ Item {
         return "󰤯";
     }
 
-    // --- Manejo de Entrada de Contraseña Inline ---
+    // --- Manejo de Entrada de Contraseña Inline (el campo vive en WifiPasswordCard) ---
     property string selectedSsid: ""
-    property string passwordText: ""
-    property bool showPassword: false
 
     function promptPassword(ssid) {
         root.selectedSsid = ssid;
-        root.passwordText = "";
-        root.showPassword = false;
         ControlCenterService.wifiErrorMessage = "";
-        Qt.callLater(() => passInput.forceActiveFocus());
     }
 
     function cancelPassword() {
         root.selectedSsid = "";
-        root.passwordText = "";
-        root.showPassword = false;
         ControlCenterService.wifiErrorMessage = "";
-    }
-
-    function submitPassword() {
-        if (!root.selectedSsid || !root.passwordText) return;
-        ControlCenterService.connectWifiWithPassword(root.selectedSsid, root.passwordText);
     }
 
     Connections {
@@ -562,7 +550,6 @@ Item {
             if (!ControlCenterService.wifiErrorMessage) {
                 if (root.selectedSsid) root.markSaved(root.selectedSsid);
                 root.selectedSsid = "";
-                root.passwordText = "";
             }
         }
         function onConnectingWifiSsidChanged() {
@@ -571,7 +558,6 @@ Item {
                 root.syncKnownSaved();
                 if (!ControlCenterService.wifiErrorMessage && root.selectedSsid) {
                     root.selectedSsid = "";
-                    root.passwordText = "";
                 }
             }
         }
@@ -723,220 +709,15 @@ Item {
             color: Theme.dividerColor
         }
 
-        // ==========================================
-        // TARJETA DE CONTRASEÑA WI-FI INLINE
-        // ==========================================
-        Rectangle {
-            id: passwordCard
-            Layout.fillWidth: true
-            visible: root.selectedSsid !== ""
-            implicitHeight: passCol.implicitHeight + 20
-            radius: 10
-            color: Theme.surfaceBase
-            border.width: 0
-
-            onVisibleChanged: {
-                if (visible) Qt.callLater(() => passInput.forceActiveFocus());
-            }
-
-            ColumnLayout {
-                id: passCol
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.margins: 12
-                spacing: 10
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
-
-                    Text {
-                        text: "󰌾"
-                        font.family: Theme.fontFamily
-                        font.pixelSize: 18
-                        color: Theme.wsActiveColor
-                        Layout.alignment: Qt.AlignVCenter
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 2
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: root.selectedSsid
-                            font.family: Theme.fontFamily
-                            font.pixelSize: 13
-                            font.weight: Font.DemiBold
-                            color: Theme.text
-                            elide: Text.ElideRight
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: "Enter network password"
-                            font.family: Theme.fontFamily
-                            font.pixelSize: 12
-                            color: Theme.textMuted
-                        }
-                    }
-                }
-
-                // Campo de entrada de contraseña
-                Rectangle {
-                    id: passBox
-                    Layout.fillWidth: true
-                    implicitHeight: 34
-                    radius: 6
-                    color: Theme.bgDark
-                    border.width: passInput.activeFocus ? 1 : (passBoxMouse.containsMouse ? 1 : 0)
-                    border.color: passInput.activeFocus ? Theme.wsActiveColor : Theme.dividerColor
-
-                    MouseArea {
-                        id: passBoxMouse
-                        anchors.fill: parent
-                        anchors.rightMargin: 32
-                        hoverEnabled: true
-                        cursorShape: Qt.IBeamCursor
-                        onClicked: passInput.forceActiveFocus()
-                    }
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 10
-                        anchors.rightMargin: 8
-                        spacing: 6
-
-                        TextInput {
-                            id: passInput
-                            Layout.fillWidth: true
-                            text: root.passwordText
-                            echoMode: root.showPassword ? TextInput.Normal : TextInput.Password
-                            font.family: Theme.fontFamily
-                            font.pixelSize: 13
-                            color: Theme.text
-                            verticalAlignment: TextInput.AlignVCenter
-                            clip: true
-                            selectByMouse: true
-                            mouseSelectionMode: TextInput.SelectCharacters
-                            onTextChanged: root.passwordText = text
-                            onAccepted: root.submitPassword()
-                            Keys.onEscapePressed: event => {
-                                event.accepted = true;
-                                root.selectedSsid = "";
-                                root.passwordText = "";
-                                root.backRequested();
-                            }
-
-                            Text {
-                                text: "Password..."
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 12
-                                color: Theme.textMuted
-                                visible: !passInput.text && !passInput.activeFocus
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        // Botón Mostrar/Ocultar contraseña (Ojo)
-                        Rectangle {
-                            implicitWidth: 24
-                            implicitHeight: 24
-                            radius: 4
-                            color: "transparent"
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: root.showPassword ? "󰈉" : "󰈈"
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 14
-                                color: eyeMouse.containsMouse ? Theme.text : Theme.textMuted
-                            }
-
-                            MouseArea {
-                                id: eyeMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    root.showPassword = !root.showPassword;
-                                    passInput.forceActiveFocus();
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Mensaje de error si la conexión falló
-                Text {
-                    Layout.fillWidth: true
-                    visible: ControlCenterService.wifiErrorMessage !== ""
-                    text: ControlCenterService.wifiErrorMessage
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 12
-                    color: Theme.critical
-                    wrapMode: Text.Wrap
-                }
-
-                // Fila de Botones: Cancelar y Conectar
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
-
-                    Rectangle {
-                        id: cancelBtn
-                        Layout.fillWidth: true
-                        implicitHeight: 30
-                        radius: 6
-                        color: cancelMouse.containsMouse ? Theme.surfaceHover : Theme.bgDark
-                        border.width: 0
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "Cancel"
-                            font.family: Theme.fontFamily
-                            font.pixelSize: 12
-                            color: Theme.textSecondary
-                        }
-
-                        MouseArea {
-                            id: cancelMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.cancelPassword()
-                        }
-                    }
-
-                    Rectangle {
-                        id: connectBtn
-                        Layout.fillWidth: true
-                        implicitHeight: 30
-                        radius: 6
-                        color: Theme.wsActiveColor
-                        border.width: 0
-                        opacity: root.passwordText.length > 0 ? 1.0 : 0.5
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: root.isConnectingNet(root.selectedSsid) ? "Connecting..." : "Connect"
-                            font.family: Theme.fontFamily
-                            font.pixelSize: 12
-                            font.weight: Font.Bold
-                            color: Theme.textOnAccent
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            hoverEnabled: root.passwordText.length > 0
-                            cursorShape: root.passwordText.length > 0 ? Qt.PointingHandCursor : Qt.ArrowCursor
-                            onClicked: {
-                                if (root.passwordText.length > 0) root.submitPassword();
-                            }
-                        }
-                    }
-                }
+        // Tarjeta de contraseña Wi-Fi inline — extraída a wifi/WifiPasswordCard.qml
+        WifiPasswordCard {
+            ssid: root.selectedSsid
+            connecting: root.isConnectingNet(root.selectedSsid)
+            onSubmitRequested: password => ControlCenterService.connectWifiWithPassword(root.selectedSsid, password)
+            onCancelRequested: root.cancelPassword()
+            onBackRequested: {
+                root.cancelPassword();
+                root.backRequested();
             }
         }
 

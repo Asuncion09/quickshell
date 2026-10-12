@@ -1,2 +1,3 @@
 WifiKnownNetworkRow 1.0 WifiKnownNetworkRow.qml
 WifiAvailableNetworkRow 1.0 WifiAvailableNetworkRow.qml
+WifiPasswordCard 1.0 WifiPasswordCard.qml
