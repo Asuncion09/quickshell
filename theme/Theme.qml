@@ -24,6 +24,7 @@ QtObject {
     readonly property color defaultDividerColor: "#262626"       // Divisores ultra-sutiles
     readonly property color defaultCritical: "#ee5396"           // Rosa/Rojo (urgent, error, batería crítica)
     readonly property color defaultWsOccupied: "#42be65"         // Verde esmeralda Waybar para workspaces con ventanas
+    readonly property color defaultMatugenAccent: "#81d3dd"      // Vista previa del acento Material You cuando no hay paleta dinámica
 
     // --- Paleta Reactiva Dual (Conmuta instantáneamente entre Default y Matugen) ---
     readonly property color highlight: isDynamic ? dynamicPalette.colors.primary.dark.color : defaultHighlight

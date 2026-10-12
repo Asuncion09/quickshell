@@ -20,7 +20,7 @@ Item {
 
     readonly property color dynamicPrimary: (Theme.dynamicPalette && Theme.dynamicPalette.colors && Theme.dynamicPalette.colors.primary)
                                             ? Theme.dynamicPalette.colors.primary.dark.color
-                                            : "#81d3dd"
+                                            : Theme.defaultMatugenAccent
 
     onVisibleChanged: {
         root.isKeyNavActive = false;

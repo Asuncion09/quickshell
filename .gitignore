@@ -1,2 +1,9 @@
 __pycache__/
 *.pyc
+
+# Artefactos generados por graphify (análisis de código)
+graphify-out/
+
+# Salidas de perfilado (perf)
+perf.data
+perf.data.old

@@ -218,6 +218,16 @@ Item {
         return false;
     }
 
+    // Fragmentos de shell reutilizados para buscar una conexión guardada o un AP visible
+    // por nombre, normalizando espacios (antes duplicados en connectWifi/disconnect/delete).
+    function nmcliFindConnectionSnippet() {
+        return 'conn=$(LC_ALL=C nmcli -t -f NAME,TYPE connection show 2>/dev/null | while IFS=: read -r name type; do [ "$type" = "802-11-wireless" ] || continue; trimmed=$(echo "$name" | xargs); if [ "$name" = "$target" ] || [ "$trimmed" = "$target" ] || [ "$trimmed" = "$(echo "$target" | xargs)" ]; then echo "$name"; break; fi; done); ';
+    }
+
+    function nmcliFindApSnippet() {
+        return 'air=$(LC_ALL=C nmcli -t -f SSID device wifi list 2>/dev/null | while read -r s; do trimmed=$(echo "$s" | xargs); if [ "$s" = "$target" ] || [ "$trimmed" = "$target" ] || [ "$trimmed" = "$(echo "$target" | xargs)" ]; then echo "$s"; break; fi; done); ';
+    }
+
     function toggleWifi() {
         let turnOn = !NetworkService.isWifiEnabled;
         if (typeof Networking !== "undefined" && Networking.wifiEnabled !== undefined) {
@@ -237,10 +247,10 @@ Item {
         wifiConnProc.command = [
             "sh", "-c",
             'target="$1"; ' +
-            'conn=$(LC_ALL=C nmcli -t -f NAME,TYPE connection show 2>/dev/null | while IFS=: read -r name type; do [ "$type" = "802-11-wireless" ] || continue; trimmed=$(echo "$name" | xargs); if [ "$name" = "$target" ] || [ "$trimmed" = "$target" ] || [ "$trimmed" = "$(echo "$target" | xargs)" ]; then echo "$name"; break; fi; done); ' +
+            root.nmcliFindConnectionSnippet() +
             'if [ -n "$conn" ]; then nmcli connection up id "$conn" && exit 0; fi; ' +
             'nmcli device wifi connect "$target" 2>/dev/null && exit 0; ' +
-            'air=$(LC_ALL=C nmcli -t -f SSID device wifi list 2>/dev/null | while read -r s; do trimmed=$(echo "$s" | xargs); if [ "$s" = "$target" ] || [ "$trimmed" = "$target" ] || [ "$trimmed" = "$(echo "$target" | xargs)" ]; then echo "$s"; break; fi; done); ' +
+            root.nmcliFindApSnippet() +
             'if [ -n "$air" ]; then nmcli device wifi connect "$air" && exit 0; fi; ' +
             'exit 1',
             "sh", ssid
@@ -257,7 +267,7 @@ Item {
             "sh", "-c",
             'target="$1"; pass="$2"; ' +
             'nmcli device wifi connect "$target" password "$pass" 2>/dev/null && exit 0; ' +
-            'air=$(LC_ALL=C nmcli -t -f SSID device wifi list 2>/dev/null | while read -r s; do trimmed=$(echo "$s" | xargs); if [ "$s" = "$target" ] || [ "$trimmed" = "$target" ] || [ "$trimmed" = "$(echo "$target" | xargs)" ]; then echo "$s"; break; fi; done); ' +
+            root.nmcliFindApSnippet() +
             'if [ -n "$air" ]; then nmcli device wifi connect "$air" password "$pass" && exit 0; fi; ' +
             'exit 1',
             "sh", ssid, password
@@ -271,7 +281,7 @@ Item {
         wifiConnProc.command = [
             "sh", "-c",
             'target="$1"; ' +
-            'conn=$(LC_ALL=C nmcli -t -f NAME,TYPE connection show 2>/dev/null | while IFS=: read -r name type; do [ "$type" = "802-11-wireless" ] || continue; trimmed=$(echo "$name" | xargs); if [ "$name" = "$target" ] || [ "$trimmed" = "$target" ] || [ "$trimmed" = "$(echo "$target" | xargs)" ]; then echo "$name"; break; fi; done); ' +
+            root.nmcliFindConnectionSnippet() +
             'if [ -n "$conn" ]; then nmcli connection down id "$conn"; else nmcli connection down id "$target"; fi',
             "sh", ssid
         ];
@@ -283,7 +293,7 @@ Item {
         wifiDeleteProc.command = [
             "sh", "-c",
             'target="$1"; ' +
-            'conn=$(LC_ALL=C nmcli -t -f NAME,TYPE connection show 2>/dev/null | while IFS=: read -r name type; do [ "$type" = "802-11-wireless" ] || continue; trimmed=$(echo "$name" | xargs); if [ "$name" = "$target" ] || [ "$trimmed" = "$target" ] || [ "$trimmed" = "$(echo "$target" | xargs)" ]; then echo "$name"; break; fi; done); ' +
+            root.nmcliFindConnectionSnippet() +
             'if [ -n "$conn" ]; then nmcli connection delete id "$conn"; else nmcli connection delete id "$target"; fi',
             "sh", ssid
         ];
