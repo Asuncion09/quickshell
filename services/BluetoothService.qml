@@ -104,5 +104,33 @@ Item {
         if (isEnabled) return "Bluetooth: On (not connected)";
         return "Bluetooth: Off";
     }
+
+    // Dispositivos escaneados por CLI (bluetoothctl), parseados desde la salida del Process de BluetoothDetailView
+    property var scannedDevices: []
+
+    function setDeviceScan(lines) {
+        let list = [];
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+            if (!line) continue;
+            let parts = line.split("|");
+            if (parts.length >= 4) {
+                let isConn = parts[0] === "yes";
+                let isPaired = parts[1] === "yes";
+                let mac = parts[2].trim();
+                let name = parts.slice(3).join("|").trim();
+                if (mac) {
+                    list.push({
+                        name: name || mac,
+                        deviceName: name || mac,
+                        address: mac,
+                        connected: isConn,
+                        paired: isPaired
+                    });
+                }
+            }
+        }
+        root.scannedDevices = list;
+    }
 }
 

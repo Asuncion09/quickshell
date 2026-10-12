@@ -208,8 +208,7 @@ Item {
         return list;
     }
 
-    // 2. Respaldo CLI directo por bluetoothctl con acumulador de líneas
-    property var cliDevices: []
+    // 2. Respaldo CLI directo por bluetoothctl con acumulador de líneas (el parsing vive en BluetoothService)
     property var _accumulatedLines: []
     property bool isScanning: false
     property bool hasCompletedScan: false
@@ -309,7 +308,7 @@ Item {
             }
         }
         onExited: {
-            root.parseCliLines(root._accumulatedLines);
+            BluetoothService.setDeviceScan(root._accumulatedLines);
             ControlCenterService.refreshBluetoothBatteries();
         }
     }
@@ -318,31 +317,6 @@ Item {
         if (!str) return false;
         let s = str.trim();
         return /^([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}$/.test(s) || /^[0-9a-fA-F]{12}$/.test(s);
-    }
-
-    function parseCliLines(lines) {
-        let list = [];
-        for (let i = 0; i < lines.length; i++) {
-            let line = lines[i];
-            if (!line) continue;
-            let parts = line.split("|");
-            if (parts.length >= 4) {
-                let isConn = parts[0] === "yes";
-                let isPaired = parts[1] === "yes";
-                let mac = parts[2].trim();
-                let name = parts.slice(3).join("|").trim();
-                if (mac) {
-                    list.push({
-                        name: name || mac,
-                        deviceName: name || mac,
-                        address: mac,
-                        connected: isConn,
-                        paired: isPaired
-                    });
-                }
-            }
-        }
-        root.cliDevices = list;
     }
 
     function refreshBtScan() {
@@ -409,8 +383,8 @@ Item {
         let map = new Map();
 
         // 1. Dispositivos CLI
-        for (let i = 0; i < cliDevices.length; i++) {
-            let c = cliDevices[i];
+        for (let i = 0; i < BluetoothService.scannedDevices.length; i++) {
+            let c = BluetoothService.scannedDevices[i];
             if (c && (c.name || c.address)) {
                 let key = (c.address || c.name).toLowerCase();
                 map.set(key, c);

@@ -164,5 +164,47 @@ Item {
         if (isConnected) return "Network: Connected";
         return "Network: Disconnected";
     }
+
+    // Redes escaneadas por CLI (nmcli), parseadas desde la salida del Process de WifiDetailView
+    property var scannedNetworks: []
+
+    function setWifiScan(lines) {
+        let map = new Map();
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+            if (!line) continue;
+            let parts = line.split(":");
+            if (parts.length >= 3) {
+                let isConn = parts[0].trim() === "*";
+                let sec = parts.length > 3 ? parts[parts.length - 1].trim() : "";
+                let sig = parseInt(parts[parts.length > 3 ? parts.length - 2 : 2]) || 50;
+                let ssid = parts.length > 3 ? parts.slice(1, parts.length - 2).join(":") : parts[1];
+
+                if (ssid && ssid.trim() !== "") {
+                    let key = ssid.trim().toLowerCase();
+                    let existing = map.get(key);
+                    let isProt = sec !== "" && sec !== "--";
+                    let item = {
+                        name: ssid,
+                        connected: isConn,
+                        strength: Math.max(0.0, Math.min(1.0, sig / 100.0)),
+                        isProtected: isProt
+                    };
+                    if (!existing || (!existing.connected && isConn) || (item.strength > existing.strength)) {
+                        map.set(key, item);
+                    }
+                }
+            }
+        }
+
+        let list = Array.from(map.values());
+        list.sort((a, b) => {
+            if (a.connected && !b.connected) return -1;
+            if (!a.connected && b.connected) return 1;
+            return (b.strength || 0) - (a.strength || 0);
+        });
+        root.scannedNetworks = list;
+    }
 }
 

@@ -247,8 +247,7 @@ Item {
         return list;
     }
 
-    // 2. Respaldo directo de nmcli por CLI
-    property var cliNetworks: []
+    // 2. Respaldo directo de nmcli por CLI (el parsing vive en NetworkService)
     property var _accumulatedNetLines: []
     property bool isScanning: false
     property bool hasCompletedScan: false
@@ -282,11 +281,11 @@ Item {
             }
         }
         onExited: {
-            root.parseCliLines(root._accumulatedNetLines);
+            NetworkService.setWifiScan(root._accumulatedNetLines);
             ControlCenterService.refreshSavedWifiConnections();
             root.syncKnownSaved();
 
-            if (root.cliNetworks.length > 0 || NetworkService.isConnected) {
+            if (NetworkService.scannedNetworks.length > 0 || NetworkService.isConnected) {
                 root.hasCompletedScan = true;
                 root.isScanning = false;
             } else if (root.scanAttempt < 2 && (Networking.wifiEnabled || NetworkService.isWifiEnabled)) {
@@ -297,45 +296,6 @@ Item {
                 root.isScanning = false;
             }
         }
-    }
-
-    function parseCliLines(lines) {
-        let map = new Map();
-
-        for (let i = 0; i < lines.length; i++) {
-            let line = lines[i];
-            if (!line) continue;
-            let parts = line.split(":");
-            if (parts.length >= 3) {
-                let isConn = parts[0].trim() === "*";
-                let sec = parts.length > 3 ? parts[parts.length - 1].trim() : "";
-                let sig = parseInt(parts[parts.length > 3 ? parts.length - 2 : 2]) || 50;
-                let ssid = parts.length > 3 ? parts.slice(1, parts.length - 2).join(":") : parts[1];
-
-                if (ssid && ssid.trim() !== "") {
-                    let key = ssid.trim().toLowerCase();
-                    let existing = map.get(key);
-                    let isProt = sec !== "" && sec !== "--";
-                    let item = {
-                        name: ssid,
-                        connected: isConn,
-                        strength: Math.max(0.0, Math.min(1.0, sig / 100.0)),
-                        isProtected: isProt
-                    };
-                    if (!existing || (!existing.connected && isConn) || (item.strength > existing.strength)) {
-                        map.set(key, item);
-                    }
-                }
-            }
-        }
-
-        let list = Array.from(map.values());
-        list.sort((a, b) => {
-            if (a.connected && !b.connected) return -1;
-            if (!a.connected && b.connected) return 1;
-            return (b.strength || 0) - (a.strength || 0);
-        });
-        root.cliNetworks = list;
     }
 
     function refreshScan() {
@@ -356,8 +316,8 @@ Item {
         let map = new Map();
 
         // 1. Redes encontradas por escaneo CLI
-        for (let i = 0; i < cliNetworks.length; i++) {
-            let c = cliNetworks[i];
+        for (let i = 0; i < NetworkService.scannedNetworks.length; i++) {
+            let c = NetworkService.scannedNetworks[i];
             if (c && c.name) {
                 map.set(c.name.trim().toLowerCase(), c);
             }
@@ -574,7 +534,7 @@ Item {
             } else {
                 root.stopScan();
                 root.hasCompletedScan = false;
-                root.cliNetworks = [];
+                NetworkService.scannedNetworks = [];
             }
         }
     }
