@@ -364,56 +364,10 @@ Item {
         // ==========================================
         // 1. CABECERA: Volver + Título
         // ==========================================
-        RowLayout {
-            Layout.fillWidth: true
-            implicitHeight: 32
-            spacing: 8
-
-            Rectangle {
-                id: backBtn
-                implicitWidth: 28
-                implicitHeight: 28
-                radius: 14
-                readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === 0
-                color: isKeyFocused ? Theme.surfaceKeyFocus : (backMouse.containsMouse ? Theme.surfaceHover : "transparent")
-                border.width: isKeyFocused ? 1.5 : 0
-                border.color: Theme.highlight
-
-                scale: backMouse.pressed ? 0.90 : 1.0
-                Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                Behavior on border.width { NumberAnimation { duration: 40 } }
-                Behavior on border.color { ColorAnimation { duration: 40 } }
-                Behavior on color { ColorAnimation { duration: backMouse.containsMouse ? Theme.animFast : 40 } }
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "󰅁"
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 15
-                    font.weight: Font.DemiBold
-                    color: (backMouse.containsMouse || backBtn.isKeyFocused) ? Theme.text : Theme.textSecondary
-                    Behavior on color { ColorAnimation { duration: backMouse.containsMouse ? Theme.animFast : 40 } }
-                }
-
-                MouseArea {
-                    id: backMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.backRequested()
-                }
-            }
-
-            Text {
-                text: "Displays"
-                font.family: Theme.fontFamily
-                font.pixelSize: 14
-                font.weight: Font.DemiBold
-                color: Theme.text
-                Layout.alignment: Qt.AlignVCenter
-            }
-
-            Item { Layout.fillWidth: true }
+        DetailHeader {
+            title: "Displays"
+            backFocused: root.isKeyNavActive && root.navIndex === 0
+            onBackRequested: root.backRequested()
         }
 
         // Línea divisoria fina

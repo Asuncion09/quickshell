@@ -1,4 +1,5 @@
 ControlCenter 1.0 ControlCenter.qml
+DetailHeader 1.0 DetailHeader.qml
 QuickToggle 1.0 QuickToggle.qml
 QuickIconButton 1.0 QuickIconButton.qml
 SliderControl 1.0 SliderControl.qml
