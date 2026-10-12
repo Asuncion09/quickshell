@@ -5,6 +5,7 @@ import Quickshell.Networking
 import Quickshell.Io
 import "../../theme"
 import "../../services"
+import "wifi"
 
 Item {
     id: root
@@ -1090,136 +1091,13 @@ Item {
                         Repeater {
                             model: root.savedNetworks
 
-                            delegate: Rectangle {
-                                id: savedItem
-                                Layout.fillWidth: true
-                                implicitHeight: 34
-                                radius: 8
-                                readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === (3 + index)
-                                color: {
-                                    if (modelData.connected) {
-                                        return (savedRowMouse.containsMouse || isKeyFocused) ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.05);
-                                    }
-                                    if (isKeyFocused) return Theme.surfaceKeyFocus;
-                                    return savedRowMouse.containsMouse ? Theme.surfaceHover : "transparent";
-                                }
-                                border.width: isKeyFocused ? 1.5 : (modelData.connected ? 1 : 0)
-                                border.color: isKeyFocused ? (modelData.connected ? Qt.rgba(1, 1, 1, 0.85) : Theme.highlight) : Qt.rgba(1, 1, 1, 0.08)
-
-                                scale: savedRowMouse.pressed ? 0.98 : 1.0
-                                Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                                Behavior on border.width { NumberAnimation { duration: 40 } }
-                                Behavior on border.color { ColorAnimation { duration: 40 } }
-                                Behavior on color { ColorAnimation { duration: savedRowMouse.containsMouse ? Theme.animFast : 40 } }
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 8
-                                    anchors.rightMargin: 8
-                                    spacing: 8
-
-                                    // Icono de señal
-                                    Text {
-                                        text: root.signalIcon(modelData.strength)
-                                        font.family: Theme.fontFamily
-                                        font.pixelSize: 14
-                                        color: modelData.connected ? Theme.wsActiveColor : (savedRowMouse.containsMouse ? Theme.text : Theme.textSecondary)
-                                    }
-
-                                    // Nombre de la red
-                                    ColumnLayout {
-                                        Layout.fillWidth: true
-                                        spacing: 1
-
-                                        Text {
-                                            Layout.fillWidth: true
-                                            text: modelData.name
-                                            font.family: Theme.fontFamily
-                                            font.pixelSize: 13
-                                            font.weight: modelData.connected ? Font.DemiBold : Font.Normal
-                                            color: Theme.text
-                                            elide: Text.ElideRight
-                                        }
-
-                                        Text {
-                                            Layout.fillWidth: true
-                                            visible: root.isConnectingNet(modelData.name)
-                                            text: "Connecting..."
-                                            font.family: Theme.fontFamily
-                                            font.pixelSize: 11
-                                            color: Theme.wsActiveColor
-                                        }
-                                    }
-
-                                    // Estado de conexión (badge con punto esmeralda sutil)
-                                    RowLayout {
-                                        visible: modelData.connected && !root.isConnectingNet(modelData.name)
-                                        spacing: 5
-                                        Layout.alignment: Qt.AlignVCenter
-
-                                        Rectangle {
-                                            width: 6
-                                            height: 6
-                                            radius: 3
-                                            color: Theme.success
-                                        }
-
-                                        Text {
-                                            text: "Connected"
-                                            font.family: Theme.fontFamily
-                                            font.pixelSize: 12
-                                            font.weight: Font.Medium
-                                            color: Theme.textSecondary
-                                        }
-                                    }
-
-                                    // Botón para olvidar / borrar red guardada (󰆴)
-                                    Rectangle {
-                                        id: forgetNetBtn
-                                        implicitWidth: 22
-                                        implicitHeight: 22
-                                        radius: 5
-                                        color: forgetNetMouse.containsMouse ? Theme.surfaceHover : "transparent"
-                                        visible: savedRowMouse.containsMouse || forgetNetMouse.containsMouse
-                                        Layout.alignment: Qt.AlignVCenter
-
-                                        Text {
-                                            anchors.centerIn: parent
-                                            text: "󰆴"
-                                            font.family: Theme.fontFamily
-                                            font.pixelSize: 12
-                                            color: forgetNetMouse.containsMouse ? Theme.critical : Theme.textMuted
-                                        }
-
-                                        MouseArea {
-                                            id: forgetNetMouse
-                                            anchors.fill: parent
-                                            hoverEnabled: true
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: {
-                                                root.forgetSaved(modelData.name);
-                                                ControlCenterService.deleteWifiConnection(modelData.name);
-                                            }
-                                        }
-                                    }
-                                }
-
-                                MouseArea {
-                                    id: savedRowMouse
-                                    anchors.fill: parent
-                                    anchors.rightMargin: forgetNetBtn.visible ? 24 : 0
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        if (root.isConnectingNet(modelData.name)) return;
-                                        root.markSaved(modelData.name);
-                                        if (modelData.connected) {
-                                            ControlCenterService.disconnectWifi(modelData.name);
-                                        } else {
-                                            ControlCenterService.connectWifi(modelData.name);
-                                        }
-                                    }
-                                }
+                            delegate: WifiKnownNetworkRow {
+                                networkData: modelData
+                                icon: root.signalIcon(modelData.strength)
+                                isKeyFocused: root.isKeyNavActive && root.navIndex === (3 + index)
+                                isConnecting: root.isConnectingNet(modelData.name)
+                                onForgetRequested: name => root.forgetSaved(name)
+                                onMarkSavedRequested: name => root.markSaved(name)
                             }
                         }
                     }
@@ -1271,92 +1149,12 @@ Item {
                         Repeater {
                             model: root.availableNetworks
 
-                            delegate: Rectangle {
-                                id: availNetItem
-                                Layout.fillWidth: true
-                                implicitHeight: 34
-                                radius: 8
-                                readonly property bool isKeyFocused: root.isKeyNavActive && root.navIndex === (3 + root.savedNetworks.length + index)
-                                color: isKeyFocused ? Theme.surfaceKeyFocus : (availNetMouse.containsMouse ? Theme.surfaceHover : "transparent")
-                                border.width: isKeyFocused ? 1.5 : 0
-                                border.color: Theme.highlight
-
-                                scale: availNetMouse.pressed ? 0.98 : 1.0
-                                Behavior on scale { NumberAnimation { duration: Theme.animFast } }
-                                Behavior on border.width { NumberAnimation { duration: 40 } }
-                                Behavior on border.color { ColorAnimation { duration: 40 } }
-                                Behavior on color { ColorAnimation { duration: availNetMouse.containsMouse ? Theme.animFast : 40 } }
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 8
-                                    anchors.rightMargin: 8
-                                    spacing: 8
-
-                                    Text {
-                                        text: root.signalIcon(modelData.strength)
-                                        font.family: Theme.fontFamily
-                                        font.pixelSize: 14
-                                        color: availNetMouse.containsMouse ? Theme.text : Theme.textSecondary
-                                    }
-
-                                    ColumnLayout {
-                                        Layout.fillWidth: true
-                                        spacing: 1
-
-                                        Text {
-                                            Layout.fillWidth: true
-                                            text: modelData.name
-                                            font.family: Theme.fontFamily
-                                            font.pixelSize: 13
-                                            color: Theme.text
-                                            elide: Text.ElideRight
-                                        }
-
-                                        Text {
-                                            Layout.fillWidth: true
-                                            visible: root.isConnectingNet(modelData.name)
-                                            text: "Connecting..."
-                                            font.family: Theme.fontFamily
-                                            font.pixelSize: 11
-                                            color: Theme.wsActiveColor
-                                        }
-                                    }
-
-                                    // Candado si está protegida
-                                    Text {
-                                        visible: modelData.isProtected
-                                        text: "󰌾"
-                                        font.family: Theme.fontFamily
-                                        font.pixelSize: 12
-                                        color: Theme.textMuted
-                                        Layout.alignment: Qt.AlignVCenter
-                                    }
-
-                                    Text {
-                                        text: root.isConnectingNet(modelData.name) ? "..." : "Connect"
-                                        font.family: Theme.fontFamily
-                                        font.pixelSize: 12
-                                        font.weight: Font.Medium
-                                        color: availNetMouse.containsMouse ? Theme.wsActiveColor : Theme.textMuted
-                                        Layout.alignment: Qt.AlignVCenter
-                                    }
-                                }
-
-                                MouseArea {
-                                    id: availNetMouse
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        if (root.isConnectingNet(modelData.name)) return;
-                                        if (modelData.isProtected) {
-                                            root.promptPassword(modelData.name);
-                                        } else {
-                                            ControlCenterService.connectWifi(modelData.name);
-                                        }
-                                    }
-                                }
+                            delegate: WifiAvailableNetworkRow {
+                                networkData: modelData
+                                icon: root.signalIcon(modelData.strength)
+                                isKeyFocused: root.isKeyNavActive && root.navIndex === (3 + root.savedNetworks.length + index)
+                                isConnecting: root.isConnectingNet(modelData.name)
+                                onPasswordRequested: name => root.promptPassword(name)
                             }
                         }
                     }
