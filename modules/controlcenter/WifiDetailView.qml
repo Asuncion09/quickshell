@@ -876,7 +876,7 @@ Item {
                             onAccepted: root.submitPassword()
                             Keys.onEscapePressed: event => {
                                 event.accepted = true;
-                                root.selectedSsidForPassword = "";
+                                root.selectedSsid = "";
                                 root.passwordText = "";
                                 root.backRequested();
                             }
